@@ -87,6 +87,23 @@ A user wants to switch between different psalm translations (Coverdale from BCP 
 
 ---
 
+### User Story 6 - Manage Psalm Topics (Admin) (Priority: P2)
+
+An administrator wants to create, edit, and organize thematic psalm topics to help users discover psalms by subject matter.
+
+**Why this priority**: Topic management enables content curation without code deployments. Secondary to core user-facing psalm viewing features.
+
+**Independent Test**: Can be tested by accessing Django admin, creating a new topic, assigning psalms, and verifying it appears in the frontend topic filter.
+
+**Acceptance Scenarios**:
+
+1. **Given** an administrator accesses Django admin, **When** they create a new topic "Lament and Sorrow" with psalms 6, 13, 22, **Then** the topic appears in the frontend topic list
+2. **Given** an administrator edits a topic, **When** they reorder topics using drag-and-drop, **Then** the frontend displays topics in the new order
+3. **Given** an administrator needs to correct a typo, **When** they edit a psalm verse in the admin interface, **Then** the corrected text displays immediately to users
+4. **Given** an administrator wants to review all verses containing "Lord", **When** they apply the "Verses with Lord" filter, **Then** only matching verses appear for bulk editing
+
+---
+
 ### Edge Cases
 
 - What happens when a user requests a psalm number outside the range of 1-150?
@@ -111,11 +128,15 @@ A user wants to switch between different psalm translations (Coverdale from BCP 
 - **FR-008**: System MUST provide navigation between consecutive psalms (next/previous)
 - **FR-009**: System MUST preserve the exact Coverdale translation text as it appears in BCP 2019
 - **FR-010**: System MUST display the complete text of the psalm including any superscriptions or musical directions
-- **FR-011**: System MUST provide predefined, hardcoded thematic categories to help users find psalms by topic (praise, thanksgiving, morning, evening, comfort, etc.) with no admin interface for modification
+- **FR-011**: System MUST provide thematic categories to help users find psalms by topic (praise, thanksgiving, morning, evening, comfort, etc.)
 - **FR-012**: System MUST support both Contemporary and Traditional Language Edition (TLE) versions of the Coverdale Psalter from BCP 2019, where Contemporary uses modern pronouns (you/your) and Traditional uses traditional pronouns (thou/thee)
 - **FR-013**: System MUST allow users to switch between Contemporary and Traditional Language Edition psalm texts
-- **FR-014**: System MUST always display pointing marks (asterisk *) between the first and second half of each verse to indicate the pause point for Anglican chanting
+- **FR-014**: System MUST always display pointing marks (asterisk \*) between the first and second half of each verse to indicate the pause point for Anglican chanting
 - **FR-015**: System MUST remember user preferences for language edition (Contemporary vs Traditional) across sessions
+- **FR-016**: System MUST provide an admin interface for managing psalm topics, including creating, editing, and deleting topic categories
+- **FR-017**: System MUST allow administrators to assign psalms to topics and reorder topics for display priority
+- **FR-018**: System MUST provide an admin interface for editing psalm verse text (Contemporary and Traditional editions) to correct any transcription errors
+- **FR-019**: System MUST allow administrators to filter psalm verses by those containing specific words (e.g., "Lord") for bulk review and editing
 
 ### Key Entities
 
@@ -123,9 +144,10 @@ A user wants to switch between different psalm translations (Coverdale from BCP 
 - **Psalm Verse**: A single numbered verse within a psalm with first and second half-lines for parallelism
 - **Psalm Translation**: A specific version of the Coverdale Psalter (Contemporary or Traditional Language Edition/TLE), distinguished by pronoun usage (you/your vs. thou/thee)
 - **Psalm Range**: A specification of multiple consecutive psalms or verses to be displayed together (e.g., "1-3" or "119:1-32")
-- **Psalm Topic**: A predefined, hardcoded thematic category grouping psalms by subject matter (praise, thanksgiving, morning, evening, penitence, etc.); categories are fixed and not user-modifiable
-- **Pointing**: Musical/chant marks (asterisk *) that indicate the pause point between the first and second half of each verse for singing psalms in Anglican chant; always displayed
+- **Psalm Topic**: A thematic category grouping psalms by subject matter (praise, thanksgiving, morning, evening, penitence, etc.); managed through Django admin interface
+- **Pointing**: Musical/chant marks (asterisk \*) that indicate the pause point between the first and second half of each verse for singing psalms in Anglican chant; always displayed
 - **Latin Title**: Traditional Latin designation for some psalms (e.g., "Deus, Deus meus")
+- **Admin Interface**: Django admin panel for managing psalm topics and editing psalm verse text for corrections
 
 ## Success Criteria _(mandatory)_
 
@@ -139,6 +161,8 @@ A user wants to switch between different psalm translations (Coverdale from BCP 
 - **SC-006**: Users can switch between Contemporary and Traditional Language Edition with text updating in under 1 second
 - **SC-007**: Pointing marks (asterisks) display correctly between the first and second half of every verse for Anglican chanting
 - **SC-008**: Language edition preference (Contemporary vs Traditional) persists across user sessions
+- **SC-009**: Administrators can create a new psalm topic, assign 5 psalms, and reorder topics within 2 minutes using the admin interface
+- **SC-010**: Administrators can correct a psalm verse text error and see the change reflected in the frontend immediately (within 10 seconds with cache clearing)
 
 ## Clarifications
 
@@ -148,7 +172,8 @@ A user wants to switch between different psalm translations (Coverdale from BCP 
 - Q: Pointing marks display behavior? → A: Always display - pointing marks are always visible and cannot be hidden
 - Q: How are the 150 psalms stored and accessed? → A: Psalms are stored in a database
 - Q: Should leader/congregation styling be specified? → A: Not in scope - this is an implementation detail that doesn't need specification
-- Q: How are psalm topic categories created and maintained? → A: No admin panel should exist. All the categories should be hardcoded in the implementation/database
+- Q: How are psalm topic categories created and maintained? → A: Topics are managed through Django admin interface, allowing authorized administrators to create, edit, reorder, and assign psalms to topics without code deployment
+- Q: Can administrators edit psalm text? → A: Yes, the admin interface allows editing of both Contemporary and Traditional edition verse text to correct transcription errors or update translations
 
 ## Assumptions
 
@@ -157,9 +182,11 @@ A user wants to switch between different psalm translations (Coverdale from BCP 
 - Users are primarily accessing psalms for personal devotion, Daily Office prayer, or liturgical planning
 - Many users are familiar with psalm numbering and can navigate by psalm number
 - Some users need thematic access when they don't know specific psalm numbers
-- Psalm topic categories are curated and fixed at implementation time, not dynamically managed
+- Psalm topic categories are curated by administrators through the admin interface, allowing flexibility to add new topics without code deployments
+- Only authorized administrators have access to the Django admin interface for managing topics and editing psalm text
 - Anglican psalm pointing conventions are understood by users (pointing marks always displayed)
 - Users may want to compare traditional pronouns (thou/thee) with contemporary pronouns (you/your)
 - Internet connectivity is available for accessing the application
 - Psalm formatting (verse structure, parallelism) is important for proper reading and chanting
 - The Coverdale translation's distinctive language (e.g., "therefore can I lack nothing" vs. "I shall not want") is valued by BCP 2019 users
+- Transcription errors may exist in psalm text and need to be correctable without database migrations
