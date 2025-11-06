@@ -100,6 +100,21 @@ A user wants to view daily offices for past or future dates to prepare ahead, ca
 
 ---
 
+### User Story 7 - View Family Prayer Offices (Priority: P3)
+
+A user wants to access simplified Family Prayer offices (Family Morning Prayer, Family Midday Prayer, Family Early Evening Prayer, Family Close of Day) designed for praying with children and families.
+
+**Why this priority**: Family Prayer offices are included in BCP 2019 and serve families with young children, but are secondary to traditional offices. They should be accessible but not prominently featured in the primary navigation.
+
+**Independent Test**: Can be tested by accessing any Family Prayer office and verifying simplified liturgical content appropriate for families with children.
+
+**Acceptance Scenarios**:
+
+1. **Given** a user selects a Family Prayer office, **When** they view the service, **Then** it displays with simplified, family-appropriate liturgical content as specified in BCP 2019
+2. **Given** a user views the navigation, **When** they look for office options, **Then** Family Prayer offices appear as secondary options (not in primary navigation)
+
+---
+
 ### Edge Cases
 
 - What happens when the user selects a date outside the range of available liturgical data (e.g., year 2050)?
@@ -108,6 +123,8 @@ A user wants to view daily offices for past or future dates to prepare ahead, ca
 - How does the system display content when multiple commemorations occur on the same day?
 - What happens if scripture reading data is unavailable for a particular translation?
 - How does the system handle the transition between church years (Advent begins the new church year)?
+- What occurs when Bible Gateway API is temporarily unavailable and the passage is not in the cache?
+- How does the system handle rate limiting from Bible Gateway API?
 
 ## Requirements _(mandatory)_
 
@@ -118,6 +135,8 @@ A user wants to view daily offices for past or future dates to prepare ahead, ca
 - **FR-003**: System MUST display Midday Prayer with abbreviated liturgical components: opening, psalms, one scripture reading, and prayers
 - **FR-004**: System MUST display Compline with required liturgical components: confession, psalms, scripture reading, Nunc Dimittis, and night prayers
 - **FR-005**: System MUST assign different psalm readings to Morning Prayer and Evening Prayer for each day
+- **FR-005a**: System MUST support both 30-day Psalter cycle (based on day of month) and 60-day Psalter cycle (based on liturgical calendar)
+- **FR-005b**: System MUST allow users to select between 30-day and 60-day Psalter cycles for psalm assignments
 - **FR-006**: System MUST assign two scripture readings (Old Testament/Apocrypha and New Testament) to each of Morning Prayer and Evening Prayer
 - **FR-007**: System MUST substitute proper readings, psalms, and collects when the liturgical calendar indicates a feast day or holy day
 - **FR-008**: System MUST display appropriate canticles for each office type (e.g., Benedictus for Morning Prayer, Magnificat for Evening Prayer, Nunc Dimittis for Compline)
@@ -128,6 +147,13 @@ A user wants to view daily offices for past or future dates to prepare ahead, ca
 - **FR-013**: System MUST provide navigation between different office types (Morning, Midday, Evening, Compline) while maintaining the same date selection
 - **FR-014**: System MUST calculate and display the correct liturgical season and associated elements for any given date
 - **FR-015**: System MUST follow the Book of Common Prayer 2019 text and rubrics exactly as published
+- **FR-016**: System MUST support multiple Bible translations with ESV as the default, including RSV, KJV, NRSVCE, NABRE, NIV, NASB, and Coverdale Psalter variants
+- **FR-017**: System MUST allow users to select their preferred Bible translation for scripture readings
+- **FR-018**: System MUST provide Family Prayer offices (Family Morning, Midday, Early Evening, Close of Day) as specified in BCP 2019
+- **FR-019**: System MUST present Family Prayer offices as secondary navigation options, not in primary office navigation
+- **FR-020**: System MUST retrieve scripture text from Bible Gateway API as the primary source
+- **FR-021**: System MUST cache retrieved scripture passages in local database to reduce API calls and improve performance
+- **FR-022**: System MUST gracefully handle Bible Gateway API unavailability by serving cached content when available
 
 ### Key Entities
 
@@ -150,8 +176,18 @@ A user wants to view daily offices for past or future dates to prepare ahead, ca
 - **SC-004**: 95% of daily office users successfully complete their prayer service without needing to reference external resources or encounter missing content
 - **SC-005**: System displays liturgical content accurately matching the printed Book of Common Prayer 2019 for any randomly selected date
 - **SC-006**: Users can access offices for dates ranging from at least 2 years in the past to 2 years in the future
-- **SC-007**: All psalm assignments follow the 60-day lectionary cycle or appointed ferial psalms correctly based on the date
+- **SC-007**: All psalm assignments follow either the 30-day or 60-day Psalter cycle (user-selected) or appointed ferial psalms correctly based on the date
 - **SC-008**: System handles all liturgical precedence rules correctly when multiple commemorations or feasts occur on the same date
+
+## Clarifications
+
+### Session 2025-11-06
+
+- Q: Which Bible translation is the default, and what alternatives are supported? → A: ESV is the default translation, with user-selectable alternatives from the 9 supported translations
+- Q: How should Family Prayer offices be prioritized? → A: Secondary UI options per BCP
+- Q: Which Psalter cycles are supported? → A: Support both 30-day and 60-day Psalter cycles with user selection between them
+- Q: What is the scripture text source and connectivity requirement? → A: Bible Gateway is the primary source with local database caching; internet required for new passages
+- Q: Should audio playback features be specified? → A: Audio should not be mentioned in the spec (implementation detail only)
 
 ## Assumptions
 
@@ -159,5 +195,6 @@ A user wants to view daily offices for past or future dates to prepare ahead, ca
 - The application has access to complete psalm texts, scripture readings, and liturgical content from the Book of Common Prayer 2019
 - The liturgical calendar data includes feast days, holy days, and commemorations for the date range being supported
 - Users expect liturgical content to match the printed Book of Common Prayer 2019 exactly
-- Internet connectivity is available for retrieving scripture passages if they are not stored locally
+- Internet connectivity is available for retrieving scripture passages from Bible Gateway API for passages not in the local cache
+- Bible Gateway API remains available and maintains current scripture text and translation offerings
 - The date range of 2 years past to 2 years future provides adequate coverage for typical user needs
