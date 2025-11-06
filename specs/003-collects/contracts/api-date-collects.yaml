@@ -1,0 +1,452 @@
+openapi: 3.0.3
+info:
+  title: Daily Office 2019 - Date-Based Collects API
+  description: |
+    API endpoint for retrieving collects appropriate for a specific liturgical date.
+    Integrates with the churchcal calendar system to map dates to commemorations and their associated collects.
+  version: 1.0.0
+  contact:
+    name: Daily Office 2019
+    url: https://www.dailyoffice2019.com
+
+servers:
+  - url: https://www.dailyoffice2019.com/api/v1
+    description: Production server
+  - url: https://127.0.0.1:8000/api/v1
+    description: Local development server
+
+paths:
+  /collects/date/{year}/{month}/{day}:
+    get:
+      summary: Get collects for a specific date
+      description: |
+        Retrieves the appropriate collect(s) for a given liturgical date based on the
+        ACNA 2019 calendar. Returns the commemoration information along with primary,
+        alternative, and vigil collects if available.
+
+        This endpoint leverages the existing churchcal.calculations.ChurchYear logic
+        to map dates to commemorations, then retrieves associated collects.
+      operationId: getCollectsForDate
+      tags:
+        - Collects
+      parameters:
+        - name: year
+          in: path
+          required: true
+          description: Calendar year (1900-2100)
+          schema:
+            type: integer
+            minimum: 1900
+            maximum: 2100
+            example: 2025
+        - name: month
+          in: path
+          required: true
+          description: Month (1-12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+            example: 12
+        - name: day
+          in: path
+          required: true
+          description: Day of month (1-31)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 31
+            example: 25
+        - name: calendar
+          in: query
+          required: false
+          description: Calendar abbreviation (defaults to ACNA2019)
+          schema:
+            type: string
+            enum: [ACNA2019, TEC]
+            default: ACNA2019
+            example: ACNA2019
+
+      responses:
+        "200":
+          description: Successfully retrieved collects for the date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DateCollectsResponse"
+              examples:
+                christmas:
+                  summary: Christmas Day (Major Feast with Multiple Collects)
+                  value:
+                    date: "2025-12-25"
+                    commemoration:
+                      uuid: "abc-123-def-456"
+                      name: "The Nativity of Our Lord: Christmas Day"
+                      rank: "Principal Feast"
+                      rank_name: "Principal Feast"
+                      color: "White"
+                      additional_color: null
+                      season: "Christmas"
+                    collects:
+                      - uuid: "collect-1-uuid"
+                        title: "The Nativity of Our Lord"
+                        text: "<p>Almighty God, you have given your only-begotten Son...</p>"
+                        traditional_text: "<p>Almighty God, who hast given thine only-begotten Son...</p>"
+                        normalized_text: "Almighty God, you have given your only-begotten Son..."
+                        normalized_traditional_text: "Almighty God, who hast given thine only-begotten Son..."
+                        attribution: "Book of Common Prayer 2019, p. 598"
+                        collect_type:
+                          name: "Collects of the Christian Year"
+                          key: "year"
+                          order: 1
+                        order: 1
+                        number: null
+                        tags:
+                          - name: "Christmas"
+                            key: "christmas"
+                            collect_tag_category:
+                              name: "Season"
+                              key: "season"
+                        metrical_collect: null
+                      - uuid: "collect-2-uuid"
+                        title: "Alternative Christmas Collect"
+                        text: "<p>O God, you make us glad...</p>"
+                        traditional_text: "<p>O God, who makest us glad...</p>"
+                        attribution: "BCP 2019, p. 598"
+                        collect_type:
+                          name: "Collects of the Christian Year"
+                          key: "year"
+                        order: 2
+                        tags:
+                          - name: "Christmas"
+                            key: "christmas"
+                ordinary_sunday:
+                  summary: Ordinary Sunday (Seasonal Collect)
+                  value:
+                    date: "2025-07-13"
+                    commemoration:
+                      uuid: "sunday-uuid"
+                      name: "The Seventh Sunday after Pentecost"
+                      rank: "Sunday"
+                      rank_name: "Sunday"
+                      color: "Green"
+                      season: "Pentecost"
+                    collects:
+                      - uuid: "proper-collect-uuid"
+                        title: "Proper 10"
+                        text: "<p>O Lord, mercifully receive...</p>"
+                        attribution: "BCP 2019, p. 615"
+
+        "400":
+          description: Invalid date parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalid_date:
+                  summary: Invalid date (e.g., February 30)
+                  value:
+                    error: "Invalid date"
+                    detail: "The date 2025-02-30 is not a valid calendar date."
+                    code: "INVALID_DATE"
+                invalid_parameters:
+                  summary: Invalid parameter types
+                  value:
+                    error: "Invalid parameters"
+                    detail: "Year, month, and day must be integers."
+                    code: "INVALID_PARAMETERS"
+
+        "404":
+          description: Commemoration not found for date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                no_commemoration:
+                  summary: Date has no commemoration (shouldn't happen)
+                  value:
+                    error: "Commemoration not found"
+                    detail: "No commemoration found for 2025-12-25 in ACNA2019 calendar."
+                    code: "NO_COMMEMORATION"
+
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                server_error:
+                  summary: Unexpected server error
+                  value:
+                    error: "Internal server error"
+                    detail: "An unexpected error occurred while processing your request."
+                    code: "INTERNAL_ERROR"
+
+components:
+  schemas:
+    DateCollectsResponse:
+      type: object
+      required:
+        - date
+        - commemoration
+        - collects
+      properties:
+        date:
+          type: string
+          format: date
+          description: ISO 8601 date string
+          example: "2025-12-25"
+        commemoration:
+          $ref: "#/components/schemas/Commemoration"
+        collects:
+          type: array
+          description: List of collects for this date (primary, alternative, vigil)
+          items:
+            $ref: "#/components/schemas/Collect"
+          minItems: 0
+          example:
+            -  # Primary collect
+            -  # Alternative collect (optional)
+            -  # Vigil collect (optional)
+
+    Commemoration:
+      type: object
+      required:
+        - uuid
+        - name
+        - rank_name
+        - color
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: Unique identifier for commemoration
+          example: "abc-123-def-456"
+        name:
+          type: string
+          description: Full name of commemoration
+          example: "The Nativity of Our Lord: Christmas Day"
+        rank:
+          type: string
+          description: Rank key (deprecated, use rank_name)
+          example: "Principal Feast"
+        rank_name:
+          type: string
+          description: Human-readable rank name
+          example: "Principal Feast"
+        color:
+          type: string
+          description: Primary liturgical color
+          enum: [White, Red, Green, Purple, Blue, Black, Rose, Gold]
+          example: "White"
+        additional_color:
+          type: string
+          nullable: true
+          description: Secondary color option
+          example: null
+        alternate_color:
+          type: string
+          nullable: true
+          description: Alternate color (e.g., Blue for Advent)
+          example: "Blue"
+        season:
+          type: string
+          description: Liturgical season
+          example: "Christmas"
+
+    Collect:
+      type: object
+      required:
+        - uuid
+        - title
+        - text
+        - collect_type
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: Unique identifier
+          example: "collect-uuid-123"
+        title:
+          type: string
+          description: Collect name/title
+          example: "Collect for Purity"
+        text:
+          type: string
+          description: Contemporary language HTML text
+          example: "<p>Almighty God, to you all hearts are open...</p>"
+        traditional_text:
+          type: string
+          nullable: true
+          description: Traditional (thee/thou) language HTML text
+          example: "<p>Almighty God, unto whom all hearts are open...</p>"
+        normalized_text:
+          type: string
+          nullable: true
+          description: Plain text version for search (contemporary)
+          example: "Almighty God, to you all hearts are open..."
+        normalized_traditional_text:
+          type: string
+          nullable: true
+          description: Plain text version for search (traditional)
+          example: "Almighty God, unto whom all hearts are open..."
+        attribution:
+          type: string
+          nullable: true
+          description: Historical source or BCP page reference
+          example: "Thomas Cranmer, 1549 | BCP 2019, p. 598"
+        collect_type:
+          $ref: "#/components/schemas/CollectType"
+        order:
+          type: integer
+          description: Display order within type
+          example: 1
+        number:
+          type: integer
+          nullable: true
+          description: Collect number if applicable
+          example: null
+        tags:
+          type: array
+          description: Multi-dimensional tags
+          items:
+            $ref: "#/components/schemas/CollectTag"
+        metrical_collect:
+          $ref: "#/components/schemas/MetricalCollect"
+          nullable: true
+        metrical_collect_2:
+          $ref: "#/components/schemas/MetricalCollect"
+          nullable: true
+        metrical_collect_3:
+          $ref: "#/components/schemas/MetricalCollect"
+          nullable: true
+
+    CollectType:
+      type: object
+      required:
+        - name
+        - key
+      properties:
+        name:
+          type: string
+          description: Display name
+          example: "Collects of the Christian Year"
+        key:
+          type: string
+          description: Programmatic key
+          enum: [year, occasional, office_prayers, burial_rite, other]
+          example: "year"
+        order:
+          type: integer
+          description: Display order
+          example: 1
+
+    CollectTag:
+      type: object
+      required:
+        - name
+        - key
+      properties:
+        name:
+          type: string
+          description: Tag display name
+          example: "Christmas"
+        key:
+          type: string
+          description: Tag key
+          example: "christmas"
+        collect_tag_category:
+          $ref: "#/components/schemas/CollectTagCategory"
+
+    CollectTagCategory:
+      type: object
+      required:
+        - name
+        - key
+      properties:
+        name:
+          type: string
+          description: Category name
+          example: "Season"
+        key:
+          type: string
+          description: Category key
+          enum: [source, theme, season, commemoration_type, liturgy]
+          example: "season"
+        order:
+          type: integer
+          description: Display order
+          example: 3
+
+    MetricalCollect:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        tune_name:
+          type: string
+          nullable: true
+          example: "GENEVAN 42"
+        first_line:
+          type: string
+          nullable: true
+          example: "Almighty God, to thee we raise"
+        pdf_link:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://example.com/sheet-music.pdf"
+        site_link:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://hymnary.org/tune/genevan_42"
+        midi_link:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://example.com/audio.mid"
+        lyrics:
+          type: string
+          nullable: true
+          description: Full metrical lyrics
+        text_source:
+          type: string
+          nullable: true
+          example: "Book of Praise, 1997"
+        tune_source:
+          type: string
+          nullable: true
+          example: "Genevan Psalter, 1551"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Invalid date"
+        detail:
+          type: string
+          description: Detailed error explanation
+          example: "The date 2025-02-30 is not a valid calendar date."
+        code:
+          type: string
+          description: Machine-readable error code
+          enum:
+            - INVALID_DATE
+            - INVALID_PARAMETERS
+            - NO_COMMEMORATION
+            - INTERNAL_ERROR
+          example: "INVALID_DATE"
+
+tags:
+  - name: Collects
+    description: Operations related to collects (prayers) from the Book of Common Prayer 2019
