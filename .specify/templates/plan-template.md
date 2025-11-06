@@ -29,9 +29,47 @@
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-[Gates determined based on constitution file]
+### Principle I: Glory to God
+
+- [ ] Feature enhances prayer, scripture engagement, or accessibility
+- [ ] Feature serves the spiritual purpose of the Daily Office
+- [ ] Technical decisions prioritize user spiritual experience over elegance
+
+### Principle II: Feature Branch Development
+
+- [ ] Feature branch created with format: `###-feature-name`
+- [ ] Unique identifier assigned and documented
+- [ ] No direct commits to main branch planned
+
+### Principle III: Comprehensive Testing (NON-NEGOTIABLE)
+
+- [ ] Test plan includes 100% function coverage goal
+- [ ] Unit tests planned for all new functions/methods
+- [ ] Integration tests planned for component interactions
+- [ ] End-to-end tests planned for critical user journeys
+- [ ] Test-first approach confirmed (tests before implementation)
+
+### Principle IV: Code Quality and Clarity
+
+- [ ] No "hacks" or workarounds planned
+- [ ] Code formatting standards identified (Black/ESLint)
+- [ ] Pre-commit hooks will be used
+- [ ] Any complexity is justified and documented
+
+### Principle V: Atomic and Traceable Commits
+
+- [ ] Commit strategy ensures atomic, reviewable changes
+- [ ] Traceability plan: Code → Task ID → Requirement ID
+- [ ] Code comments will reference task/requirement IDs
+
+### Principle VI: Unique and Persistent Identifiers
+
+- [ ] Requirements use FR-###, NFR-###, SC-### format
+- [ ] Tasks use T### format
+- [ ] User Stories use US# format
+- [ ] All IDs are unique and will not be reused
 
 ## Project Structure
 
@@ -48,6 +86,7 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
+
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
   for this feature. Delete unused options and expand the chosen structure with
@@ -98,7 +137,7 @@ directories captured above]
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
+| -------------------------- | ------------------ | ------------------------------------ |
+| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |
