@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "Liturgical Calendar: A Calendar showing the liturgical significance of each day of the year"
 
+## Clarifications
+
+### Session 2025-11-06
+
+- Q: When filtering is OFF (Show Major Feasts Only), which commemorations should be displayed vs. hidden? → A: When filtering OFF, show only required commemorations (rank.required=True); all other dates show season color only
+- Q: How does the system handle calendar year requests that span two liturgical church years (which begin at Advent)? → A: Calendar supports any calendar year by combining two overlapping church years (Advent-based); cache separately
+- Q: When and how is the liturgical color blue used in the BCP 2019 calendar? → A: Blue is an alternate color option for Advent season only (traditional purple is primary); churches may choose
+- Q: What are the rules for transferring feasts when multiple required commemorations fall on the same date? → A: When 2+ required commemorations conflict, keep highest precedence; transfer lower-ranked to next day (unless Sunday/privileged season)
+- Q: How does the system handle First Vespers (Evening Prayer on the eve of major feasts)? → A: Major feasts (precedence ≤4, non-privileged) have First Vespers on evening before; previous day shows "Eve of [Feast]"
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - View Current Month Calendar (Priority: P1)
@@ -89,8 +99,8 @@ A user wants to see additional information about a feast day, saint, or commemor
 
 ### Edge Cases
 
-- What happens when multiple feasts occur on the same day (e.g., a major feast and a saint's day)?
-- How does the system display transferred feasts (when a feast is moved due to Sunday or another major feast)?
+- What happens when multiple feasts occur on the same day (e.g., a major feast and a saint's day)? **Resolved**: System applies precedence rules; highest-ranked commemoration is observed on the original date, lower-ranked commemorations are transferred to the next available day (see FR-009)
+- How does the system display transferred feasts (when a feast is moved due to Sunday or another major feast)? **Resolved**: Transferred feasts appear on their observed date with their original rank and are marked as transferred
 - What occurs when viewing February in a leap year vs. non-leap year?
 - How does the calendar handle the transition from one church year to the next (Advent marks the beginning)?
 - What happens when a moveable feast (like Easter) falls on different dates in different years?
@@ -102,30 +112,32 @@ A user wants to see additional information about a feast day, saint, or commemor
 ### Functional Requirements
 
 - **FR-001**: System MUST display a monthly calendar view showing all dates with liturgical significance
-- **FR-002**: System MUST color-code each calendar date based on the liturgical season or feast day color (red, white, green, purple, blue, rose, black)
+- **FR-002**: System MUST color-code each calendar date based on the liturgical season or feast day color (red, white, green, purple, rose, black). Blue (Sarum blue) is available as an alternate color for Advent season, with traditional purple as the primary color
 - **FR-003**: System MUST display feast names, holy days, and commemorations on the appropriate dates
 - **FR-004**: System MUST follow the Book of Common Prayer 2019 liturgical calendar including all Principal Feasts, Sundays, Holy Days, and commemorations
 - **FR-005**: System MUST calculate moveable feasts correctly (Easter-dependent dates like Ascension, Pentecost, Trinity Sunday)
 - **FR-006**: System MUST allow users to navigate between months (previous/next navigation)
 - **FR-007**: System MUST allow users to jump to the current month with a single action
 - **FR-008**: System MUST handle feast day precedence correctly when multiple commemorations fall on the same date
-- **FR-009**: System MUST display transferred feasts on their observed date, not just their nominal date
+- **FR-009**: System MUST display transferred feasts on their observed date, not just their nominal date. When multiple required commemorations fall on the same date, the system keeps the commemoration with the highest precedence rank and transfers lower-ranked commemorations to the next available day. Sundays and commemorations during privileged seasons (Advent, Lent, Holy Week, Eastertide) are never displaced. Transferred commemorations retain their rank but are marked as transferred
 - **FR-010**: System MUST show the liturgical season for any given date (Advent, Christmas, Epiphany, Lent, Easter, Pentecost/Ordinary Time)
 - **FR-011**: System MUST allow users to click on any date to navigate to related content (Daily Office for that date)
-- **FR-012**: System MUST support filtering to show only major feasts and hide minor commemorations
+- **FR-012**: System MUST support filtering to show only major feasts and hide minor commemorations. When filtering is OFF (Show Major Feasts Only), the system displays only commemorations with rank.required=True; all other dates display the liturgical season color without feast text. When filtering is ON (Show All Feasts), the system displays all commemorations including optional ones (rank.required=False)
 - **FR-013**: System MUST correctly handle leap years (February 29) and its liturgical assignment
 - **FR-014**: System MUST display Sundays with their proper liturgical designation (e.g., "2nd Sunday of Advent", "Easter Day")
 - **FR-015**: System MUST indicate when multiple commemorations occur on the same day and show the order of precedence
+- **FR-016**: System MUST support First Vespers (Evening Prayer) for major feasts with precedence rank ≤4 that are not during privileged observances. The evening before such a feast is designated "Eve of [Feast Name]" and uses the liturgical season and color of the upcoming feast. Evening Prayer collects may differ from Morning Prayer collects for the same commemoration
 
 ### Key Entities
 
-- **Calendar Day**: A specific date with its liturgical season, color, and any associated commemorations
+- **Calendar Day**: A specific date with its liturgical season, color, and any associated commemorations. Each day may have separate morning and evening commemorations, particularly when a major feast has First Vespers (evening before the feast)
 - **Liturgical Season**: One of the major seasons of the church year (Advent, Christmas, Epiphany, Lent, Easter, Pentecost/Ordinary Time) with associated colors and characteristics
 - **Commemoration**: A feast, holy day, saint's day, or other liturgical observance occurring on a specific date with an assigned rank
 - **Commemoration Rank**: The level of importance of a feast or commemoration (Principal Feast, Sunday, Holy Day, Feast, Major Holy Day, etc.)
-- **Liturgical Color**: The color associated with a season or feast (red, white, green, purple, blue, rose, black) used for vestments and altar hangings
+- **Liturgical Color**: The color associated with a season or feast (red, white, green, purple, rose, black, and optionally blue for Advent) used for vestments and altar hangings. Each commemoration or season may have a primary color and one or more alternate colors
 - **Moveable Feast**: A feast or holy day whose date changes each year based on the date of Easter (e.g., Ascension Day, Pentecost)
-- **Church Year**: The annual cycle of liturgical seasons beginning with Advent
+- **Church Year**: The annual cycle of liturgical seasons beginning with Advent and ending the day before the next Advent. Identified by the calendar year in which Advent begins (e.g., "Church Year 2024" runs from Advent 2024 through November 2025)
+- **Calendar Year**: A standard January-December year that spans portions of two Church Years. The system constructs Calendar Year data by combining the relevant portions of two consecutive Church Years
 
 ## Success Criteria _(mandatory)_
 
@@ -138,7 +150,7 @@ A user wants to see additional information about a feast day, saint, or commemor
 - **SC-005**: 90% of users can identify upcoming major feasts within the next two weeks by viewing the calendar
 - **SC-006**: System correctly handles feast day precedence for all dates, matching the precedence rules in BCP 2019
 - **SC-007**: Users can toggle between full calendar (all commemorations) and filtered calendar (major feasts only) with immediate visual update
-- **SC-008**: Calendar supports viewing dates from at least 2 years past to 5 years future
+- **SC-008**: Calendar supports viewing dates from at least 2 years past to 5 years future. The system generates calendar year data by combining two overlapping church years (Advent-based) and caches each church year separately for performance
 
 ## Assumptions
 
