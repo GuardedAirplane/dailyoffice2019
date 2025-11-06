@@ -1,0 +1,377 @@
+openapi: 3.0.3
+info:
+  title: Psalter API
+  description: |
+    REST API for accessing psalms from the Book of Common Prayer 2019 Psalter.
+    Supports both Contemporary and Traditional Language Edition (TLE) translations.
+
+    **Specification**: See `/specs/004-psalter/spec.md`
+    **Data Model**: See `/specs/004-psalter/data-model.md`
+  version: 1.0.0
+  contact:
+    name: Daily Office 2019
+    url: https://github.com/your-repo/dailyoffice2019
+
+servers:
+  - url: https://api.dailyoffice2019.com
+    description: Production API
+  - url: https://127.0.0.1:8000
+    description: Local development
+
+tags:
+  - name: Psalms
+    description: Access individual psalms and psalm collections
+  - name: Topics
+    description: Thematic categorization of psalms
+
+paths:
+  /api/v1/psalms:
+    get:
+      summary: List all psalms
+      description: |
+        Returns all 150 psalms with their first verse and associated topics.
+        Supports filtering psalms by topic via query parameters.
+
+        **Requirements**: FR-002, FR-011, US2
+      operationId: listPsalms
+      tags:
+        - Psalms
+      parameters:
+        - name: topic
+          in: query
+          description: Filter psalms by topic ID
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful response with all psalms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PsalmSummary"
+              example:
+                - id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                  number: 1
+                  latin_title: "Beatus vir qui non abiit"
+                  verses:
+                    - id: "b2c3d4e5-f6g7-8901-bcde-f12345678901"
+                      number: 1
+                      first_half: "Blessed is the one who does not walk in the counsel of the wicked,"
+                      second_half: "nor stand in the way of sinners, nor sit in the seat of mockers."
+                      first_half_tle: "Blessed is the man who hath not walked in the counsel of the ungodly,"
+                      second_half_tle: "nor stood in the way of sinners, and hath not sat in the seat of the scornful."
+                  topics:
+                    - id: "c3d4e5f6-g7h8-9012-cdef-123456789012"
+                      topic_name: "Righteousness and Wicked"
+                - id: "d4e5f6g7-h8i9-0123-defg-234567890123"
+                  number: 23
+                  latin_title: "Dominus regit me"
+                  verses:
+                    - id: "e5f6g7h8-i9j0-1234-efgh-345678901234"
+                      number: 1
+                      first_half: "The Lord is my shepherd,"
+                      second_half: "therefore can I lack nothing."
+                      first_half_tle: "The Lord is my shepherd,"
+                      second_half_tle: "therefore can I lack nothing."
+                  topics:
+                    - id: "f6g7h8i9-j0k1-2345-fghi-456789012345"
+                      topic_name: "Comfort and Trust"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/psalms/{number}:
+    get:
+      summary: Get a single psalm
+      description: |
+        Returns a complete psalm with all verses in both Contemporary and Traditional editions.
+        Accepts psalm number (1-150) or UUID.
+
+        **Requirements**: FR-002, FR-003, FR-004, FR-005, FR-009, FR-010, FR-012
+        **Success Criteria**: SC-001 (load in <2 seconds), SC-002 (exact BCP 2019 text)
+      operationId: getPsalm
+      tags:
+        - Psalms
+      parameters:
+        - name: number
+          in: path
+          description: Psalm number (1-150) or UUID
+          required: true
+          schema:
+            oneOf:
+              - type: integer
+                minimum: 1
+                maximum: 150
+              - type: string
+                format: uuid
+          examples:
+            byNumber:
+              value: 23
+              summary: By psalm number
+            byUuid:
+              value: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+              summary: By UUID
+      responses:
+        "200":
+          description: Successful response with complete psalm
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PsalmDetail"
+              example:
+                id: "d4e5f6g7-h8i9-0123-defg-234567890123"
+                number: 23
+                latin_title: "Dominus regit me"
+                verses:
+                  - id: "e5f6g7h8-i9j0-1234-efgh-345678901234"
+                    number: 1
+                    first_half: "The Lord is my shepherd,"
+                    second_half: "therefore can I lack nothing."
+                    first_half_tle: "The Lord is my shepherd,"
+                    second_half_tle: "therefore can I lack nothing."
+                  - id: "f6g7h8i9-j0k1-2345-fghi-456789012345"
+                    number: 2
+                    first_half: "He makes me lie down in green pastures"
+                    second_half: "and leads me beside still waters."
+                    first_half_tle: "He shall feed me in a green pasture"
+                    second_half_tle: "and lead me forth beside the waters of comfort."
+                  - id: "g7h8i9j0-k1l2-3456-ghij-567890123456"
+                    number: 3
+                    first_half: "He restores my soul"
+                    second_half: "and guides me in paths of righteousness for his name's sake."
+                    first_half_tle: "He shall convert my soul"
+                    second_half_tle: "and bring me forth in the paths of righteousness for his Name's sake."
+                topics:
+                  - id: "f6g7h8i9-j0k1-2345-fghi-456789012345"
+                    topic_name: "Comfort and Trust"
+                  - id: "h8i9j0k1-l2m3-4567-hijk-678901234567"
+                    topic_name: "Morning Prayer"
+        "404":
+          description: Psalm not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Psalm not found"
+                detail: "No psalm exists with number 151"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/psalms/topics/:
+    get:
+      summary: List all psalm topics
+      description: |
+        Returns all predefined psalm topics in display order.
+        Topics are hardcoded and immutable (FR-011: no admin interface).
+
+        **Requirements**: FR-011, US4
+      operationId: listTopics
+      tags:
+        - Topics
+      responses:
+        "200":
+          description: Successful response with all topics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PsalmTopic"
+              example:
+                - id: "c3d4e5f6-g7h8-9012-cdef-123456789012"
+                  topic_name: "Praise and Thanksgiving"
+                  order: 1
+                - id: "f6g7h8i9-j0k1-2345-fghi-456789012345"
+                  topic_name: "Morning Prayer"
+                  order: 2
+                - id: "h8i9j0k1-l2m3-4567-hijk-678901234567"
+                  topic_name: "Evening Prayer"
+                  order: 3
+                - id: "i9j0k1l2-m3n4-5678-ijkl-789012345678"
+                  topic_name: "Penitence and Forgiveness"
+                  order: 4
+                - id: "j0k1l2m3-n4o5-6789-jklm-890123456789"
+                  topic_name: "Comfort and Trust"
+                  order: 5
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  schemas:
+    PsalmSummary:
+      type: object
+      description: |
+        Abbreviated psalm representation for list views.
+        Includes only the first verse for preview.
+      required:
+        - id
+        - number
+        - verses
+        - topics
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        number:
+          type: integer
+          minimum: 1
+          maximum: 150
+          description: Psalm number (1-150)
+          example: 23
+        latin_title:
+          type: string
+          nullable: true
+          description: Traditional Latin designation (if applicable)
+          example: "Dominus regit me"
+        verses:
+          type: array
+          description: First verse only (for preview)
+          minItems: 1
+          maxItems: 1
+          items:
+            $ref: "#/components/schemas/PsalmVerse"
+        topics:
+          type: array
+          description: Thematic categories this psalm belongs to
+          items:
+            $ref: "#/components/schemas/PsalmTopic"
+
+    PsalmDetail:
+      type: object
+      description: |
+        Complete psalm representation with all verses.
+        Includes both Contemporary and Traditional Language Edition (TLE) text.
+      required:
+        - id
+        - number
+        - verses
+        - topics
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier
+          example: "d4e5f6g7-h8i9-0123-defg-234567890123"
+        number:
+          type: integer
+          minimum: 1
+          maximum: 150
+          description: Psalm number (1-150)
+          example: 23
+        latin_title:
+          type: string
+          nullable: true
+          description: Traditional Latin designation (if applicable)
+          example: "Dominus regit me"
+        verses:
+          type: array
+          description: All verses in the psalm
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PsalmVerse"
+        topics:
+          type: array
+          description: Thematic categories this psalm belongs to
+          items:
+            $ref: "#/components/schemas/PsalmTopic"
+
+    PsalmVerse:
+      type: object
+      description: |
+        A single verse within a psalm, with first and second half-lines for parallelism.
+        Contains both Contemporary (default) and Traditional Language Edition (TLE) text.
+        Pointing mark (*) is added at display time between first_half and second_half.
+      required:
+        - id
+        - number
+        - first_half
+        - second_half
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier
+          example: "e5f6g7h8-i9j0-1234-efgh-345678901234"
+        number:
+          type: integer
+          minimum: 1
+          description: Verse number within the psalm
+          example: 1
+        first_half:
+          type: string
+          description: First half-line (Contemporary edition)
+          example: "The Lord is my shepherd,"
+        second_half:
+          type: string
+          description: Second half-line (Contemporary edition)
+          example: "therefore can I lack nothing."
+        first_half_tle:
+          type: string
+          nullable: true
+          description: First half-line (Traditional Language Edition)
+          example: "The Lord is my shepherd,"
+        second_half_tle:
+          type: string
+          nullable: true
+          description: Second half-line (Traditional Language Edition)
+          example: "therefore can I lack nothing."
+
+    PsalmTopic:
+      type: object
+      description: |
+        A thematic category grouping related psalms.
+        Topics are predefined and hardcoded (FR-011: no admin interface).
+      required:
+        - id
+        - topic_name
+        - order
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier
+          example: "c3d4e5f6-g7h8-9012-cdef-123456789012"
+        topic_name:
+          type: string
+          description: Display name of the topic
+          example: "Praise and Thanksgiving"
+        order:
+          type: integer
+          description: Display order (for sorting)
+          example: 1
+
+    Error:
+      type: object
+      description: Standard error response
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: High-level error message
+          example: "Psalm not found"
+        detail:
+          type: string
+          description: Detailed error explanation
+          example: "No psalm exists with number 151"
+
+  responses:
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: "Internal server error"
+            detail: "An unexpected error occurred while processing your request"
+
+  securitySchemes: {} # No authentication required for public API
+
+security: [] # Public endpoints, no authentication needed
