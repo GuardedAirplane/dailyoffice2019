@@ -1,0 +1,25 @@
+{
+  "name": "better-bcp",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      "USERNAME": "devcontainer",
+      "USER_UID": "1000",
+      "USER_GID": "1000"
+    }
+  },
+  "remoteUser": "devcontainer",
+  "mounts": [
+    "source=${localEnv:HOME},target=/home/devcontainer,type=bind,consistency=cached"
+  ],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "fish"
+      },
+      "extensions": ["openai.chatgpt"]
+    }
+  },
+  "postCreateCommand": "sudo service postgresql start && sudo service memcached start"
+}
