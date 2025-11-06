@@ -1,0 +1,481 @@
+openapi: 3.0.3
+info:
+  title: Daily Office 2019 - Liturgical Calendar API
+  description: |
+    API for accessing liturgical calendar data from the Book of Common Prayer 2019.
+    Provides daily commemorations, feast days, seasons, and liturgical colors.
+  version: 1.0.0
+  contact:
+    name: Daily Office 2019
+    url: https://dailyoffice2019.com
+
+servers:
+  - url: https://api.dailyoffice2019.com/api/v1
+    description: Production API
+  - url: https://127.0.0.1:8000/api/v1
+    description: Local development
+
+tags:
+  - name: calendar
+    description: Liturgical calendar operations
+
+paths:
+  /calendar/{year}-{month}:
+    get:
+      summary: Get all days for a specific month
+      description: |
+        Returns liturgical information for all days in the specified month.
+        Automatically handles calendar years that span two church years.
+      operationId: getMonth
+      tags:
+        - calendar
+      parameters:
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 2018
+            maximum: 2030
+          description: Four-digit year (e.g., 2024)
+          example: 2024
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: Month number (1-12)
+          example: 12
+        - name: calendar
+          in: query
+          required: false
+          schema:
+            type: string
+            default: ACNA_BCP2019
+          description: Calendar system identifier
+          example: ACNA_BCP2019
+      responses:
+        "200":
+          description: Successful response with array of days
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Day"
+              examples:
+                advent_month:
+                  summary: December with First Vespers
+                  value:
+                    - date: "2024-12-24"
+                      season:
+                        name: "Advent"
+                        colors: ["purple", "blue"]
+                      evening_season:
+                        name: "Christmastide"
+                        colors: ["white"]
+                      commemorations:
+                        - name: "Advent Feria"
+                          colors: ["purple", "blue"]
+                          rank:
+                            name: "FERIA"
+                            formatted_name: "Feria"
+                            precedence_rank: 8
+                            required: false
+                      evening_commemorations:
+                        - name: "Eve of The Nativity of Our Lord Jesus Christ: Christmas Day"
+                          colors: ["white"]
+                          rank:
+                            name: "PRINCIPAL_FEAST"
+                            formatted_name: "Principal Feast"
+                            precedence_rank: 1
+                            required: true
+                      major_feast: null
+                      major_or_minor_feast: null
+                      evening_major_feast: "Eve of The Nativity of Our Lord Jesus Christ: Christmas Day"
+                      has_first_vespers: true
+                      proper: null
+                    - date: "2024-12-25"
+                      season:
+                        name: "Christmastide"
+                        colors: ["white"]
+                      commemorations:
+                        - name: "The Nativity of Our Lord Jesus Christ: Christmas Day"
+                          colors: ["white"]
+                          rank:
+                            name: "PRINCIPAL_FEAST"
+                            formatted_name: "Principal Feast"
+                            precedence_rank: 1
+                            required: true
+                      major_feast: "The Nativity of Our Lord Jesus Christ: Christmas Day"
+                      major_or_minor_feast: "The Nativity of Our Lord Jesus Christ: Christmas Day"
+                      proper: null
+        "404":
+          description: Year or month out of supported range
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /calendar/{year}/{month}/{day}:
+    get:
+      summary: Get liturgical information for a specific day
+      description: |
+        Returns detailed liturgical information for a single date, including
+        commemorations, season, color, and any First Vespers information.
+      operationId: getDay
+      tags:
+        - calendar
+      parameters:
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Four-digit year
+          example: 2024
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: Month number (1-12)
+          example: 6
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 31
+          description: Day of month (1-31)
+          example: 9
+      responses:
+        "200":
+          description: Successful response with day information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Day"
+              examples:
+                sunday:
+                  summary: Regular Sunday with Proper
+                  value:
+                    date: "2024-06-09"
+                    season:
+                      name: "Season After Pentecost"
+                      colors: ["green"]
+                    commemorations:
+                      - name: "The Second Sunday After Pentecost (Proper 5)"
+                        colors: ["green"]
+                        rank:
+                          name: "SUNDAY"
+                          formatted_name: "Sunday"
+                          precedence_rank: 2
+                          required: true
+                    major_feast: "The Second Sunday After Pentecost (Proper 5)"
+                    major_or_minor_feast: "The Second Sunday After Pentecost (Proper 5)"
+                    proper:
+                      number: 5
+        "404":
+          description: Invalid date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /calendar/year/{year}:
+    get:
+      summary: Get entire church year
+      description: |
+        Returns all dates for a church year (Advent to Advent).
+        Note: Church year 2024 runs from Advent 2024 through November 2025.
+      operationId: getChurchYear
+      tags:
+        - calendar
+      parameters:
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Year when Advent begins (church year identifier)
+          example: 2024
+        - name: calendar
+          in: query
+          required: false
+          schema:
+            type: string
+            default: ACNA_BCP2019
+          description: Calendar system identifier
+      responses:
+        "200":
+          description: Successful response with array of all days in church year
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Day"
+        "404":
+          description: Year out of supported range
+
+components:
+  schemas:
+    Day:
+      type: object
+      description: |
+        Complete liturgical information for a single date. Includes morning
+        commemorations and optional evening commemorations for First Vespers.
+      required:
+        - date
+        - season
+        - commemorations
+        - major_feast
+        - major_or_minor_feast
+      properties:
+        date:
+          type: string
+          format: date
+          description: ISO 8601 date string (YYYY-MM-DD)
+          example: "2024-12-25"
+
+        season:
+          $ref: "#/components/schemas/Season"
+          description: Liturgical season for morning
+
+        evening_season:
+          $ref: "#/components/schemas/Season"
+          description: |
+            Liturgical season for evening. Only present when different from
+            morning season (First Vespers of major feast).
+
+        commemorations:
+          type: array
+          description: |
+            All commemorations for this date (morning), ordered by precedence.
+            First item is the primary commemoration.
+          items:
+            $ref: "#/components/schemas/Commemoration"
+          minItems: 1
+
+        evening_commemorations:
+          type: array
+          description: |
+            Commemorations for evening (First Vespers). Only present when
+            different from morning commemorations.
+          items:
+            $ref: "#/components/schemas/Commemoration"
+
+        major_feast:
+          type: string
+          nullable: true
+          description: |
+            Name of the major feast (required commemoration) for this date.
+            Null if no required commemoration occurs.
+          example: "The Nativity of Our Lord Jesus Christ: Christmas Day"
+
+        major_or_minor_feast:
+          type: string
+          nullable: true
+          description: |
+            Name of the primary commemoration (required or optional).
+            Shows highest-precedence commemoration regardless of required status.
+          example: "St. Nicholas"
+
+        evening_major_feast:
+          type: string
+          nullable: true
+          description: |
+            Name of the major feast for evening (First Vespers).
+            Only present when different from major_feast.
+          example: "Eve of The Nativity of Our Lord Jesus Christ: Christmas Day"
+
+        has_first_vespers:
+          type: boolean
+          description: |
+            True if this date has First Vespers (evening belongs to tomorrow's feast).
+            Client UI should show evening information prominently when true.
+          default: false
+          example: true
+
+        proper:
+          $ref: "#/components/schemas/Proper"
+          nullable: true
+          description: |
+            Associated Proper for Sundays after Pentecost. Null for other seasons.
+
+    Season:
+      type: object
+      description: Liturgical season information
+      required:
+        - name
+        - colors
+      properties:
+        name:
+          type: string
+          description: Full season name
+          enum:
+            - Advent
+            - Christmastide
+            - Epiphany
+            - Lent
+            - Holy Week
+            - Eastertide
+            - Season After Pentecost
+          example: "Advent"
+
+        colors:
+          type: array
+          description: |
+            Liturgical colors for this season. First color is primary.
+            Multiple colors indicate acceptable alternatives (e.g., purple or blue for Advent).
+          items:
+            type: string
+            enum:
+              - red
+              - white
+              - green
+              - purple
+              - blue
+              - rose
+              - black
+          minItems: 1
+          example: ["purple", "blue"]
+
+    Commemoration:
+      type: object
+      description: A feast, holy day, saint's day, or feria
+      required:
+        - name
+        - colors
+        - rank
+      properties:
+        name:
+          type: string
+          description: |
+            Full name of the commemoration. May include additional information
+            like "(Proper 5)" or "or Septuagesima" for certain dates.
+          example: "The Second Sunday After Pentecost (Proper 5)"
+
+        colors:
+          type: array
+          description: |
+            Liturgical colors for this commemoration. First color is primary.
+          items:
+            type: string
+            enum:
+              - red
+              - white
+              - green
+              - purple
+              - blue
+              - rose
+              - black
+          minItems: 1
+          example: ["white"]
+
+        rank:
+          $ref: "#/components/schemas/CommemorationRank"
+
+        transferred:
+          type: boolean
+          description: |
+            True if this commemoration was transferred from another date due
+            to precedence conflict.
+          default: false
+
+    CommemorationRank:
+      type: object
+      description: Precedence and importance level of a commemoration
+      required:
+        - name
+        - formatted_name
+        - precedence_rank
+        - required
+      properties:
+        name:
+          type: string
+          description: Internal rank identifier
+          enum:
+            - PRINCIPAL_FEAST
+            - SUNDAY
+            - PRIVILEGED_OBSERVANCE
+            - HOLY_DAY
+            - PRIVILEGED_LESSER_FEAST
+            - FEAST
+            - MAJOR_HOLY_DAY
+            - EMBER_DAY
+            - ROGATION_DAY
+            - FERIA
+            - ALTERNATE_SUNDAY
+          example: "PRINCIPAL_FEAST"
+
+        formatted_name:
+          type: string
+          description: Human-readable rank name
+          example: "Principal Feast"
+
+        precedence_rank:
+          type: integer
+          minimum: 1
+          maximum: 9
+          description: |
+            Numeric precedence (1 = highest). When multiple commemorations
+            fall on the same date, lowest precedence_rank is observed.
+          example: 1
+
+        required:
+          type: boolean
+          description: |
+            True if this is a required commemoration that must be observed.
+            False for optional commemorations that may be omitted.
+          example: true
+
+    Proper:
+      type: object
+      description: Sunday Proper for Season After Pentecost
+      required:
+        - number
+      properties:
+        number:
+          type: integer
+          minimum: 1
+          maximum: 28
+          description: Proper number (1-28)
+          example: 5
+
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Error message
+          example: "Invalid date: 2024-02-30"
+
+        code:
+          type: string
+          description: Error code for programmatic handling
+          example: "INVALID_DATE"
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        Optional API key for rate limiting. Public endpoints do not require
+        authentication but may be rate-limited without a key.
+
+security: [] # Public API, authentication optional
+
+# Additional metadata
+externalDocs:
+  description: Full specification and user stories
+  url: https://github.com/blocher/dailyoffice2019/blob/main/specs/002-liturgical-calendar/spec.md
