@@ -117,8 +117,13 @@ A user wants to access simplified Family Prayer offices (Family Morning Prayer, 
 
 ### Edge Cases
 
-- What happens when the user selects a date outside the range of available liturgical data (e.g., year 2050)?
-- How does the system handle leap years when displaying February 29 content?
+- **Leap years**: System must correctly handle February 29 in leap years, including appropriate psalm and reading assignments
+- **Far future/past dates**: System must dynamically calculate liturgical data for any date requested, including dates far in the future (e.g., year 2050) or past, by computing Easter date, season boundaries, and commemoration occurrences
+- **Church year transitions**: System must correctly handle Advent as the start of the new church year, with proper season and Sunday counting across the December 31/January 1 boundary
+- **Multiple commemorations**: System must follow BCP 2019 precedence rules when multiple commemorations fall on the same date, selecting the highest-ranked commemoration as primary
+- **Missing translation data**: System must fall back to a default translation (NRSVCE) when requested translation is unavailable for a specific passage
+- **API unavailability**: When Bible Gateway API is unavailable and passage not cached, system must display error message with offline indicator, provide retry option, and allow continued access to cached content
+- **API rate limiting**: System must implement exponential backoff retry logic and respect Bible Gateway rate limits, serving cached content during rate limit periods
 - What occurs when a major feast falls on a Sunday (e.g., Christmas) and special precedence rules apply?
 - How does the system display content when multiple commemorations occur on the same day?
 - What happens if scripture reading data is unavailable for a particular translation?
@@ -138,12 +143,15 @@ A user wants to access simplified Family Prayer offices (Family Morning Prayer, 
 - **FR-005a**: System MUST support both 30-day Psalter cycle (based on day of month) and 60-day Psalter cycle (based on liturgical calendar)
 - **FR-005b**: System MUST allow users to select between 30-day and 60-day Psalter cycles for psalm assignments
 - **FR-006**: System MUST assign two scripture readings (Old Testament/Apocrypha and New Testament) to each of Morning Prayer and Evening Prayer
+- **FR-006a**: System MUST support both 1-year and 2-year lectionary cycles for scripture reading assignments
+- **FR-006b**: System MUST allow users to select between 1-year lectionary cycle (for those praying one office per day) and 2-year lectionary cycle (for those praying both Morning and Evening Prayer daily)
 - **FR-007**: System MUST substitute proper readings, psalms, and collects when the liturgical calendar indicates a feast day or holy day
 - **FR-008**: System MUST display appropriate canticles for each office type (e.g., Benedictus for Morning Prayer, Magnificat for Evening Prayer, Nunc Dimittis for Compline)
 - **FR-009**: System MUST include the full text of prayers, canticles, and liturgical responses so users can pray without referencing other resources
 - **FR-010**: System MUST format liturgical text with proper indentation, versicles and responses, and rubrics (instructional text)
 - **FR-011**: System MUST display commemorations and feast names when applicable to the selected date
 - **FR-012**: System MUST allow users to view offices for any date, not just the current day
+- **FR-012a**: System MUST calculate liturgical data (season, commemorations, readings, psalms) dynamically for any requested date without predetermined date range limits
 - **FR-013**: System MUST provide navigation between different office types (Morning, Midday, Evening, Compline) while maintaining the same date selection
 - **FR-014**: System MUST calculate and display the correct liturgical season and associated elements for any given date
 - **FR-015**: System MUST follow the Book of Common Prayer 2019 text and rubrics exactly as published
@@ -154,6 +162,15 @@ A user wants to access simplified Family Prayer offices (Family Morning Prayer, 
 - **FR-020**: System MUST retrieve scripture text from Bible Gateway API as the primary source
 - **FR-021**: System MUST cache retrieved scripture passages in local database to reduce API calls and improve performance
 - **FR-022**: System MUST gracefully handle Bible Gateway API unavailability by serving cached content when available
+- **FR-022a**: System MUST display a clear error message with offline/connectivity indicator when Bible Gateway API is unavailable and requested passage is not in cache
+- **FR-022b**: System MUST provide a retry option for failed scripture passage requests without requiring page reload
+- **FR-022c**: System MUST allow users to continue viewing other cached content (psalms, prayers, canticles, previously cached readings) when Bible Gateway API is unavailable
+- **FR-023**: System MUST store all user preferences (Psalter cycle, lectionary cycle, Bible translation, canticle rotation, reading length, confession style, absolution style, invitatory preference, and other liturgical options) in client-side browser storage (localStorage or cookies)
+- **FR-024**: System MUST persist user preferences across browser sessions without requiring user authentication or server-side storage
+- **FR-025**: System MUST apply stored user preferences immediately upon loading any daily office view
+- **FR-026**: System MUST provide user-accessible settings for liturgical customization options including: confession introduction length (short/long/fast-days-only), absolution style (priest/lay), invitatory preference (traditional/celebratory/rotating), canticle rotation (traditional/seasonal/daily), opening sentence style (fixed/seasonal), and collect rotation
+- **FR-027**: System MUST provide sensible defaults for all liturgical customization options that follow traditional BCP usage patterns
+- **FR-028**: System MUST make liturgical customization settings accessible from the main settings interface without requiring advanced/expert mode
 
 ### Key Entities
 
@@ -188,6 +205,11 @@ A user wants to access simplified Family Prayer offices (Family Morning Prayer, 
 - Q: Which Psalter cycles are supported? → A: Support both 30-day and 60-day Psalter cycles with user selection between them
 - Q: What is the scripture text source and connectivity requirement? → A: Bible Gateway is the primary source with local database caching; internet required for new passages
 - Q: Should audio playback features be specified? → A: Audio should not be mentioned in the spec (implementation detail only)
+- Q: How should user preferences (Psalter cycle, lectionary cycle, Bible translation, canticle rotation, etc.) be stored and managed? → A: Client-side browser storage only (localStorage/cookies) with no server sync
+- Q: What determines which lectionary cycle (1-year vs 2-year) a user should use? → A: 1-year cycle for those praying only one office per day; 2-year cycle for those praying both Morning and Evening Prayer daily
+- Q: What is the valid date range for the application? → A: Unlimited range; calculate liturgical data for any date requested
+- Q: Should liturgical customization options (confession style, absolution style, invitatory rotation, canticle rotation, etc.) be considered core or advanced features? → A: Core features with sensible defaults, visible in main settings
+- Q: What should happen when Bible Gateway API is unavailable and a passage is not yet cached? → A: Display error message with offline indicator and retry option; allow viewing other cached content
 
 ## Assumptions
 
@@ -197,4 +219,5 @@ A user wants to access simplified Family Prayer offices (Family Morning Prayer, 
 - Users expect liturgical content to match the printed Book of Common Prayer 2019 exactly
 - Internet connectivity is available for retrieving scripture passages from Bible Gateway API for passages not in the local cache
 - Bible Gateway API remains available and maintains current scripture text and translation offerings
-- The date range of 2 years past to 2 years future provides adequate coverage for typical user needs
+- The system can dynamically calculate liturgical data for any date without requiring pre-populated database entries for future years
+- Easter date calculation algorithm is accurate for all Gregorian calendar years
