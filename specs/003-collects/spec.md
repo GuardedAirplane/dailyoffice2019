@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "Collects: Supports showing all of the various collects/prayers found in the 2019 Book of Common Prayer"
 
+## Clarifications
+
+### Session 2025-11-06
+
+- Q: How should collect text formatting be stored and preserved (HTML, plain text, or both)? → A: Allow limited HTML formatting (p, strong, em, br) for traditional book formatting
+- Q: What classification/taxonomy system should organize collects? → A: Multi-dimensional tagging with source, theme, season, commemoration_type, and liturgy categories
+- Q: Should users be able to select collects to add to their daily office prayers? → A: Yes, with localStorage persistence for daily office integration
+- Q: What types of collect alternatives/versions should be supported? → A: Both textual variations and metrical alternatives
+- Q: What attribution information should be captured and displayed for collects? → A: Historical attribution (author/source) and BCP page reference
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Browse All Collects (Priority: P1)
@@ -18,7 +28,7 @@ A user wants to browse through all collects and prayers available in the Book of
 **Acceptance Scenarios**:
 
 1. **Given** a user views the collects page, **When** the page loads, **Then** all collects are displayed organized by their categories (Sundays of the Church Year, Holy Days, Various Occasions, etc.)
-2. **Given** a user scrolls through collects, **When** they view any collect, **Then** the full prayer text is displayed with proper formatting and attribution
+2. **Given** a user scrolls through collects, **When** they view any collect, **Then** the full prayer text is displayed with proper formatting and attribution (including historical source/author and BCP 2019 page reference when available)
 3. **Given** a user views collects, **When** they see multiple categories, **Then** each category is clearly labeled with all collects in that category listed together
 
 ---
@@ -103,14 +113,33 @@ A user wants to browse collects by type such as collects for the sick, for the d
 
 ---
 
+### User Story 7 - Add Collects to Daily Office (Priority: P2)
+
+A user wants to select additional collects to include in their daily office prayers (Morning Prayer, Midday Prayer, Evening Prayer, Compline) and have those selections persist across sessions.
+
+**Why this priority**: This integrates collects with the core daily office feature, enabling personalized prayer routines. Essential for daily office users but not required for standalone collects browsing.
+
+**Independent Test**: Can be tested by selecting collects for specific offices, verifying they appear in the daily office views, and confirming selections persist after closing/reopening the app.
+
+**Acceptance Scenarios**:
+
+1. **Given** a user browses collects, **When** they select a collect to add to Morning Prayer, **Then** that collect appears in their next Morning Prayer session
+2. **Given** a user has added collects to multiple offices, **When** they view each office, **Then** the appropriate selected collects appear in each respective office
+3. **Given** a user has selected collects for daily offices, **When** they close and reopen the application, **Then** their collect selections are still active
+4. **Given** a user views their selected collects, **When** they remove a collect from an office, **Then** it no longer appears in that office but remains available for browsing
+
+---
+
 ### Edge Cases
 
 - What happens when a collect exists in traditional language but not contemporary (or vice versa)?
-- How does the system handle collects that have multiple versions or alternatives?
+- How does the system display both textual alternatives and metrical versions for the same collect?
+- Should metrical collects be filterable/searchable separately from regular collects?
 - What occurs when searching for very common words that appear in many collects?
 - How does the system display collects for dates that have multiple possible collects (e.g., a feast with a proper collect and optional alternatives)?
 - What happens when filtering produces no matching results?
 - How does the system handle special characters or formatting in collect text (italics, small caps, indentation)?
+- What happens when a collect has metrical versions but the user is viewing traditional vs contemporary language - do metrical versions correspond to language style?
 
 ## Requirements _(mandatory)_
 
@@ -120,24 +149,40 @@ A user wants to browse collects by type such as collects for the sick, for the d
 - **FR-002**: System MUST organize collects into categories including: Collects for the Church Year (Sundays and Seasons), Collects for Holy Days, Collects for Various Occasions, and other BCP 2019 categories
 - **FR-003**: System MUST provide both traditional language (thee/thou) and contemporary language (you/your) versions of each collect
 - **FR-004**: System MUST allow users to switch between traditional and contemporary language with all collects updating accordingly
-- **FR-005**: System MUST allow users to filter collects by category
+- **FR-005**: System MUST allow users to filter collects by category using a multi-dimensional tagging system
+- **FR-005a**: System MUST support the following tag categories: source (year/occasional/liturgical), theme (for occasional prayers), season (Advent/Christmas/Epiphany/Lent/Easter/Pentecost), commemoration_type (sunday/major_feast/holy_day), and liturgy (daily office/burial/other liturgical contexts)
+- **FR-005b**: System MUST allow collects to have multiple tags across different tag categories simultaneously
 - **FR-006**: System MUST allow users to select multiple categories simultaneously when filtering
 - **FR-007**: System MUST provide text search functionality to find collects containing specific words or phrases
 - **FR-008**: System MUST display the complete text of each collect with proper formatting including indentation, line breaks, and emphasis
+- **FR-008a**: System MUST store collect text in rich HTML format (using CKEditor5) with allowed elements: `<p>`, `<strong>`, `<em>`, `<br>` to preserve traditional book formatting
+- **FR-008b**: System MUST maintain parallel normalized plain text versions of collects for search indexing and accessibility
 - **FR-009**: System MUST preserve the exact wording of collects as they appear in the BCP 2019
 - **FR-010**: System MUST display collect titles or numbers to help identify specific prayers
+- **FR-010a**: System MUST support attribution field for collects to capture historical source/authorship (e.g., "Thomas Cranmer, 1549") and/or BCP 2019 page references
+- **FR-010b**: System MUST display attribution information when present, positioned appropriately near the collect text
 - **FR-011**: System MUST show which collect is appropriate for any given liturgical date when date context is provided
 - **FR-012**: System MUST handle collects that have multiple acceptable versions or alternatives
+- **FR-012a**: System MUST support textual variations of collects (alternative wordings for the same collect)
+- **FR-012b**: System MUST support metrical (sung/musical) alternatives for collects, with links to up to 3 metrical versions per collect
+- **FR-012c**: System MUST clearly distinguish between textual alternatives and metrical versions in the user interface
 - **FR-013**: System MUST maintain the traditional closing forms of collects (e.g., "through Jesus Christ our Lord")
 - **FR-014**: System MUST display collects organized by type for occasional use (prayers for the sick, departed, mission, national life, etc.)
 - **FR-015**: System MUST remember user's language preference (traditional vs. contemporary) across sessions
+- **FR-016**: System MUST allow users to select individual collects to add to their daily office prayers (Morning Prayer, Midday Prayer, Evening Prayer, Compline)
+- **FR-017**: System MUST store user's selected extra collects in localStorage, persisting across sessions without requiring authentication
+- **FR-018**: System MUST allow users to view and manage which collects are selected for each daily office type
+- **FR-019**: System MUST allow users to remove collects from their daily office selections
 
 ### Key Entities
 
-- **Collect**: A formal prayer with traditional structure (address, petition, aspiration, pleading, doxology) from the Book of Common Prayer 2019
-- **Collect Category**: Classification of collects such as Sundays, Holy Days, Various Occasions, Pastoral Offices, etc.
-- **Collect Type**: Thematic grouping such as prayers for the sick, departed, mission, national life, or thanksgiving
-- **Language Style**: Whether a collect is in traditional language (thee/thou forms) or contemporary language (you/your forms)
+- **Collect**: A formal prayer with traditional structure (address, petition, aspiration, pleading, doxology) from the Book of Common Prayer 2019. Stored with both rich HTML text (for display) and normalized plain text (for search/accessibility).
+- **CollectTag**: Individual classification label (e.g., "Advent", "Occasional Prayers", "Mission", "Sunday") applied to collects. Multiple tags can be applied to each collect.
+- **CollectTagCategory**: Organizational dimension for tags. Categories include: source (year/occasional/liturgical), theme (healing/mission/departed/etc.), season (Advent/Christmas/etc.), commemoration_type (sunday/major_feast/holy_day), and liturgy (daily office/burial/etc.).
+- **Collect Type**: Top-level grouping field (year/occasional/office_prayers/burial_rite/other) used for primary collect organization.
+- **Language Style**: Whether a collect is in traditional language (thee/thou forms) or contemporary language (you/your forms). Each collect has separate text and traditional_text fields in HTML and normalized formats.
+- **Metrical Collect**: Musical/sung version of a collect with links to sheet music, audio, or other resources. A collect may have up to 3 metrical versions.
+- **Attribution**: Optional field capturing historical source/authorship (e.g., "Thomas Cranmer, 1549", "Gelasian Sacramentary") and/or BCP 2019 page reference for scholarly and practical coordination with printed books.
 - **Collect Association**: Link between a collect and a specific liturgical day, season, or occasion when it is used
 
 ## Success Criteria _(mandatory)_
@@ -152,6 +197,8 @@ A user wants to browse collects by type such as collects for the sick, for the d
 - **SC-006**: Text search returns relevant collects containing the search term with results appearing in under 2 seconds
 - **SC-007**: Language preference (traditional/contemporary) persists across user sessions
 - **SC-008**: Users can identify the appropriate collect for any liturgical date when viewing date-specific collects
+- **SC-009**: Users can add collects to daily offices and have those selections persist across sessions via localStorage
+- **SC-010**: Selected extra collects appear correctly in the appropriate daily office contexts (Morning/Midday/Evening/Compline)
 
 ## Assumptions
 
