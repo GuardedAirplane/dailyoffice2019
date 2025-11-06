@@ -87,22 +87,6 @@ A user wants to switch between different psalm translations (Coverdale from BCP 
 
 ---
 
-### User Story 6 - View Pointed Psalms for Chanting (Priority: P3)
-
-A user wants to see pointing marks in the psalm text that indicate musical phrasing for Anglican chant, helping them chant psalms properly.
-
-**Why this priority**: Pointing is valuable for liturgical use but not essential for reading psalms devotionally. Basic psalm viewing must work first.
-
-**Independent Test**: Can be tested by enabling pointing marks and verifying they appear correctly in the psalm text at appropriate syllables.
-
-**Acceptance Scenarios**:
-
-1. **Given** a user enables pointed text, **When** they view any psalm, **Then** pointing marks (asterisks, daggers, or other indicators) appear at proper phrase divisions
-2. **Given** a user views pointed text, **When** they compare to traditional Anglican psalm pointing, **Then** the marks align correctly for chanting
-3. **Given** a user prefers un-pointed text, **When** they disable pointing, **Then** the marks are hidden and only plain text appears
-
----
-
 ### Edge Cases
 
 - What happens when a user requests a psalm number outside the range of 1-150?
@@ -117,7 +101,7 @@ A user wants to see pointing marks in the psalm text that indicate musical phras
 
 ### Functional Requirements
 
-- **FR-001**: System MUST display all 150 psalms from the Psalter in the Book of Common Prayer 2019 Coverdale translation
+- **FR-001**: System MUST store all 150 psalms from the Psalter in the Book of Common Prayer 2019 Coverdale translation in a database
 - **FR-002**: System MUST allow users to view any individual psalm by selecting its number (1-150)
 - **FR-003**: System MUST display each psalm with proper verse numbering
 - **FR-004**: System MUST format psalm verses with proper indentation to reflect Hebrew parallelism
@@ -127,20 +111,20 @@ A user wants to see pointing marks in the psalm text that indicate musical phras
 - **FR-008**: System MUST provide navigation between consecutive psalms (next/previous)
 - **FR-009**: System MUST preserve the exact Coverdale translation text as it appears in BCP 2019
 - **FR-010**: System MUST display the complete text of the psalm including any superscriptions or musical directions
-- **FR-011**: System MUST provide thematic categories to help users find psalms by topic (praise, thanksgiving, morning, evening, comfort, etc.)
-- **FR-012**: System MUST support multiple psalm translations (at minimum Coverdale from BCP 2019, and optionally ESV, NRSV, etc.)
-- **FR-013**: System MUST allow users to switch between available psalm translations
-- **FR-014**: System MUST optionally display pointing marks for Anglican chant when requested by the user
-- **FR-015**: System MUST remember user preferences for translation and pointing display across sessions
+- **FR-011**: System MUST provide predefined, hardcoded thematic categories to help users find psalms by topic (praise, thanksgiving, morning, evening, comfort, etc.) with no admin interface for modification
+- **FR-012**: System MUST support both Contemporary and Traditional Language Edition (TLE) versions of the Coverdale Psalter from BCP 2019, where Contemporary uses modern pronouns (you/your) and Traditional uses traditional pronouns (thou/thee)
+- **FR-013**: System MUST allow users to switch between Contemporary and Traditional Language Edition psalm texts
+- **FR-014**: System MUST always display pointing marks (asterisk *) between the first and second half of each verse to indicate the pause point for Anglican chanting
+- **FR-015**: System MUST remember user preferences for language edition (Contemporary vs Traditional) across sessions
 
 ### Key Entities
 
 - **Psalm**: One of the 150 psalms from the Book of Psalms with its complete text, verses, title, and metadata
 - **Psalm Verse**: A single numbered verse within a psalm with first and second half-lines for parallelism
-- **Psalm Translation**: A specific translation of the psalms (Coverdale, ESV, NRSV, etc.)
+- **Psalm Translation**: A specific version of the Coverdale Psalter (Contemporary or Traditional Language Edition/TLE), distinguished by pronoun usage (you/your vs. thou/thee)
 - **Psalm Range**: A specification of multiple consecutive psalms or verses to be displayed together (e.g., "1-3" or "119:1-32")
-- **Psalm Topic**: A thematic category grouping psalms by subject matter (praise, thanksgiving, morning, evening, penitence, etc.)
-- **Pointing**: Musical/chant marks that indicate phrase divisions for singing psalms in Anglican chant
+- **Psalm Topic**: A predefined, hardcoded thematic category grouping psalms by subject matter (praise, thanksgiving, morning, evening, penitence, etc.); categories are fixed and not user-modifiable
+- **Pointing**: Musical/chant marks (asterisk *) that indicate the pause point between the first and second half of each verse for singing psalms in Anglican chant; always displayed
 - **Latin Title**: Traditional Latin designation for some psalms (e.g., "Deus, Deus meus")
 
 ## Success Criteria _(mandatory)_
@@ -152,18 +136,30 @@ A user wants to see pointing marks in the psalm text that indicate musical phras
 - **SC-003**: Users can navigate between consecutive psalms with immediate display of the next or previous psalm
 - **SC-004**: Users can view psalm ranges specified in the Daily Office lectionary (e.g., Psalms 148-150) with all psalms displaying correctly
 - **SC-005**: 90% of users can find an appropriate psalm for a specific need (comfort, praise, morning prayer) using topic categories within 1 minute
-- **SC-006**: Users can switch between psalm translations with text updating in under 1 second
-- **SC-007**: Pointed text displays correctly for chanting with pointing marks at appropriate syllables matching traditional Anglican psalm pointing
-- **SC-008**: Translation and pointing preferences persist across user sessions
+- **SC-006**: Users can switch between Contemporary and Traditional Language Edition with text updating in under 1 second
+- **SC-007**: Pointing marks (asterisks) display correctly between the first and second half of every verse for Anglican chanting
+- **SC-008**: Language edition preference (Contemporary vs Traditional) persists across user sessions
+
+## Clarifications
+
+### Session 2025-11-06
+
+- Q: What are the two Coverdale versions called? → A: Both are Coverdale from BCP 2019; "Contemporary" uses modern pronouns (you/your), "Traditional" uses traditional pronouns (thou/thee) - This is the Traditional Language Edition (TLE)
+- Q: Pointing marks display behavior? → A: Always display - pointing marks are always visible and cannot be hidden
+- Q: How are the 150 psalms stored and accessed? → A: Psalms are stored in a database
+- Q: Should leader/congregation styling be specified? → A: Not in scope - this is an implementation detail that doesn't need specification
+- Q: How are psalm topic categories created and maintained? → A: No admin panel should exist. All the categories should be hardcoded in the implementation/database
 
 ## Assumptions
 
 - The primary psalm text is the Coverdale translation from the Book of Common Prayer 2019
+- Psalms are stored in a database for fast, reliable access without dependency on external APIs
 - Users are primarily accessing psalms for personal devotion, Daily Office prayer, or liturgical planning
 - Many users are familiar with psalm numbering and can navigate by psalm number
 - Some users need thematic access when they don't know specific psalm numbers
-- Anglican psalm pointing conventions are understood by users who enable pointed text
-- Users may want to compare the traditional Coverdale language with more contemporary translations
-- Internet connectivity is available for loading psalm texts
+- Psalm topic categories are curated and fixed at implementation time, not dynamically managed
+- Anglican psalm pointing conventions are understood by users (pointing marks always displayed)
+- Users may want to compare traditional pronouns (thou/thee) with contemporary pronouns (you/your)
+- Internet connectivity is available for accessing the application
 - Psalm formatting (verse structure, parallelism) is important for proper reading and chanting
 - The Coverdale translation's distinctive language (e.g., "therefore can I lack nothing" vs. "I shall not want") is valued by BCP 2019 users
