@@ -17,7 +17,7 @@ A user wants to see which scripture passages are appointed for today's Daily Off
 
 **Acceptance Scenarios**:
 
-1. **Given** a user views today's readings, **When** the page loads, **Then** psalm assignments and scripture citations appear for both Morning Prayer and Evening Prayer
+1. **Given** a user views today's readings, **When** the page loads, **Then** psalm assignments from the 60-day cycle and scripture citations appear for both Morning Prayer and Evening Prayer
 2. **Given** a user views today's readings, **When** Eucharist readings are appointed, **Then** Old Testament, Psalm, Epistle, and Gospel citations are displayed
 3. **Given** today is a feast day, **When** a user views readings, **Then** proper feast day readings replace or supplement the regular daily readings
 
@@ -105,23 +105,33 @@ A user wants to browse readings organized by liturgical season (Advent, Christma
 
 ### Edge Cases
 
-- What happens when a reading spans a chapter break (e.g., Genesis 1:1-2:3)?
-- How does the system handle discontinued passages (verses that are skipped in the reading)?
-- What occurs when multiple possible readings exist for the same date (e.g., optional Old Testament alternatives)?
-- How does the system display readings for dates with transferred feasts?
-- What happens when viewing dates outside the supported lectionary range?
-- How does the system handle apocryphal/deuterocanonical readings that may not be available in all translations?
-- What occurs when the user's selected Bible translation doesn't include a particular reading (e.g., Sirach in ESV)?
+- What happens when a reading spans a chapter break (e.g., Genesis 1:1-2:3)? System displays complete passage text across chapter boundaries.
+- How does the system handle discontinued passages (verses that are skipped in the reading)? Citation reflects the full range; implementation may include or exclude discontinued verses based on BCP 2019 specification.
+- What occurs when multiple possible readings exist for the same date (e.g., optional Old Testament alternatives)? System displays all options with "or" separator, allowing user to view either reading.
+- How does the system display readings for dates with transferred feasts? System shows transferred feast readings on the observed date.
+- What happens when viewing dates outside the supported lectionary range? System displays appropriate message indicating date is outside supported range.
+- How does the system handle apocryphal/deuterocanonical readings that may not be available in all translations? System automatically falls back to NRSVCE when selected translation lacks apocryphal content.
+- What occurs when the user's selected Bible translation doesn't include a particular reading (e.g., Sirach in ESV)? System displays notice "Not available in [translation], showing NRSVCE" and shows NRSVCE text.
+
+## Clarifications
+
+### Session 2025-11-06
+
+- Q: Data Model - Lectionary Cycle Year Determination: The spec mentions "two-year Daily Office Lectionary cycle" but doesn't specify how the system determines which year of the cycle applies to a given date. → A: Cycle year determined automatically from Advent year - Year 1 starts on Advent Sunday of even calendar years, Year 2 starts on Advent Sunday in odd calendar years
+- Q: Integration & External Dependencies - Scripture Text Retrieval Strategy: The implementation shows multiple Bible sources and the spec mentions internet connectivity for retrieving scripture text, but the primary strategy is unclear. → A: Service worker caching (cache API responses in browser, periodic refresh)
+- Q: Edge Cases & Failure Handling - Missing Apocryphal Text Fallback: The spec mentions handling when a translation doesn't include apocryphal readings but doesn't specify what the user should see. → A: Automatic fallback to NRSV/NRSVCE with notice
+- Q: Non-Functional Quality Attributes - Eucharist Lectionary Cycle: The spec mentions Holy Eucharist readings but doesn't specify the lectionary cycle used. → A: Three-year cycle (Years A, B, C) following Revised Common Lectionary pattern
+- Q: Interaction & UX Flow - Psalm Cycle Selection: The implementation shows references to both "30 day cycle" and "60 day cycle" for psalms but the spec doesn't clarify which is used. → A: 60-day cycle as default, user can optionally select 30-day alternative
 
 ## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 - **FR-001**: System MUST display scripture reading assignments for any date following the Book of Common Prayer 2019 Daily Office Lectionary
-- **FR-002**: System MUST show psalm assignments for Morning Prayer and Evening Prayer for each day
+- **FR-002**: System MUST show psalm assignments for Morning Prayer and Evening Prayer for each day, using the 60-day psalter cycle by default with optional 30-day cycle selection
 - **FR-003**: System MUST show two scripture readings (typically Old Testament/Apocrypha and New Testament) for both Morning Prayer and Evening Prayer
-- **FR-004**: System MUST display Holy Eucharist readings (Old Testament, Psalm, Epistle, Gospel) when they are appointed
-- **FR-005**: System MUST display the full text of any appointed scripture reading, not just the citation
+- **FR-004**: System MUST display Holy Eucharist readings (Old Testament, Psalm, Epistle, Gospel) when they are appointed, following the three-year lectionary cycle (Years A, B, C)
+- **FR-005**: System MUST display the full text of any appointed scripture reading retrieved via external Bible APIs with service worker caching for offline access and performance
 - **FR-006**: System MUST support multiple Bible translations (at minimum ESV, NRSV, and optionally NIV, KJV, etc.)
 - **FR-007**: System MUST allow users to select their preferred Bible translation with all readings updating accordingly
 - **FR-008**: System MUST display proper feast day readings when feasts occur, replacing or supplementing daily readings
@@ -129,20 +139,22 @@ A user wants to browse readings organized by liturgical season (Advent, Christma
 - **FR-010**: System MUST handle scripture passages that span multiple chapters or books
 - **FR-011**: System MUST support discontinued passages (verses within a range that are skipped)
 - **FR-012**: System MUST allow users to view readings for any date, not just today
-- **FR-013**: System MUST follow the BCP 2019 two-year Daily Office Lectionary cycle
-- **FR-014**: System MUST display apocryphal/deuterocanonical readings when appointed in the lectionary
+- **FR-013**: System MUST follow the BCP 2019 two-year Daily Office Lectionary cycle, where Year 1 begins on Advent Sunday in even calendar years and Year 2 begins on Advent Sunday in odd calendar years
+- **FR-014**: System MUST display apocryphal/deuterocanonical readings when appointed in the lectionary, automatically falling back to NRSVCE translation with a notice when the user's selected translation doesn't include these books
 - **FR-015**: System MUST remember user's translation preference across sessions
 - **FR-016**: System MUST provide clear citations for all readings (book, chapter, verse range)
 - **FR-017**: System MUST handle alternative or optional readings when they are provided in the lectionary
 
 ### Key Entities
 
-- **Lectionary**: The systematic plan for reading through scripture over a specific cycle according to BCP 2019
+- **Lectionary**: The systematic plan for reading through scripture over a specific cycle according to BCP 2019 (two-year cycle for Daily Office, three-year cycle for Holy Eucharist)
 - **Reading Assignment**: The psalm and scripture passages appointed for a specific date and office type (Morning Prayer, Evening Prayer, or Eucharist)
 - **Scripture Reading**: A specific passage of scripture identified by book, chapter, and verse range, with full text in multiple translations
 - **Office Type**: The service for which readings are appointed (Morning Prayer, Evening Prayer, Holy Eucharist)
 - **Bible Translation**: A specific version of the Bible (ESV, NRSV, NIV, KJV, etc.)
-- **Lectionary Cycle**: The two-year cycle of the Daily Office Lectionary in BCP 2019
+- **Lectionary Cycle**: The two-year cycle of the Daily Office Lectionary in BCP 2019, where Year 1 begins on Advent Sunday in even calendar years (e.g., 2024) and Year 2 begins on Advent Sunday in odd calendar years (e.g., 2025)
+- **Psalter Cycle**: The cycle for reading through the Book of Psalms; BCP 2019 uses a 60-day cycle (completing Psalter every two months) as default, with an optional 30-day cycle (completing Psalter monthly) available
+- **Eucharist Lectionary Cycle**: The three-year cycle (Years A, B, C) for Holy Eucharist readings following the Revised Common Lectionary pattern, with Year A focusing on Matthew, Year B on Mark, Year C on Luke, and John interspersed throughout
 - **Discontinued Passage**: Verses within a reading range that are omitted from public reading
 - **Proper Readings**: Special scripture readings appointed for specific feast days or seasons that replace the ordinary daily readings
 
@@ -166,7 +178,7 @@ A user wants to browse readings organized by liturgical season (Advent, Christma
 - The BCP 2019 Daily Office Lectionary is the authoritative source for reading assignments
 - Multiple Bible translations are necessary because different communities use different translations
 - Users primarily access readings for today but also need future dates for planning and past dates for catching up
-- Internet connectivity is available for retrieving scripture text when not stored locally
+- Internet connectivity is available for initial scripture text retrieval, with service worker caching providing offline access to previously viewed passages
 - Apocryphal/deuterocanonical books (Wisdom, Sirach, etc.) are important because they appear in the BCP 2019 lectionary
 - Some Bible translations (like ESV) do not include apocryphal books and the system must handle this gracefully
 - Reading assignments follow a two-year cycle, though users typically don't need to know which year of the cycle they're in
