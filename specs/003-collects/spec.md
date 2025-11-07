@@ -3,7 +3,12 @@
 **Feature Branch**: `003-collects`  
 **Created**: November 6, 2025  
 **Status**: Draft  
+**Last Updated**: November 7, 2025 (Consolidation Pass)  
 **Input**: User description: "Collects: Supports showing all of the various collects/prayers found in the 2019 Book of Common Prayer"
+
+**Cross-Spec Dependencies**:
+
+- **006-general-design**: Settings persistence for language preferences (traditional/contemporary)
 
 ## Clarifications
 
@@ -147,8 +152,8 @@ A user wants to select additional collects to include in their daily office pray
 
 - **FR-001**: System MUST display all collects and prayers from the Book of Common Prayer 2019
 - **FR-002**: System MUST organize collects into categories including: Collects for the Church Year (Sundays and Seasons), Collects for Holy Days, Collects for Various Occasions, and other BCP 2019 categories
-- **FR-003**: System MUST provide both traditional language (thee/thou) and contemporary language (you/your) versions of each collect
-- **FR-004**: System MUST allow users to switch between traditional and contemporary language with all collects updating accordingly
+- **FR-003**: System MUST provide both traditional language (thee/thou) and contemporary language (you/your) versions of each collect (Note: This is specific to liturgical prayers; scripture translation selection is specified in **005-lectionary** FR-006, FR-007)
+- **FR-004**: System MUST allow users to switch between traditional and contemporary language with all collects updating accordingly (preference persistence mechanism specified in **006-general-design** FR-007)
 - **FR-005**: System MUST allow users to filter collects by category using a multi-dimensional tagging system
 - **FR-005a**: System MUST support the following tag categories: source (year/occasional/liturgical), theme (for occasional prayers), season (Advent/Christmas/Epiphany/Lent/Easter/Pentecost), commemoration_type (sunday/major_feast/holy_day), and liturgy (daily office/burial/other liturgical contexts)
 - **FR-005b**: System MUST allow collects to have multiple tags across different tag categories simultaneously
@@ -168,7 +173,7 @@ A user wants to select additional collects to include in their daily office pray
 - **FR-012c**: System MUST clearly distinguish between textual alternatives and metrical versions in the user interface
 - **FR-013**: System MUST maintain the traditional closing forms of collects (e.g., "through Jesus Christ our Lord")
 - **FR-014**: System MUST display collects organized by type for occasional use (prayers for the sick, departed, mission, national life, etc.)
-- **FR-015**: System MUST remember user's language preference (traditional vs. contemporary) across sessions
+- **FR-015**: System MUST remember user's language preference (traditional vs. contemporary) across sessions (persistence mechanism specified in **006-general-design** FR-007, FR-012)
 - **FR-016**: System MUST allow users to select individual collects to add to their daily office prayers (Morning Prayer, Midday Prayer, Evening Prayer, Compline)
 - **FR-017**: System MUST store user's selected extra collects in localStorage, persisting across sessions without requiring authentication
 - **FR-018**: System MUST allow users to view and manage which collects are selected for each daily office type
