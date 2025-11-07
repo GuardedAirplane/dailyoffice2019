@@ -13,8 +13,7 @@
           class="bio_link float-right"
         >
           &nbsp;<el-button type="success">
-            <font-awesome-icon :icon="['fad', 'books']" />
-            &nbsp; Learn More&nbsp;&nbsp;<small><em>New!!</em></small>
+            Learn More&nbsp;&nbsp;<small><em>New!!</em></small>
           </el-button>
         </a>
       </p>

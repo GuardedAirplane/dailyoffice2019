@@ -36,7 +36,7 @@
     <div class="arrowsRow">
       <el-row style="width: 100%">
         <el-col :span="12" style="text-align: left">
-          <font-awesome-icon :icon="['fad', 'left']" />&nbsp;<a
+          <span aria-hidden="true" class="nav-arrow">&lt;</span>&nbsp;<a
             v-if="!loading && commemoration.previous_commemoration"
             :href="commemoration.previous_commemoration.uuid"
             :title="commemoration.previous_commemoration.name"
@@ -50,9 +50,11 @@
             :href="commemoration.next_commemoration.uuid"
             :title="commemoration.next_commemoration.name"
           >
-            {{ commemoration.next_commemoration.name }}&nbsp;<font-awesome-icon
-              :icon="['fad', 'right']"
-            />
+            {{ commemoration.next_commemoration.name }}&nbsp;<span
+              aria-hidden="true"
+              class="nav-arrow"
+              >&gt;</span
+            >
           </a>
         </el-col>
       </el-row>
@@ -252,8 +254,6 @@
 import Loading from '@/components/Loading.vue';
 import { ref } from 'vue';
 import DOMPurify from 'dompurify';
-import { icon } from '@fortawesome/fontawesome-svg-core';
-import { faArrowUpRightFromSquare } from '@fortawesome/pro-duotone-svg-icons';
 
 export default {
   name: 'Commemoration',
@@ -266,7 +266,7 @@ export default {
       loading: true,
       error: null,
       activeName: ref('first'),
-      linkIcon: icon(faArrowUpRightFromSquare).html[0],
+  linkIcon: '[link]',
     };
   },
   async mounted() {
@@ -334,6 +334,11 @@ img {
 .arrowsRow {
   width: 80%;
   margin: 0 auto 10px;
+}
+
+.nav-arrow {
+  display: inline-block;
+  margin: 0 0.25rem;
 }
 
 @media (max-width: 768px) {

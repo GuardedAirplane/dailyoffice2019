@@ -11,74 +11,10 @@ import './assets/tailwind.css';
 import 'element-plus/dist/index.css';
 import 'element-plus/theme-chalk/dark/css-vars.css';
 
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { createMetaManager } from 'vue-meta';
-
-// import { faTwitter } from "@fortawesome/free-brands-svg-icons";
-// import { faUserSecret } from "@fortawesome/free-solid-svg-icons";
-// import {
-//   faMoonStars,
-//   faSun,
-//   faSunrise,
-//   faSunset,
-// } from "@fortawesome/pro-regular-svg-icons";
-// import { faCoffee } from "@fortawesome/pro-light-svg-icons";
-// import { faFeather } from "@fortawesome/pro-thin-svg-icons";
-import {
-  faBookBible,
-  faBooks,
-  faCircle1,
-  faCircle2,
-  faCircle3,
-  faCircle4,
-  faCopy,
-  faEnvelopes,
-  faFontCase,
-  faLeft,
-  faMessagePen,
-  faMoonStars,
-  faOctagonCheck,
-  faRight,
-  faSearch,
-  faShareNodes,
-  faSquareCaretDown,
-  faSquareCaretUp,
-  faSquareUpRight,
-  faSun,
-  faSunrise,
-  faSunset,
-} from '@fortawesome/pro-duotone-svg-icons';
 import { createGtag, event } from 'vue-gtag';
-import { faFacebook } from '@fortawesome/free-brands-svg-icons';
 import { FirebaseAnalytics } from '@capacitor-firebase/analytics';
 import { Capacitor } from '@capacitor/core';
-
-library.add(
-  faSun,
-  faSunrise,
-  faSunset,
-  faMoonStars,
-  faLeft,
-  faRight,
-  faFontCase,
-  faShareNodes,
-  faCopy,
-  faFacebook,
-  faEnvelopes,
-  faBooks,
-  faBookBible,
-  faMessagePen,
-  faCircle1,
-  faCircle2,
-  faCircle3,
-  faCircle4,
-  faSearch,
-  faSquareUpRight,
-  faSquareCaretUp,
-  faSquareCaretDown,
-  faOctagonCheck
-);
 
 router.beforeEach((to, from, next) => {
   // This goes through the matched routes from last to first, finding the closest route with a title.
@@ -230,8 +166,7 @@ const app = createApp(App)
   .use(store)
   .use(VueAxios, axios)
   .use(ElementPlus)
-  .use(createMetaManager())
-  .component('font-awesome-icon', FontAwesomeIcon);
+  .use(createMetaManager());
 
 app.config.globalProperties.$gtag = { event };
 

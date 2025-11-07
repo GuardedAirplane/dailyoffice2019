@@ -53,7 +53,7 @@
         class="float-left"
         :to="`/psalm/${psalm.number - 1}`"
       >
-        <font-awesome-icon :icon="['fad', 'left']" />
+        <span aria-hidden="true" class="nav-arrow">&lt;</span>
         Psalm
         {{ psalm.number - 1 }}
       </router-link>
@@ -64,7 +64,7 @@
         :to="`/psalm/${psalm.number + 1}`"
       >
         Psalm {{ psalm.number + 1 }}
-        <font-awesome-icon :icon="['fad', 'right']" />
+        <span aria-hidden="true" class="nav-arrow">&gt;</span>
       </router-link>
       <br />
       <router-link
@@ -126,3 +126,10 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.nav-arrow {
+  display: inline-block;
+  margin: 0 0.25rem;
+}
+</style>

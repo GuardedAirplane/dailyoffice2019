@@ -13,10 +13,12 @@
           <div v-for="service in contemporaryServices" :key="service.name">
             <div class="grid grid-cols-12 gap-3 even:bg-grey mb-2">
               <div class="m-auto">
-                <font-awesome-icon
+                <span
                   v-if="service.active"
-                  :icon="['fad', 'fa-octagon-check']"
-                />
+                  class="status-indicator"
+                  aria-hidden="true"
+                  >[Active]</span
+                >
               </div>
               <div class="col-span-11">
                 <span v-if="service.active">{{ service.name }}</span>
@@ -34,10 +36,12 @@
           <div v-for="service in traditionalServices" :key="service.name">
             <div class="grid grid-cols-12 gap-3 even:bg-grey mb-2">
               <div class="m-auto">
-                <font-awesome-icon
+                <span
                   v-if="service.active"
-                  :icon="['fad', 'fa-octagon-check']"
-                />
+                  class="status-indicator"
+                  aria-hidden="true"
+                  >[Active]</span
+                >
               </div>
               <div class="col-span-11">
                 <span v-if="service.active">{{ service.name }}</span>
@@ -211,5 +215,11 @@ h3 {
 
 .grow {
   flex-grow: 1;
+}
+
+.status-indicator {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
 }
 </style>

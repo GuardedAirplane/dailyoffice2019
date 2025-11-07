@@ -1,7 +1,11 @@
 <template>
   <div class="font-size-block my-2 p-3">
     <div class="w-1/6 inline-block">
-      <font-awesome-icon :icon="['fad', 'font-case']" size="sm" />
+      <span
+        aria-hidden="true"
+        class="font-size-indicator font-size-indicator--small"
+        >A</span
+      >
     </div>
     <div class="w-2/3 inline-block">
       <el-slider
@@ -14,7 +18,11 @@
       />
     </div>
     <div class="w-1/6 inline-block text-right">
-      <font-awesome-icon :icon="['fad', 'font-case']" size="lg" />
+      <span
+        aria-hidden="true"
+        class="font-size-indicator font-size-indicator--large"
+        >A</span
+      >
     </div>
   </div>
 </template>
@@ -66,3 +74,18 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.font-size-indicator {
+  display: inline-block;
+  font-weight: 600;
+}
+
+.font-size-indicator--small {
+  font-size: 0.75rem;
+}
+
+.font-size-indicator--large {
+  font-size: 1.25rem;
+}
+</style>

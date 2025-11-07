@@ -48,15 +48,11 @@
     <h4 @click="toggleBottomPanel">
       Show/Hide Settings
       <span class="float-right"
-        ><font-awesome-icon
-          v-if="!bottomPanelExpanded"
-          :icon="['fad', 'fa-square-caret-up']"
-      /></span>
+        ><span v-if="!bottomPanelExpanded" aria-hidden="true">[+]</span></span
+      >
       <span class="float-right"
-        ><font-awesome-icon
-          v-if="bottomPanelExpanded"
-          :icon="['fad', 'fa-square-caret-down']"
-      /></span>
+        ><span v-if="bottomPanelExpanded" aria-hidden="true">[-]</span></span
+      >
     </h4>
     <div v-if="bottomPanelExpanded" class="w-full">
       <div class="wrapper w-full">

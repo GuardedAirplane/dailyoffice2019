@@ -1,29 +1,26 @@
 <template>
   <span class="sub-menu-item">
     <a href="" @click.prevent="toggleSharePanel">
-      <font-awesome-icon :icon="['fad', 'share-nodes']" />&nbsp;<br />
       <span class="text-xs">Share Your Settings&nbsp;</span>
     </a>
   </span>
   <!--  <el-dropdown-item @click.prevent="toggleSharePanel">Share Your Settings</el-dropdown-item>-->
   <el-drawer v-model="showSharePanel" direction="rtl" :size="panelSize">
     <div class="mt-4">
-      <h2 class="text-left pt-0">
-        <font-awesome-icon :icon="['fad', 'share-nodes']" />&nbsp; Share Link
-      </h2>
+      <h2 class="text-left pt-0">Share Link</h2>
       <p class="text-left pb-2 mx-1">
         This share link allows you to sync your settings with others with whom
         you are praying.
       </p>
 
       <p class="text-left pt-2 mx-1 my-2">
-        <font-awesome-icon :icon="['fad', 'circle-1']" />&nbsp;Pick the settings
+        <span aria-hidden="true" class="step-indicator">[1]</span>&nbsp;Pick the settings
         you want to use on the <a href="/settings">Settings</a> pages.
       </p>
       <p class="text-left pt-2 mx-1 my-2">
-        <font-awesome-icon :icon="['fad', 'circle-2']" />&nbsp;Return here and
-        click the
-        <font-awesome-icon :icon="['fad', 'copy']" />
+  <span aria-hidden="true" class="step-indicator">[2]</span>&nbsp;Return here and
+  click the
+  <span aria-hidden="true" class="action-indicator">[Copy]</span>
         button below (or manually copy the link).
       </p>
       <div @click="copyLink">
@@ -33,28 +30,23 @@
           readonly
         >
           <template #append>
-            <div class="copyLinkWrapper">
-              <font-awesome-icon :icon="['fad', 'copy']" />
-            </div>
+            <div class="copyLinkWrapper" aria-hidden="true">Copy</div>
           </template>
         </el-input>
       </div>
       <p class="text-left pt-2 mx-1 my-2">
-        <font-awesome-icon :icon="['fad', 'circle-3']" />&nbsp;Paste the link in
+        <span aria-hidden="true" class="step-indicator">[3]</span>&nbsp;Paste the link in
         an email, text message, or chat and send to whoever you want to pray
         with.
       </p>
       <p class="text-left pt-2 mx-1 my-2">
-        <font-awesome-icon :icon="['fad', 'circle-4']" />&nbsp;When the
+        <span aria-hidden="true" class="step-indicator">[4]</span>&nbsp;When the
         recipients click on the link, the site will automatically be set up so
         you are all using the same settings.
       </p>
     </div>
     <div v-if="canShare" class="mt-4">
-      <h2 class="text-left pt-0 pt-4">
-        <font-awesome-icon :icon="['fad', 'share-nodes']" />&nbsp; Share using
-        an app
-      </h2>
+      <h2 class="text-left pt-0 pt-4">Share using an app</h2>
 
       <div class="full-width mt-4 text-left">
         <a href="" @click="share($event)">
@@ -67,10 +59,7 @@
       </div>
     </div>
     <div class="pb-4">
-      <h2 class="text-left">
-        <font-awesome-icon :icon="['fad', 'share-nodes']" />&nbsp; Share
-        Settings QR Code
-      </h2>
+      <h2 class="text-left">Share Settings QR Code</h2>
       <div class="w-full settings-qr-code float-left p-2">
         <qrcode-vue
           :value="shareLink"
@@ -225,6 +214,20 @@ export default {
 };
 </script>
 <style lang="scss">
+.step-indicator,
+.action-indicator {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.copyLinkWrapper {
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-block;
+  padding: 0 0.75rem;
+}
+
 .settings-qr-code {
   svg,
   canvas {

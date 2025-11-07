@@ -1,7 +1,6 @@
 <template>
   <span class="sub-menu-item">
     <a href="" @click.prevent="showEmailPanel()">
-      <font-awesome-icon :icon="['fad', 'envelopes']" /><br />
       <span class="ml-1 text-xs">Get Email Updates&nbsp;</span>
     </a>
   </span>

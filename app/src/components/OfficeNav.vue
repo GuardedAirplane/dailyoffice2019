@@ -27,9 +27,6 @@
             :class="selectedClass(link.name)"
             :shadow="hoverClass(link.name)"
           >
-            <p class="text-xs sm:text-sm">
-              <font-awesome-icon :icon="link.icon" />
-            </p>
             <p class="text-xs sm:text-sm" v-html="link.text" />
           </el-card>
         </router-link>
@@ -45,7 +42,6 @@
             :shadow="hoverClass(readingsLink.name)"
           >
             <p class="text-xs sm:text-sm">
-              <font-awesome-icon :icon="readingsLink.icon" />&nbsp;
               <span v-html="readingsLink.text" />
             </p>
           </el-card>
@@ -62,15 +58,19 @@
             shadow="hover"
             class="text-xs sm:text-sm"
           >
-            <font-awesome-icon
+            <span
               v-if="link.icon == 'left'"
-              :icon="['fad', 'left']"
-            />
+              aria-hidden="true"
+              class="nav-arrow"
+              >&lt;</span
+            >
             {{ link.text }}
-            <font-awesome-icon
+            <span
               v-if="link.icon == 'right'"
-              :icon="['fad', 'right']"
-            />
+              aria-hidden="true"
+              class="nav-arrow"
+              >&gt;</span
+            >
           </el-card>
         </router-link>
       </div>
@@ -79,8 +79,6 @@
 </template>
 
 <script>
-// @ is an alias to /src
-
 import { DynamicStorage } from '@/helpers/storage';
 
 export default {
@@ -117,7 +115,6 @@ export default {
         }/${this.calendarDate.getDate()}`,
         text: 'Morning<br>Prayer',
         name: 'morning_prayer',
-        icon: ['fad', 'sunrise'],
       },
       {
         to: `/midday_prayer/${this.calendarDate.getFullYear()}/${
@@ -125,7 +122,6 @@ export default {
         }/${this.calendarDate.getDate()}`,
         text: 'Midday<br>Prayer',
         name: 'midday_prayer',
-        icon: ['fad', 'sun'],
       },
       {
         to: `/evening_prayer/${this.calendarDate.getFullYear()}/${
@@ -133,7 +129,6 @@ export default {
         }/${this.calendarDate.getDate()}`,
         text: 'Evening<br>Prayer',
         name: 'evening_prayer',
-        icon: ['fad', 'sunset'],
       },
       {
         to: `/compline/${this.calendarDate.getFullYear()}/${
@@ -141,51 +136,45 @@ export default {
         }/${this.calendarDate.getDate()}`,
         text: 'Compline<br>(Bedtime)',
         name: 'compline',
-        icon: ['fad', 'moon-stars'],
       },
     ];
-    ((this.readingsLink = {
+    this.readingsLink = {
       to: `/readings/${this.calendarDate.getFullYear()}/${
         this.calendarDate.getMonth() + 1
       }/${this.calendarDate.getDate()}`,
       text: "Day's Readings",
       name: 'readings',
-      icon: ['fad', 'book-bible'],
-    }),
-      (this.familyLinks = [
-        {
-          to: `/family/morning_prayer/${this.calendarDate.getFullYear()}/${
-            this.calendarDate.getMonth() + 1
-          }/${this.calendarDate.getDate()}`,
-          text: 'Morning',
-          name: 'morning_prayer',
-          icon: ['fad', 'sunrise'],
-        },
-        {
-          to: `/family/midday_prayer/${this.calendarDate.getFullYear()}/${
-            this.calendarDate.getMonth() + 1
-          }/${this.calendarDate.getDate()}`,
-          text: 'Midday',
-          name: 'midday_prayer',
-          icon: ['fad', 'sun'],
-        },
-        {
-          to: `/family/early_evening_prayer/${this.calendarDate.getFullYear()}/${
-            this.calendarDate.getMonth() + 1
-          }/${this.calendarDate.getDate()}`,
-          text: 'Early Evening',
-          name: 'early_evening_prayer',
-          icon: ['fad', 'sunset'],
-        },
-        {
-          to: `/family/close_of_day_prayer/${this.calendarDate.getFullYear()}/${
-            this.calendarDate.getMonth() + 1
-          }/${this.calendarDate.getDate()}`,
-          text: 'Close of Day',
-          name: 'close_of_day_prayer',
-          icon: ['fad', 'moon-stars'],
-        },
-      ]));
+    };
+    this.familyLinks = [
+      {
+        to: `/family/morning_prayer/${this.calendarDate.getFullYear()}/${
+          this.calendarDate.getMonth() + 1
+        }/${this.calendarDate.getDate()}`,
+        text: 'Morning',
+        name: 'morning_prayer',
+      },
+      {
+        to: `/family/midday_prayer/${this.calendarDate.getFullYear()}/${
+          this.calendarDate.getMonth() + 1
+        }/${this.calendarDate.getDate()}`,
+        text: 'Midday',
+        name: 'midday_prayer',
+      },
+      {
+        to: `/family/early_evening_prayer/${this.calendarDate.getFullYear()}/${
+          this.calendarDate.getMonth() + 1
+        }/${this.calendarDate.getDate()}`,
+        text: 'Early Evening',
+        name: 'early_evening_prayer',
+      },
+      {
+        to: `/family/close_of_day_prayer/${this.calendarDate.getFullYear()}/${
+          this.calendarDate.getMonth() + 1
+        }/${this.calendarDate.getDate()}`,
+        text: 'Close of Day',
+        name: 'close_of_day_prayer',
+      },
+    ];
     if (this.currentServiceType == 'family') {
       this.links = this.familyLinks;
     } else {
@@ -296,5 +285,10 @@ export default {
 
 .el-card__body {
   padding: 5px !important;
+}
+
+.nav-arrow {
+  display: inline-block;
+  margin: 0 0.25rem;
 }
 </style>

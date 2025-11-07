@@ -47,7 +47,6 @@
       <!--            v-model="search" class="full-width m-2" placeholder="Filter by word or phrase">-->
       <!--          <template #prefix>-->
       <!--            <el-icon class="el-input__icon">-->
-      <!--              <font-awesome-icon :icon="['fad', 'search']"/>-->
       <!--            </el-icon>-->
       <!--          </template>-->
       <!--        </el-input>-->

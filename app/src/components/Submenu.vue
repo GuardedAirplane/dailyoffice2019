@@ -17,7 +17,6 @@
   <!--              href="https://www.facebook.com/groups/dailyoffice"-->
   <!--              target="_blank:"-->
   <!--            >-->
-  <!--              <font-awesome-icon :icon="['fab', 'facebook']" />-->
   <!--            </a>-->
   <!--          </span>-->
   <!--        </span>-->

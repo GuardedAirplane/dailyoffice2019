@@ -1,7 +1,6 @@
 <template>
   <span class="sub-menu-item">
     <a href="" @click.prevent="showFeedbackPanel()">
-      <font-awesome-icon :icon="['fad', 'message-pen']" /><br />
       <span class="ml-1 text-xs">Submit Feedback&nbsp;</span>
     </a>
   </span>
