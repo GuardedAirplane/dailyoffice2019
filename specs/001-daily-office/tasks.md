@@ -6,6 +6,7 @@
 **Status**: Existing Feature - Documentation & Testing Required
 
 **Input**: Design documents from `/specs/001-daily-office/`
+
 - ✅ plan.md (Implementation audit plan)
 - ✅ spec.md (Functional requirements with user stories)
 - ✅ research.md (Architecture documentation)
@@ -37,16 +38,17 @@
 - [ ] T006 Verify Django system check passes (python manage.py check)
 - [ ] T007 [P] Verify development servers start successfully (runsslserver and npm run dev)
 - [ ] T008 Run initial test suite and document current coverage baseline (pytest --cov)
+- [ ] T008a Verify cross-spec dependencies exist: 005-lectionary (FR-005a/b, FR-006a/b, FR-021, FR-022a/b/c) and 006-general-design (FR-023-025) with matching implementation tasks
 
-**Checkpoint**: Development environment functional, code formatted, baseline coverage documented
+**Checkpoint**: Development environment functional, code formatted, baseline coverage documented, cross-spec dependencies verified
 
 ---
 
-## Phase 2: Foundational (Test Infrastructure - CRITICAL PRIORITY)
+## Phase 2: Foundational (Test Infrastructure - P0 CRITICAL PRIORITY)
 
 **Purpose**: Establish comprehensive test infrastructure per Constitution Principle III (NON-NEGOTIABLE)
 
-**⚠️ CRITICAL**: This phase is a constitutional requirement and MUST be completed
+**⚠️ P0 CRITICAL**: This phase is a constitutional requirement and MUST be completed before ANY user story work begins
 
 ### Test Framework Setup
 
@@ -69,12 +71,15 @@
 
 **Independent Test**: Navigate to https://127.0.0.1:8000/office/morning_prayer/2025/12/25/ and verify all liturgical elements appear in correct sequence
 
-**Constitution Requirements**: 
+**Constitution Requirements**:
+
 - FR-001: Display Morning Prayer with all components
 - Principle III: 100% function coverage
 - Principle V: Code traceability (FR-### annotations)
 
-### Tests for Morning Prayer (Write FIRST, ensure they FAIL)
+### Tests for Morning Prayer (⚠️ WRITE FIRST - MUST FAIL before implementation)
+
+> **Constitution Principle III**: Tests MUST be written before implementation and MUST fail initially to prove they test real functionality.
 
 - [ ] T017 [P] [US1] Unit test: MorningPrayer instantiation in site/office/tests/test_morning_prayer.py
 - [ ] T018 [P] [US1] Unit test: Module list composition (20+ modules) in site/office/tests/test_morning_prayer.py
@@ -121,11 +126,12 @@
 **Independent Test**: Navigate to https://127.0.0.1:8000/office/evening_prayer/2025/12/25/ and verify evening-specific elements (Magnificat, evening psalms)
 
 **Constitution Requirements**:
+
 - FR-002: Display Evening Prayer with all components
 - Principle III: 100% function coverage
 - Principle V: Code traceability
 
-### Tests for Evening Prayer (Write FIRST)
+### Tests for Evening Prayer (⚠️ WRITE FIRST - MUST FAIL before implementation)
 
 - [ ] T047 [P] [US2] Unit test: EveningPrayer instantiation in site/office/tests/test_evening_prayer.py
 - [ ] T048 [P] [US2] Unit test: Module list composition (20+ modules) in site/office/tests/test_evening_prayer.py
@@ -155,6 +161,7 @@
 **Independent Test**: Navigate to https://127.0.0.1:8000/office/midday_prayer/2025/12/25/ and verify shortened format
 
 **Constitution Requirements**:
+
 - FR-003: Display Midday Prayer abbreviated
 - Principle III: 100% function coverage
 
@@ -183,6 +190,7 @@
 **Independent Test**: Navigate to https://127.0.0.1:8000/office/compline/2025/12/25/ and verify Nunc Dimittis and night prayers
 
 **Constitution Requirements**:
+
 - FR-004: Display Compline with all components
 - Principle III: 100% function coverage
 
@@ -213,6 +221,7 @@
 **Independent Test**: View one office, click navigation to another office, verify date maintained
 
 **Constitution Requirements**:
+
 - FR-013: Navigation between office types
 - Principle III: 100% function coverage
 
@@ -240,6 +249,7 @@
 **Independent Test**: View office for past/future dates and verify correct liturgical content
 
 **Constitution Requirements**:
+
 - FR-012: View offices for any date
 - FR-012a: Dynamic liturgical calculation
 - Principle III: 100% function coverage
@@ -257,7 +267,7 @@
 
 ### Code Traceability for Date Navigation
 
-- [ ] T093 [US6] Add FR-012 traceability annotations to site/office/offices.py (__init__ method)
+- [ ] T093 [US6] Add FR-012 traceability annotations to site/office/offices.py (**init** method)
 - [ ] T094 [US6] Add FR-012a traceability to site/churchcal/calculations.py (get_calendar_date)
 - [ ] T095 [US6] Add FR-012 traceability to app/src/router/index.js (date route params)
 
@@ -272,6 +282,7 @@
 **Independent Test**: View any Family Prayer office and verify simplified content
 
 **Constitution Requirements**:
+
 - FR-018: Provide Family Prayer offices
 - FR-019: Family Prayer as secondary navigation
 - Principle III: 100% function coverage
@@ -303,6 +314,7 @@
 **Goal**: Comprehensive testing of liturgical calendar calculations
 
 **Constitution Requirements**:
+
 - FR-007: Feast day readings substitution
 - FR-011: Display commemorations
 - FR-014: Calculate correct liturgical season
@@ -321,6 +333,7 @@
 - [ ] T116 [P] Integration test: Feast day overrides standard readings in site/office/tests/test_feast_days.py
 - [ ] T117 [P] Integration test: Christmas Day office displays correctly in site/office/tests/test_feast_days.py
 - [ ] T118 [P] Integration test: Easter Day office displays correctly in site/office/tests/test_feast_days.py
+- [ ] T118a [P] E2E test: Verify all major BCP 2019 feasts (Christmas, Easter, Epiphany, Ascension, Pentecost, Trinity Sunday, All Saints, Ash Wednesday, Palm Sunday, Good Friday) in app/tests/e2e/major_feasts.spec.js
 
 ### Code Traceability for Calendar
 
@@ -338,6 +351,7 @@
 **Goal**: Comprehensive testing of scripture retrieval and caching
 
 **Constitution Requirements**:
+
 - FR-016: Multiple Bible translations
 - FR-017: User translation selection
 - FR-020: Bible Gateway API retrieval
@@ -376,6 +390,7 @@
 **Goal**: Comprehensive testing of psalm assignments and text retrieval
 
 **Constitution Requirements**:
+
 - FR-005: Different psalm assignments MP vs EP
 - FR-005a: 30-day and 60-day Psalter cycles
 - FR-005b: User Psalter cycle selection
@@ -395,7 +410,7 @@
 
 ### Bug Fix for Psalter
 
-- [ ] T148 **BUG FIX**: Fix psalm_string_to_list in site/office/models.py line 81 (change psalms.split(psalms) to psalms.split(','))
+- [ ] T148 **BUG FIX**: Fix psalm_string_to_list in site/office/models.py line 81 - change `psalms.split(psalms)` to `psalms.split(',')` to correctly parse comma-separated psalm numbers
 
 ### Code Traceability for Psalter
 
@@ -412,6 +427,7 @@
 **Goal**: Comprehensive testing of user preferences and settings
 
 **Constitution Requirements**:
+
 - FR-023: Client-side preference storage
 - FR-024: Preferences persist across sessions
 - FR-026: Liturgical customization settings
@@ -448,6 +464,7 @@
 **Goal**: Comprehensive testing of canticle tables and rotation
 
 **Constitution Requirements**:
+
 - FR-008: Display appropriate canticles
 - FR-026: Canticle customization options
 - Principle III: 100% function coverage
@@ -478,6 +495,7 @@
 **Goal**: Comprehensive testing of collect retrieval and display
 
 **Constitution Requirements**:
+
 - FR-009: Include full text of prayers
 - FR-007: Proper collects for feasts
 - Principle III: 100% function coverage
@@ -508,6 +526,7 @@
 **Goal**: Test error conditions and edge cases across all user stories
 
 **Constitution Requirements**:
+
 - FR-022a: Display error with offline indicator
 - FR-022b: Provide retry option
 - FR-022c: Allow viewing cached content
@@ -528,8 +547,8 @@
 
 - [ ] T196 [P] Unit test: Leap year (Feb 29) office in site/office/tests/test_edge_cases.py
 - [ ] T197 [P] Unit test: Church year transition (Advent boundary) in site/churchcal/tests/test_edge_cases.py
-- [ ] T198 [P] Unit test: Far future date (year 2100) in site/churchcal/tests/test_edge_cases.py
-- [ ] T199 [P] Unit test: Far past date (year 1900) in site/churchcal/tests/test_edge_cases.py
+- [ ] T198 [P] Unit test: Far future date (current_year + 2) and year 2100 in site/churchcal/tests/test_edge_cases.py
+- [ ] T199 [P] Unit test: Far past date (current_year - 2) and year 1900 in site/churchcal/tests/test_edge_cases.py
 - [ ] T200 [P] Unit test: Multiple commemorations same date in site/churchcal/tests/test_edge_cases.py
 - [ ] T201 [P] Unit test: Major feast on Sunday in site/churchcal/tests/test_edge_cases.py
 
@@ -548,6 +567,7 @@
 **Goal**: Test all REST API endpoints comprehensively
 
 **Constitution Requirements**:
+
 - All FR requirements (API delivers data for all features)
 - Principle III: 100% function coverage
 
@@ -579,6 +599,7 @@
 **Goal**: Test Vue 3 frontend components comprehensively
 
 **Constitution Requirements**:
+
 - FR-010: Formatting with indentation/rubrics
 - FR-013: Navigation
 - Principle III: Coverage goal
@@ -608,6 +629,7 @@
 **Goal**: Verify performance requirements are met
 
 **Constitution Requirements**:
+
 - SC-001: Office load < 3 seconds
 - API response < 500ms
 - Principle III: Performance regression testing
@@ -620,7 +642,7 @@
 - [ ] T231 [P] Performance test: Scripture cache hit vs miss latency in site/office/tests/test_performance.py
 - [ ] T232 [P] Performance test: Database query count per office in site/office/tests/test_performance.py
 - [ ] T233 [P] E2E test: Office page load time < 3 seconds in app/tests/e2e/performance.spec.js
-- [ ] T234 Add performance monitoring instrumentation to site/office/offices.py
+- [ ] T234 Add performance monitoring instrumentation to site/office/offices.py: timestamp office generation start/end, log duration to console/APM, track module rendering times
 
 ### Code Traceability for Performance
 
@@ -635,6 +657,7 @@
 **Goal**: Update all documentation with traceability and test results
 
 **Constitution Requirements**:
+
 - Principle IV: Code clarity and documentation
 - Principle V: Traceability
 
@@ -723,6 +746,7 @@ The critical path for constitutional compliance:
 **Total Estimated Duration**: 40-60 days (6-9 weeks) for full constitutional compliance
 
 **MVP Path** (User Story 1 Only):
+
 1. Setup (Phase 1) → 1-2 days
 2. Test Infrastructure (Phase 2) → 3-5 days
 3. User Story 1 Complete (Phase 3) → 5-7 days
@@ -731,6 +755,7 @@ The critical path for constitutional compliance:
 ### Parallel Opportunities
 
 **Maximum Parallelization** (with 5+ developers):
+
 - Phase 1: 1 developer
 - Phase 2: 2 developers (backend + frontend test infrastructure)
 - Phases 3-9: 7 developers (1 per user story)
@@ -750,7 +775,7 @@ With optimal parallelization: **15-25 days** (3-5 weeks)
 1. ✅ Complete Phase 1: Setup (verify environment)
 2. ✅ Complete Phase 2: Test Infrastructure (CRITICAL foundation)
 3. ✅ Complete Phase 3: User Story 1 (Morning Prayer) with full tests and traceability
-4. **STOP and VALIDATE**: 
+4. **STOP and VALIDATE**:
    - Morning Prayer works correctly
    - Test coverage for Morning Prayer at 100%
    - All FR-001 code has traceability annotations
