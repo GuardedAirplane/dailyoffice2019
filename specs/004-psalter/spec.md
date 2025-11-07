@@ -3,7 +3,13 @@
 **Feature Branch**: `004-psalter`  
 **Created**: November 6, 2025  
 **Status**: Draft  
+**Last Updated**: November 7, 2025 (Consolidation Pass)  
 **Input**: User description: "Psalter: Supports showing all of the various Psalms from the 2019 Book of Common Prayer"
+
+**Cross-Spec Dependencies**:
+
+- **006-general-design**: Settings persistence for Coverdale language edition (Contemporary/Traditional)
+- **005-lectionary**: Bible translation selection (distinct from Coverdale Psalter editions)
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -129,10 +135,10 @@ An administrator wants to create, edit, and organize thematic psalm topics to he
 - **FR-009**: System MUST preserve the exact Coverdale translation text as it appears in BCP 2019
 - **FR-010**: System MUST display the complete text of the psalm including any superscriptions or musical directions
 - **FR-011**: System MUST provide thematic categories to help users find psalms by topic (praise, thanksgiving, morning, evening, comfort, etc.)
-- **FR-012**: System MUST support both Contemporary and Traditional Language Edition (TLE) versions of the Coverdale Psalter from BCP 2019, where Contemporary uses modern pronouns (you/your) and Traditional uses traditional pronouns (thou/thee)
-- **FR-013**: System MUST allow users to switch between Contemporary and Traditional Language Edition psalm texts
+- **FR-012**: System MUST support both Contemporary and Traditional Language Edition (TLE) versions of the Coverdale Psalter from BCP 2019, where Contemporary uses modern pronouns (you/your) and Traditional uses traditional pronouns (thou/thee). Note: This is specific to the Coverdale Psalter; Bible translation selection for scripture readings is specified in **005-lectionary** FR-006, FR-007
+- **FR-013**: System MUST allow users to switch between Contemporary and Traditional Language Edition psalm texts (preference persistence specified in **006-general-design** FR-007)
 - **FR-014**: System MUST always display pointing marks (asterisk \*) between the first and second half of each verse to indicate the pause point for Anglican chanting
-- **FR-015**: System MUST remember user preferences for language edition (Contemporary vs Traditional) across sessions
+- **FR-015**: System MUST remember user preferences for language edition (Contemporary vs Traditional) across sessions (persistence mechanism specified in **006-general-design** FR-007, FR-012)
 - **FR-016**: System MUST provide an admin interface for managing psalm topics, including creating, editing, and deleting topic categories
 - **FR-017**: System MUST allow administrators to assign psalms to topics and reorder topics for display priority
 - **FR-018**: System MUST provide an admin interface for editing psalm verse text (Contemporary and Traditional editions) to correct any transcription errors

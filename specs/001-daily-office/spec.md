@@ -3,7 +3,13 @@
 **Feature Branch**: `001-daily-office`  
 **Created**: November 6, 2025  
 **Status**: Draft  
+**Last Updated**: November 7, 2025 (Consolidation Pass)  
 **Input**: User description: "Daily Office: Supports displaying all the various liturgy components for doing the Daily Office found in the 2019 Book of Common Prayer (Morning, Midday, Evening, and Compline)"
+
+**Cross-Spec Dependencies**:
+
+- **005-lectionary**: Authoritative source for Bible translations, API integration, lectionary/psalter cycles
+- **006-general-design**: Authoritative source for settings persistence and storage mechanisms
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -139,12 +145,12 @@ A user wants to access simplified Family Prayer offices (Family Morning Prayer, 
 - **FR-002**: System MUST display Evening Prayer with all required liturgical components: opening sentence, confession, psalms, two scripture readings, evening canticle (Magnificat or alternative), apostles' creed, prayers, and closing
 - **FR-003**: System MUST display Midday Prayer with abbreviated liturgical components: opening, psalms, one scripture reading, and prayers
 - **FR-004**: System MUST display Compline with required liturgical components: confession, psalms, scripture reading, Nunc Dimittis, and night prayers
-- **FR-005**: System MUST assign different psalm readings to Morning Prayer and Evening Prayer for each day
-- **FR-005a**: System MUST support both 30-day Psalter cycle (based on day of month) and 60-day Psalter cycle (based on liturgical calendar)
-- **FR-005b**: System MUST allow users to select between 30-day and 60-day Psalter cycles for psalm assignments
-- **FR-006**: System MUST assign two scripture readings (Old Testament/Apocrypha and New Testament) to each of Morning Prayer and Evening Prayer
-- **FR-006a**: System MUST support both 1-year and 2-year lectionary cycles for scripture reading assignments
-- **FR-006b**: System MUST allow users to select between 1-year lectionary cycle (for those praying one office per day) and 2-year lectionary cycle (for those praying both Morning and Evening Prayer daily)
+- **FR-005**: System MUST assign different psalm readings to Morning Prayer and Evening Prayer for each day as specified in **005-lectionary** (see FR-002)
+- **FR-005a**: _(Psalter cycle details consolidated into 005-lectionary FR-002)_
+- **FR-005b**: _(Psalter cycle selection consolidated into 005-lectionary FR-002)_
+- **FR-006**: System MUST assign two scripture readings (Old Testament/Apocrypha and New Testament) to each of Morning Prayer and Evening Prayer as specified in **005-lectionary** (see FR-003)
+- **FR-006a**: _(Lectionary cycle details consolidated into 005-lectionary FR-013)_
+- **FR-006b**: _(Lectionary cycle selection consolidated into 005-lectionary FR-013)_
 - **FR-007**: System MUST substitute proper readings, psalms, and collects when the liturgical calendar indicates a feast day or holy day
 - **FR-008**: System MUST display appropriate canticles for each office type (e.g., Benedictus for Morning Prayer, Magnificat for Evening Prayer, Nunc Dimittis for Compline)
 - **FR-009**: System MUST include the full text of prayers, canticles, and liturgical responses so users can pray without referencing other resources
@@ -155,20 +161,20 @@ A user wants to access simplified Family Prayer offices (Family Morning Prayer, 
 - **FR-013**: System MUST provide navigation between different office types (Morning, Midday, Evening, Compline) while maintaining the same date selection
 - **FR-014**: System MUST calculate and display the correct liturgical season and associated elements for any given date
 - **FR-015**: System MUST follow the Book of Common Prayer 2019 text and rubrics exactly as published
-- **FR-016**: System MUST support multiple Bible translations with ESV as the default, including RSV, KJV, NRSVCE, NABRE, NIV, NASB, and Coverdale Psalter variants
-- **FR-017**: System MUST allow users to select their preferred Bible translation for scripture readings
+- **FR-016**: System MUST support scripture readings in multiple Bible translations as specified in **005-lectionary** (see FR-006, FR-007 in that spec)
+- **FR-017**: System MUST allow users to select their preferred Bible translation for scripture readings as specified in **005-lectionary**
 - **FR-018**: System MUST provide Family Prayer offices (Family Morning, Midday, Early Evening, Close of Day) as specified in BCP 2019
 - **FR-019**: System MUST present Family Prayer offices as secondary navigation options, not in primary office navigation
-- **FR-020**: System MUST retrieve scripture text from Bible Gateway API as the primary source
-- **FR-021**: System MUST cache retrieved scripture passages in local database to reduce API calls and improve performance
-- **FR-022**: System MUST gracefully handle Bible Gateway API unavailability by serving cached content when available
-- **FR-022a**: System MUST display a clear error message with offline/connectivity indicator when Bible Gateway API is unavailable and requested passage is not in cache
-- **FR-022b**: System MUST provide a retry option for failed scripture passage requests without requiring page reload
-- **FR-022c**: System MUST allow users to continue viewing other cached content (psalms, prayers, canticles, previously cached readings) when Bible Gateway API is unavailable
-- **FR-023**: System MUST store all user preferences (Psalter cycle, lectionary cycle, Bible translation, canticle rotation, reading length, confession style, absolution style, invitatory preference, and other liturgical options) in client-side browser storage (localStorage or cookies)
-- **FR-024**: System MUST persist user preferences across browser sessions without requiring user authentication or server-side storage
-- **FR-025**: System MUST apply stored user preferences immediately upon loading any daily office view
-- **FR-026**: System MUST provide user-accessible settings for liturgical customization options including: confession introduction length (short/long/fast-days-only), absolution style (priest/lay), invitatory preference (traditional/celebratory/rotating), canticle rotation (traditional/seasonal/daily), opening sentence style (fixed/seasonal), and collect rotation
+- **FR-020**: System MUST retrieve scripture text via the strategy specified in **005-lectionary** (see FR-005, FR-014 for Bible Gateway API integration and caching)
+- **FR-021**: _(Consolidated into 005-lectionary FR-005)_
+- **FR-022**: _(Consolidated into 005-lectionary FR-005, FR-014)_
+- **FR-022a**: _(Consolidated into 005-lectionary FR-014)_
+- **FR-022b**: _(Consolidated into 005-lectionary FR-014)_
+- **FR-022c**: _(Consolidated into 005-lectionary FR-014)_
+- **FR-023**: System MUST store user preferences as specified in **006-general-design** (see FR-007, FR-012 for comprehensive settings persistence strategy using localStorage/Capacitor Preferences)
+- **FR-024**: _(Consolidated into 006-general-design FR-007)_
+- **FR-025**: _(Consolidated into 006-general-design FR-007)_
+- **FR-026**: System MUST provide user-accessible settings for liturgical customization options including: confession introduction length (short/long/fast-days-only), absolution style (priest/lay), invitatory preference (traditional/celebratory/rotating), canticle rotation (traditional/seasonal/daily), opening sentence style (fixed/seasonal), and collect rotation (high-level requirements in **006-general-design** FR-006; Daily Office-specific customizations detailed here)
 - **FR-027**: System MUST provide sensible defaults for all liturgical customization options that follow traditional BCP usage patterns
 - **FR-028**: System MUST make liturgical customization settings accessible from the main settings interface without requiring advanced/expert mode
 

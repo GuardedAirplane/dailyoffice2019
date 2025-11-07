@@ -3,7 +3,19 @@
 **Feature Branch**: `005-lectionary`  
 **Created**: November 6, 2025  
 **Status**: Draft  
+**Last Updated**: November 7, 2025 (Consolidation Pass)  
 **Input**: User description: "Lectionary: Supports showing the various scripture readings and when to read them according to the 2019 Book of Common Prayer"
+
+**Authoritative Responsibilities** (referenced by other specs):
+
+- Bible translation selection and management (FR-006, FR-007)
+- Bible Gateway API integration and caching strategy (FR-005, FR-005a-e, FR-014)
+- Lectionary cycle selection (1-year/2-year) (FR-013, FR-013a-b)
+- Psalter cycle selection (30-day/60-day) (FR-002, FR-002a-b)
+
+**Cross-Spec Dependencies**:
+
+- **006-general-design**: Settings persistence mechanism for user preferences
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -129,19 +141,29 @@ A user wants to browse readings organized by liturgical season (Advent, Christma
 
 - **FR-001**: System MUST display scripture reading assignments for any date following the Book of Common Prayer 2019 Daily Office Lectionary
 - **FR-002**: System MUST show psalm assignments for Morning Prayer and Evening Prayer for each day, using the 60-day psalter cycle by default with optional 30-day cycle selection
+- **FR-002a**: System MUST support both 30-day Psalter cycle (based on day of month) and 60-day Psalter cycle (based on liturgical calendar position)
+- **FR-002b**: System MUST allow users to select between 30-day and 60-day Psalter cycles for psalm assignments via settings interface
 - **FR-003**: System MUST show two scripture readings (typically Old Testament/Apocrypha and New Testament) for both Morning Prayer and Evening Prayer
 - **FR-004**: System MUST display Holy Eucharist readings (Old Testament, Psalm, Epistle, Gospel) when they are appointed, following the three-year lectionary cycle (Years A, B, C)
-- **FR-005**: System MUST display the full text of any appointed scripture reading retrieved via external Bible APIs with service worker caching for offline access and performance
-- **FR-006**: System MUST support multiple Bible translations (at minimum ESV, NRSV, and optionally NIV, KJV, etc.)
-- **FR-007**: System MUST allow users to select their preferred Bible translation with all readings updating accordingly
+- **FR-005**: System MUST display the full text of any appointed scripture reading retrieved via Bible Gateway API as the primary source with local database caching for performance and offline support
+- **FR-005a**: System MUST cache retrieved scripture passages in local database to reduce API calls and improve performance
+- **FR-005b**: System MUST gracefully handle Bible Gateway API unavailability by serving cached content when available
+- **FR-005c**: System MUST display a clear error message with offline/connectivity indicator when Bible Gateway API is unavailable and requested passage is not in cache
+- **FR-005d**: System MUST provide a retry option for failed scripture passage requests without requiring page reload
+- **FR-005e**: System MUST allow users to continue viewing other cached content (psalms, prayers, canticles, previously cached readings) when Bible Gateway API is unavailable
+- **FR-006**: System MUST support multiple Bible translations with ESV as the default, including RSV, KJV, NRSVCE, NABRE, NIV, NASB, and Coverdale Psalter variants
+- **FR-007**: System MUST allow users to select their preferred Bible translation with all readings updating accordingly; preference persists across sessions (see **006-general-design** for settings persistence mechanism)
 - **FR-008**: System MUST display proper feast day readings when feasts occur, replacing or supplementing daily readings
 - **FR-009**: System MUST indicate which readings are for Morning Prayer vs. Evening Prayer vs. Eucharist
 - **FR-010**: System MUST handle scripture passages that span multiple chapters or books
 - **FR-011**: System MUST support discontinued passages (verses within a range that are skipped)
 - **FR-012**: System MUST allow users to view readings for any date, not just today
 - **FR-013**: System MUST follow the BCP 2019 two-year Daily Office Lectionary cycle, where Year 1 begins on Advent Sunday in even calendar years and Year 2 begins on Advent Sunday in odd calendar years
+- **FR-013a**: System MUST support both 1-year lectionary cycle (for those praying one office per day) and 2-year lectionary cycle (for those praying both Morning and Evening Prayer daily)
+- **FR-013b**: System MUST allow users to select between 1-year and 2-year lectionary cycles via settings interface
 - **FR-014**: System MUST display apocryphal/deuterocanonical readings when appointed in the lectionary, automatically falling back to NRSVCE translation with a notice when the user's selected translation doesn't include these books
-- **FR-015**: System MUST remember user's translation preference across sessions
+- **FR-014a**: _(Service worker caching details referenced from FR-005 above)_
+- **FR-015**: System MUST remember user's translation preference across sessions (persistence mechanism specified in **006-general-design** FR-007, FR-012)
 - **FR-016**: System MUST provide clear citations for all readings (book, chapter, verse range)
 - **FR-017**: System MUST handle alternative or optional readings when they are provided in the lectionary
 

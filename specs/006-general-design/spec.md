@@ -3,7 +3,16 @@
 **Feature Branch**: `006-general-design`  
 **Created**: November 6, 2025  
 **Status**: Draft  
+**Last Updated**: November 7, 2025 (Consolidation Pass)  
 **Input**: User description: "General Design: Supports a web hosted version as well as mobile apps. Also supports a wide array of settings and the ability to share them with others"
+
+**Authoritative Responsibilities** (referenced by other specs):
+
+- Settings persistence mechanism (localStorage, Capacitor Preferences, DynamicStorage) (FR-007, FR-012)
+- Settings sharing and URL encoding (FR-008, FR-008a)
+- Cross-platform storage strategies (FR-012)
+
+**Note**: This spec is referenced by 001-daily-office, 003-collects, 004-psalter, and 005-lectionary for their respective settings persistence needs.
 
 ## Clarifications
 
@@ -158,12 +167,16 @@ A user wants to access previously loaded offices and content when internet conne
 
 #### Settings & Customization (Currently Implemented)
 
+**Note**: This spec is the **authoritative source** for settings persistence and management across all features. Other specs (001-daily-office, 003-collects, 004-psalter, 005-lectionary) reference these requirements for their specific settings domains.
+
 - **FR-006**: System MUST provide customizable settings including:
   - Font size adjustment
-  - Language style (traditional/contemporary)
-  - Bible translation selection
-  - Psalm translation selection
-  - Optional liturgical elements (collects, canticles, etc.)
+  - Language style (traditional/contemporary) - see **003-collects** FR-003, **004-psalter** FR-012 for feature-specific details
+  - Bible translation selection - see **005-lectionary** FR-006, FR-007 for authoritative translation requirements
+  - Psalm translation selection - see **004-psalter** FR-012, FR-013 for Coverdale edition details
+  - Psalter cycle selection (30-day/60-day) - see **005-lectionary** FR-002a, FR-002b
+  - Lectionary cycle selection (1-year/2-year) - see **005-lectionary** FR-013a, FR-013b
+  - Optional liturgical elements (collects, canticles, etc.) - see **001-daily-office** FR-026 for Daily Office customizations
   - Calendar tracking options
   - Display preferences
 - **FR-007**: System MUST persist user settings across sessions without requiring account creation, using:
