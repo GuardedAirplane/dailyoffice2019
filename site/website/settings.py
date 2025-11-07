@@ -58,6 +58,9 @@ ALLOWED_HOSTS = [
     "data.dailyoffice2019.com",
 ]
 
+MEMCACHED_HOST = env("MEMCACHED_HOST", default="127.0.0.1")
+MEMCACHED_PORT = env.int("MEMCACHED_PORT", default=11211)
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -243,7 +246,7 @@ WEBPACK_LOADER = {
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
-        "LOCATION": "127.0.0.1:11211",
+        "LOCATION": f"{MEMCACHED_HOST}:{MEMCACHED_PORT}",
     }
 }
 

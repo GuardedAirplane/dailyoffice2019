@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1
+FROM docker.io/node:20
+
+WORKDIR /workspace/app
+
+ENV NPM_CONFIG_UPDATE_NOTIFIER=false
+
+COPY package.json package-lock.json* ./
+COPY .npmrc ./
+
+COPY . .
+
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 5173
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]

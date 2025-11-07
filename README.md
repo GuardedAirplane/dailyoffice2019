@@ -71,6 +71,14 @@ If you are using macOS, all the above requirements may be installed with Homebre
 - Follow the setup instructions in the client README: [app/README.md](app/README.md)
 - The frontend will be accessible locally at `http://127.0.0.1:8080`
 
+#### Run everything with Podman Compose
+
+- Install Podman and `podman-compose` (tested with Podman 5.6.2 / podman-compose 1.5.0)
+- From the repository root run `podman-compose up --build backend` to rebuild and start PostgreSQL, Memcached, and the Django API
+- Add the frontend with `podman-compose up frontend`
+- The API is served over HTTP at `http://127.0.0.1:8000/`; update any local API URLs by editing `app/.env.development` before launching the frontend container
+- Database data persists in the `postgres_data` volume; remove it with `podman volume rm dailyoffice2019_postgres_data`
+
 ### Code formatting standard
 
 - Please use `black` to format code with a line length of 119 beore submitting a pull request
