@@ -145,6 +145,8 @@ export default {
       text: "Day's Readings",
       name: 'readings',
     };
+    // Family Prayer office links for secondary navigation
+    // Validates: FR-019 (Family Prayer as secondary navigation)
     this.familyLinks = [
       {
         to: `/family/morning_prayer/${this.calendarDate.getFullYear()}/${
