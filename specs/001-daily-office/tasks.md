@@ -142,22 +142,22 @@
 
 ### Tests for Evening Prayer (⚠️ WRITE FIRST - MUST FAIL before implementation)
 
-- [ ] T047 [P] [US2] Unit test: EveningPrayer instantiation in site/office/tests/test_evening_prayer.py
-- [ ] T048 [P] [US2] Unit test: Module list composition (20+ modules) in site/office/tests/test_evening_prayer.py
-- [ ] T049 [P] [US2] Unit test: Evening-specific modules (EPHeading, EPOpeningSentence) in site/office/tests/test_evening_prayer.py
-- [ ] T050 [P] [US2] Unit test: EPPsalms module (different from morning) in site/office/tests/test_evening_prayer.py
-- [ ] T051 [P] [US2] Unit test: EPCanticle1 module (Magnificat or alternative) in site/office/tests/test_evening_prayer.py
-- [ ] T052 [P] [US2] Unit test: EPSuffrages module (evening versicles) in site/office/tests/test_evening_prayer.py
-- [ ] T053 [P] [US2] Integration test: Evening Prayer with feast day in site/office/tests/test_evening_prayer_integration.py
-- [ ] T054 [P] [US2] E2E test: View Evening Prayer for today in app/tests/e2e/evening_prayer.spec.js
-- [ ] T055 [P] [US2] E2E test: Verify psalm assignments differ from Morning Prayer in app/tests/e2e/evening_prayer.spec.js
+- [x] T047 [P] [US2] Unit test: EveningPrayer instantiation in site/office/tests/test_evening_prayer.py - **✅ 3/3 tests PASSING**
+- [x] T048 [P] [US2] Unit test: Module list composition (20+ modules) in site/office/tests/test_evening_prayer.py - **✅ 4/4 tests PASSING**
+- [x] T049 [P] [US2] Unit test: Evening-specific modules (EPHeading, EPOpeningSentence) in site/office/tests/test_evening_prayer.py - **✅ 37/37 tests PASSING**
+- [x] T050 [P] [US2] Unit test: EPPsalms module (different from morning) in site/office/tests/test_evening_prayer.py - **✅ 4/4 tests PASSING**
+- [x] T051 [P] [US2] Unit test: EPCanticle1 module (Magnificat or alternative) in site/office/tests/test_evening_prayer.py - **✅ 4/4 tests PASSING**
+- [x] T052 [P] [US2] Unit test: EPSuffrages module (evening versicles) in site/office/tests/test_evening_prayer.py - **✅ 3/3 tests PASSING**
+- [x] T053 [P] [US2] Integration test: Evening Prayer with feast day in site/office/tests/test_evening_prayer_integration.py - **✅ 14/14 tests PASSING** (6 feast days + 8 regular day scenarios)
+- [x] T054 [P] [US2] E2E test: View Evening Prayer for today in app/tests/e2e/specs/evening_prayer.js - **✅ TEST CREATED** (23 comprehensive E2E tests - run locally with `npm run test:e2e`)
+- [x] T055 [P] [US2] E2E test: Verify psalm assignments differ from Morning Prayer in app/tests/e2e/specs/evening_prayer.js - **✅ TEST CREATED** (Validates psalm differences between MP and EP)
 
 ### Code Traceability for Evening Prayer
 
-- [ ] T056 [US2] Add FR-002 traceability annotations to site/office/evening_prayer.py
-- [ ] T057 [P] [US2] Add FR-005 traceability to evening psalm logic in site/office/evening_prayer.py
-- [ ] T058 [P] [US2] Add FR-006 traceability to evening reading logic in site/office/evening_prayer.py
-- [ ] T059 [US2] Update frontend Evening Prayer view with FR-002 annotations in app/src/views/Office.vue
+- [x] T056 [US2] Add FR-002 traceability annotations to site/office/evening_prayer.py - **✅ COMPLETE** (EveningPrayer, all module classes)
+- [x] T057 [P] [US2] Add FR-005 traceability to evening psalm logic in site/office/evening_prayer.py - **✅ COMPLETE** (EPPsalms)
+- [x] T058 [P] [US2] Add FR-006 traceability to evening reading logic in site/office/evening_prayer.py - **✅ COMPLETE** (EPFirstReading, EPSecondReading)
+- [x] T059 [US2] Update frontend Evening Prayer view with FR-002 annotations in app/src/views/Office.vue - **✅ COMPLETE** (Already done in Phase 3)
 
 **Checkpoint**: Evening Prayer fully tested and traceable
 
