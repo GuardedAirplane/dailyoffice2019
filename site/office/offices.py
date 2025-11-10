@@ -44,6 +44,11 @@ class Office(object):
 
     @cached_property
     def links(self):
+        """
+        Generate navigation links for office types and dates.
+        
+        Validates: FR-013 (Navigation Between Office Types)
+        """
         today = self.date.date
         yesterday = today - datetime.timedelta(days=1)
         tomorrow = today + datetime.timedelta(days=1)
