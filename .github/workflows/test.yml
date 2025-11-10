@@ -1,0 +1,277 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [main, develop, 001-daily-office]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  backend-tests:
+    name: Backend Tests (Python/Django)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: dailyoffice_test
+          POSTGRES_USER: dailyoffice
+          POSTGRES_PASSWORD: dailyoffice
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      memcached:
+        image: memcached:1.6
+        ports:
+          - 11211:11211
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev
+
+      - name: Install Python dependencies
+        working-directory: ./site
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-django pytest-cov factory_boy freezegun
+
+      - name: Set up test database
+        working-directory: ./site
+        env:
+          POSTGRES_NAME: dailyoffice_test
+          POSTGRES_USER: dailyoffice
+          POSTGRES_PASSWORD: dailyoffice
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: 'True'
+        run: |
+          python manage.py migrate --noinput
+
+      - name: Run backend tests with coverage
+        working-directory: ./site
+        env:
+          POSTGRES_NAME: dailyoffice_test
+          POSTGRES_USER: dailyoffice
+          POSTGRES_PASSWORD: dailyoffice
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: 'True'
+        run: |
+          pytest --cov --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./site/coverage.xml
+          flags: backend
+          name: backend-coverage
+
+      - name: Check coverage thresholds
+        working-directory: ./site
+        env:
+          POSTGRES_NAME: dailyoffice_test
+          POSTGRES_USER: dailyoffice
+          POSTGRES_PASSWORD: dailyoffice
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: 'True'
+        run: |
+          # Fail if coverage drops below 80% (will increase to 90% for P1, 100% for P0)
+          pytest --cov --cov-fail-under=80 --no-cov-on-fail
+
+  frontend-tests:
+    name: Frontend Tests (Vue/Vitest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./app
+        run: npm ci
+
+      - name: Run unit tests
+        working-directory: ./app
+        run: npm run test:unit
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./app/coverage/coverage-final.json
+          flags: frontend
+          name: frontend-coverage
+
+  e2e-tests:
+    name: E2E Tests (Cypress)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: dailyoffice_test
+          POSTGRES_USER: dailyoffice
+          POSTGRES_PASSWORD: dailyoffice
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      memcached:
+        image: memcached:1.6
+        ports:
+          - 11211:11211
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install backend dependencies
+        working-directory: ./site
+        run: |
+          pip install -r requirements.txt
+
+      - name: Install frontend dependencies
+        working-directory: ./app
+        run: npm ci
+
+      - name: Set up test database
+        working-directory: ./site
+        env:
+          POSTGRES_NAME: dailyoffice_test
+          POSTGRES_USER: dailyoffice
+          POSTGRES_PASSWORD: dailyoffice
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: 'True'
+        run: |
+          python manage.py migrate --noinput
+
+      - name: Start backend server
+        working-directory: ./site
+        env:
+          POSTGRES_NAME: dailyoffice_test
+          POSTGRES_USER: dailyoffice
+          POSTGRES_PASSWORD: dailyoffice
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: 'True'
+        run: |
+          python manage.py runserver 8000 &
+          sleep 5
+
+      - name: Run E2E tests
+        working-directory: ./app
+        run: npm run test:e2e:ci
+
+      - name: Upload Cypress videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: app/tests/e2e/videos
+
+      - name: Upload Cypress screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: app/tests/e2e/screenshots
+
+  lint:
+    name: Code Quality (Linting & Formatting)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Python linting tools
+        run: |
+          pip install black flake8
+
+      - name: Check Python formatting (Black)
+        working-directory: ./site
+        run: |
+          black --check --target-version=py313 --line-length=119 office/ churchcal/ bible/ psalter/
+
+      - name: Install frontend dependencies
+        working-directory: ./app
+        run: npm ci
+
+      - name: Check JavaScript/Vue linting (ESLint)
+        working-directory: ./app
+        run: npm run lint
+
+  coverage-report:
+    name: Coverage Report
+    needs: [backend-tests, frontend-tests]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download coverage reports
+        uses: actions/download-artifact@v4
+
+      - name: Comment PR with coverage
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true

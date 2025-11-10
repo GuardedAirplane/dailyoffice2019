@@ -20,3 +20,14 @@ site/website/.env
 !.yarn/versions
 .pnp.*
 dailyofficelocalapi/
+
+# Test database dumps
+site/dailyoffice_data_only.sql
+site/dailyoffice_*.sql
+site/__MACOSX/
+
+# Coverage reports
+site/.coverage
+site/coverage.xml
+site/htmlcov/
+site/.pytest_cache/

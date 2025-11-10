@@ -817,7 +817,7 @@ def to_date(date_string):
         return date_string.date()
 
     if isinstance(date_string, date):
-        return date
+        return date_string
 
     if isinstance(date_string, str):
         try:

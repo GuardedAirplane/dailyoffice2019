@@ -17,13 +17,19 @@ class Office(object):
 
     def __init__(self, date):
         from churchcal.calculations import get_calendar_date
+        from churchcal.models import FerialCommemoration
 
         self.date = get_calendar_date(date)
 
-        try:
-            self.office_readings = HolyDayOfficeDay.objects.get(commemoration=self.date.primary)
-        except HolyDayOfficeDay.DoesNotExist:
+        # FerialCommemoration instances are not saved to the database (managed=False)
+        # so we cannot query HolyDayOfficeDay with them. For ferias, use StandardOfficeDay.
+        if isinstance(self.date.primary, FerialCommemoration):
             self.office_readings = StandardOfficeDay.objects.get(month=self.date.date.month, day=self.date.date.day)
+        else:
+            try:
+                self.office_readings = HolyDayOfficeDay.objects.get(commemoration=self.date.primary)
+            except HolyDayOfficeDay.DoesNotExist:
+                self.office_readings = StandardOfficeDay.objects.get(month=self.date.date.month, day=self.date.date.day)
 
         self.thirty_day_psalter_day = ThirtyDayPsalterDay.objects.get(day=self.date.date.day)
 
