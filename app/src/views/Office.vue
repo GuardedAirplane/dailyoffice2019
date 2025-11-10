@@ -120,6 +120,17 @@
 </template>
 
 <script>
+/**
+ * Office view component - displays Daily Office liturgies.
+ * 
+ * Validates: FR-001 (Display Morning Prayer with all required liturgical components)
+ * Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+ * Validates: FR-003 (Display Midday Prayer)
+ * Validates: FR-004 (Display Compline)
+ * 
+ * Renders office modules retrieved from backend API including headings, readings,
+ * psalms, canticles, prayers, and other liturgical components.
+ */
 // @ is an alias to /src
 import OfficeHeading from '@/components/OfficeHeading.vue';
 import OfficeSubheading from '@/components/OfficeSubheading.vue';

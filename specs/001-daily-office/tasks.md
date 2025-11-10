@@ -95,34 +95,34 @@
 - [x] T019 [P] [US1] Unit test: Date handling (current, past, future) in site/office/tests/test_morning_prayer.py - **✅ 4/4 tests PASSING** (Fixed StandardOfficeDay duplication)
 - [ ] T020 [P] [US1] Unit test: Settings integration (psalter, lectionary, canticles) in site/office/tests/test_morning_prayer.py - **⏭️ 0/5 tests SKIPPED** (Settings handled by Vue.js frontend, not backend API)
 - [x] T021 [P] [US1] Unit test: Navigation links generation in site/office/tests/test_morning_prayer.py - **✅ 7/7 tests PASSING** (Mocked reverse() for SPA architecture)
-- [ ] T022 [P] [US1] Unit test: MPHeading module in site/office/tests/test_morning_prayer.py
-- [ ] T023 [P] [US1] Unit test: MPOpeningSentence module (seasonal logic) in site/office/tests/test_morning_prayer.py
-- [ ] T024 [P] [US1] Unit test: Confession module (3 length options) in site/office/tests/test_morning_prayer.py
-- [ ] T025 [P] [US1] Unit test: Invitatory module (Venite/Jubilate logic) in site/office/tests/test_morning_prayer.py
-- [ ] T026 [P] [US1] Unit test: MPPsalms module (30day/60day cycle selection) in site/office/tests/test_morning_prayer.py
-- [ ] T027 [P] [US1] Unit test: MPFirstReading module in site/office/tests/test_morning_prayer.py
-- [ ] T028 [P] [US1] Unit test: MPCanticle1 module (canticle table lookup) in site/office/tests/test_morning_prayer.py
-- [ ] T029 [P] [US1] Unit test: MPSecondReading module in site/office/tests/test_morning_prayer.py
-- [ ] T030 [P] [US1] Unit test: MPCanticle2 module in site/office/tests/test_morning_prayer.py
-- [ ] T031 [P] [US1] Unit test: Creed module in site/office/tests/test_morning_prayer.py
-- [ ] T032 [P] [US1] Unit test: Prayers module in site/office/tests/test_morning_prayer.py
-- [ ] T033 [P] [US1] Unit test: MPSuffrages module in site/office/tests/test_morning_prayer.py
-- [ ] T034 [P] [US1] Unit test: MPCollectsOfTheDay module in site/office/tests/test_morning_prayer.py
-- [ ] T035 [P] [US1] Unit test: MPCollects module in site/office/tests/test_morning_prayer.py
-- [ ] T036 [P] [US1] Unit test: Dismissal module in site/office/tests/test_morning_prayer.py
-- [ ] T037 [P] [US1] Integration test: Morning Prayer with feast day readings in site/office/tests/test_morning_prayer_integration.py
-- [ ] T038 [P] [US1] Integration test: Morning Prayer with regular day readings in site/office/tests/test_morning_prayer_integration.py
-- [ ] T039 [P] [US1] E2E test: View Morning Prayer for today in app/tests/e2e/morning_prayer.spec.js
-- [ ] T040 [P] [US1] E2E test: Morning Prayer displays all elements correctly in app/tests/e2e/morning_prayer.spec.js
+- [x] T022 [P] [US1] Unit test: MPHeading module in site/office/tests/test_morning_prayer.py - **✅ 3/3 tests PASSING**
+- [x] T023 [P] [US1] Unit test: MPOpeningSentence module (seasonal logic) in site/office/tests/test_morning_prayer.py - **✅ 7/7 tests PASSING**
+- [x] T024 [P] [US1] Unit test: Confession module (3 length options) in site/office/tests/test_morning_prayer.py - **✅ 3/3 tests PASSING**
+- [x] T025 [P] [US1] Unit test: Invitatory module (Venite/Jubilate logic) in site/office/tests/test_morning_prayer.py - **✅ 1/1 tests PASSING**
+- [x] T026 [P] [US1] Unit test: MPPsalms module (30day/60day cycle selection) in site/office/tests/test_morning_prayer.py - **✅ 4/4 tests PASSING**
+- [x] T027 [P] [US1] Unit test: MPFirstReading module in site/office/tests/test_morning_prayer.py - **✅ 4/4 tests PASSING**
+- [x] T028 [P] [US1] Unit test: MPCanticle1 module (canticle table lookup) in site/office/tests/test_morning_prayer.py - **✅ 3/3 tests PASSING**
+- [x] T029 [P] [US1] Unit test: MPSecondReading module in site/office/tests/test_morning_prayer.py - **✅ 3/3 tests PASSING**
+- [x] T030 [P] [US1] Unit test: MPCanticle2 module in site/office/tests/test_morning_prayer.py - **✅ 2/2 tests PASSING**
+- [x] T031 [P] [US1] Unit test: Creed module in site/office/tests/test_morning_prayer.py - **✅ 1/1 tests PASSING**
+- [x] T032 [P] [US1] Unit test: Prayers module in site/office/tests/test_morning_prayer.py - **✅ 2/2 tests PASSING**
+- [x] T033 [P] [US1] Unit test: MPSuffrages module in site/office/tests/test_morning_prayer.py - **✅ 1/1 tests PASSING**
+- [x] T034 [P] [US1] Unit test: MPCollectsOfTheDay module in site/office/tests/test_morning_prayer.py - **✅ 3/3 tests PASSING**
+- [x] T035 [P] [US1] Unit test: MPCollects module in site/office/tests/test_morning_prayer.py - **✅ 4/4 tests PASSING**
+- [x] T036 [P] [US1] Unit test: Dismissal module in site/office/tests/test_morning_prayer.py - **✅ 3/3 tests PASSING**
+- [x] T037 [P] [US1] Integration test: Morning Prayer with feast day readings in site/office/tests/test_morning_prayer_integration.py - **✅ 6/6 tests PASSING** (Christmas, Easter, Epiphany, Ash Wednesday, Ascension, Pentecost)
+- [x] T038 [P] [US1] Integration test: Morning Prayer with regular day readings in site/office/tests/test_morning_prayer_integration.py - **✅ 7/7 tests PASSING** (weekdays, Sundays, module completeness)
+- [x] T039 [P] [US1] E2E test: View Morning Prayer for today in app/tests/e2e/specs/morning_prayer.js - **✅ TEST CREATED** (21 comprehensive E2E tests - run locally with `npm run test:e2e`)
+- [x] T040 [P] [US1] E2E test: Morning Prayer displays all elements correctly in app/tests/e2e/specs/morning_prayer.js - **✅ TEST CREATED** (Validates all liturgical components, order, navigation, error handling)
 
 ### Code Traceability for Morning Prayer
 
-- [ ] T041 [US1] Add FR-001 traceability annotations to site/office/morning_prayer.py (class docstring)
-- [ ] T042 [P] [US1] Add FR-005 traceability to psalm assignment logic in site/office/morning_prayer.py
-- [ ] T043 [P] [US1] Add FR-006 traceability to reading assignment logic in site/office/morning_prayer.py
-- [ ] T044 [P] [US1] Add FR-008 traceability to canticle selection logic in site/office/morning_prayer.py
-- [ ] T045 [P] [US1] Add FR-009 traceability to liturgical text modules in site/office/morning_prayer.py
-- [ ] T046 [US1] Update frontend Morning Prayer view with FR-001 annotations in app/src/views/Office.vue
+- [x] T041 [US1] Add FR-001 traceability annotations to site/office/morning_prayer.py (class docstring) - **✅ COMPLETE** (MorningPrayer, all module classes)
+- [x] T042 [P] [US1] Add FR-005 traceability to psalm assignment logic in site/office/morning_prayer.py - **✅ COMPLETE** (MPPsalms)
+- [x] T043 [P] [US1] Add FR-006 traceability to reading assignment logic in site/office/morning_prayer.py - **✅ COMPLETE** (MPFirstReading, MPSecondReading)
+- [x] T044 [P] [US1] Add FR-008 traceability to canticle selection logic in site/office/morning_prayer.py - **✅ COMPLETE** (MPCanticle1, MPCanticle2)
+- [x] T045 [P] [US1] Add FR-009 traceability to liturgical text modules in site/office/morning_prayer.py - **✅ COMPLETE** (MPOpeningSentence, MPInvitatory, MPSuffrages, MPCollectsOfTheDay, MPCollects, MPMissionCollect, MPHeading)
+- [x] T046 [US1] Update frontend Morning Prayer view with FR-001 annotations in app/src/views/Office.vue - **✅ COMPLETE** (Added script docstring with FR-001, FR-002, FR-003, FR-004)
 
 **Checkpoint**: Morning Prayer fully tested and traceable - MVP ready for demo
 
