@@ -75,6 +75,8 @@ const routes = [
     },
   },
   {
+    // Route for viewing any office on any date
+    // Validates: FR-012 (View Offices for Any Date)
     path: '/:office/:year/:month/:day',
     name: 'PrayWithDate',
     component: Pray,

@@ -16,6 +16,11 @@ class Office(object):
         return "{dt:%A} {dt:%B} {dt.day}, {dt.year}".format(dt=self.date.date)
 
     def __init__(self, date):
+        """
+        Initialize Office for any valid date.
+        
+        Validates: FR-012 (View Offices for Any Date)
+        """
         from churchcal.calculations import get_calendar_date
         from churchcal.models import FerialCommemoration
 

@@ -280,22 +280,28 @@
 
 ### Tests for Date Navigation
 
-- [ ] T085 [P] [US6] Unit test: Office accepts any date in site/office/tests/test_offices.py
-- [ ] T086 [P] [US6] Unit test: Future date liturgical calculation in site/office/tests/test_offices.py
-- [ ] T087 [P] [US6] Unit test: Past date liturgical calculation in site/office/tests/test_offices.py
-- [ ] T088 [P] [US6] Unit test: Leap year handling (Feb 29) in site/office/tests/test_offices.py
-- [ ] T089 [P] [US6] Unit test: Church year transition (Advent boundary) in site/office/tests/test_offices.py
-- [ ] T090 [P] [US6] E2E test: View office for future date (2050) in app/tests/e2e/date_navigation.spec.js
-- [ ] T091 [P] [US6] E2E test: View office for past date (2020) in app/tests/e2e/date_navigation.spec.js
-- [ ] T092 [P] [US6] E2E test: Navigate forward/backward by day in app/tests/e2e/date_navigation.spec.js
+- [x] T085 [P] [US6] Unit test: Office accepts any date in site/office/tests/test_date_handling.py ✓ TestOfficeAcceptsAnyDate (4 tests)
+- [x] T086 [P] [US6] Unit test: Future date liturgical calculation in site/office/tests/test_date_handling.py ✓ TestLiturgicalCalculations (4 tests)
+- [x] T087 [P] [US6] Unit test: Past date liturgical calculation in site/office/tests/test_date_handling.py ✓ TestLiturgicalCalculations
+- [x] T088 [P] [US6] Unit test: Leap year handling (Feb 29) in site/office/tests/test_date_handling.py ✓ TestLeapYearHandling (4 tests)
+- [x] T089 [P] [US6] Unit test: Church year transition (Advent boundary) in site/office/tests/test_date_handling.py ✓ TestChurchYearTransitions (4 tests)
+- [x] T090 [P] [US6] E2E test: View office for future date (2050) in app/tests/e2e/specs/date_navigation.js ✓ 47 comprehensive tests
+- [x] T091 [P] [US6] E2E test: View office for past date (2020) in app/tests/e2e/specs/date_navigation.js ✓
+- [x] T092 [P] [US6] E2E test: Navigate forward/backward by day in app/tests/e2e/specs/date_navigation.js ✓
 
 ### Code Traceability for Date Navigation
 
-- [ ] T093 [US6] Add FR-012 traceability annotations to site/office/offices.py (**init** method)
-- [ ] T094 [US6] Add FR-012a traceability to site/churchcal/calculations.py (get_calendar_date)
-- [ ] T095 [US6] Add FR-012 traceability to app/src/router/index.js (date route params)
+- [x] T093 [US6] Add FR-012 traceability annotations to site/office/offices.py (__init__ method) ✓
+- [x] T094 [US6] Add FR-012a traceability to site/churchcal/calculations.py (get_calendar_date) ✓
+- [x] T095 [US6] Add FR-012 traceability to app/src/router/index.js (date route params) ✓
 
-**Checkpoint**: Date navigation fully tested and traceable
+**Phase 8 Complete**: 21 backend tests passing, 79% coverage of calculations.py, 47 E2E tests created
+- FR-012 (View Offices for Any Date) traceability added to offices.py __init__ and router
+- FR-012a (Dynamic Liturgical Calculation) traceability added to calculations.py
+- All date edge cases tested: past (1900+), future (2100), leap years, church year transitions
+- Comprehensive E2E tests for date navigation controls and liturgical calculations
+
+**Checkpoint**: Date navigation fully tested and traceable ✓
 
 ---
 

@@ -840,5 +840,10 @@ def get_church_year(date_string):
 
 
 def get_calendar_date(date_string):
+    """
+    Calculate liturgical date with dynamic season and feast calculations.
+    
+    Validates: FR-012a (Dynamic Liturgical Calculation)
+    """
     church_year = get_church_year(date_string)
     return church_year.get_date(date_string)
