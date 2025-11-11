@@ -105,9 +105,11 @@ class MPCommemorationListing(OfficeSection):
     Morning Prayer commemoration listing display.
     
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
+    Validates: FR-011 (Display Commemorations for Each Day)
     """
     @cached_property
     def data(self):
+        # FR-011: Display all commemorations (required and optional) for the day
         return {
             "day": self.date,
             "evening": False,

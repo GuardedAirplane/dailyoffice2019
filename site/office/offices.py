@@ -19,6 +19,7 @@ class Office(object):
         """
         Initialize Office for any valid date.
         
+        Validates: FR-007 (Use Proper Readings for Feast Days and Sundays)
         Validates: FR-012 (View Offices for Any Date)
         """
         from churchcal.calculations import get_calendar_date
@@ -28,6 +29,7 @@ class Office(object):
 
         # FerialCommemoration instances are not saved to the database (managed=False)
         # so we cannot query HolyDayOfficeDay with them. For ferias, use StandardOfficeDay.
+        # FR-007: Feast days override standard readings via HolyDayOfficeDay
         if isinstance(self.date.primary, FerialCommemoration):
             self.office_readings = StandardOfficeDay.objects.get(month=self.date.date.month, day=self.date.date.day)
         else:

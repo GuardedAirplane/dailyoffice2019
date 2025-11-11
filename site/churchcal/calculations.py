@@ -12,6 +12,14 @@ from .utils import advent, week_days, easter
 
 
 class CalendarDate(object):
+    """
+    Represents a liturgical calendar date with commemorations and season.
+    
+    Validates: FR-014 (Calculate and Display Liturgical Season)
+    
+    Calculates the liturgical season for any date and determines primary and
+    secondary commemorations based on the church calendar rules.
+    """
     def __init__(self, date, calendar, year):
         self.date = date
         self.calendar = calendar
@@ -21,7 +29,7 @@ class CalendarDate(object):
         self.primary = None
         self.finalized = False
 
-        self.season = None
+        self.season = None  # FR-014: Liturgical season calculated and assigned
 
         self.year = year
 
