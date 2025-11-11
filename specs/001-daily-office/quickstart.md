@@ -913,28 +913,141 @@ console.log("Stored settings:", localStorage.getItem("office_settings"));
 
 ## Testing Guide
 
-### Running Tests
+### Test Infrastructure Overview
 
+The Daily Office project uses a comprehensive multi-layer testing strategy per Constitution Principle III:
+
+- **Unit Tests** (pytest): Test individual classes and methods
+- **Integration Tests** (pytest): Test module interactions and database queries  
+- **E2E Tests** (Cypress): Test complete user workflows in browser
+- **Performance Tests** (pytest + Cypress): Validate SC-001 compliance
+
+**Current Status**:
+- ✅ 230+ backend tests implemented
+- ✅ 50+ E2E tests implemented
+- ✅ Test coverage: 32% (target: 100%)
+- ✅ Production database approach (no fixture creation needed)
+
+### Running Backend Tests
+
+**Using Podman (Recommended)**:
 ```bash
-# Backend tests (pytest)
-cd site
-source env/bin/activate
-pytest
+# Run all backend tests
+podman exec dailyoffice2019_backend_1 python -m pytest
 
 # Run specific test file
-pytest office/tests/test_morning_prayer.py
+podman exec dailyoffice2019_backend_1 python -m pytest office/tests/test_morning_prayer.py -v
+
+# Run specific test class
+podman exec dailyoffice2019_backend_1 python -m pytest \
+  office/tests/test_morning_prayer.py::TestMorningPrayerInstantiation -v
+
+# Run specific test
+podman exec dailyoffice2019_backend_1 python -m pytest \
+  office/tests/test_morning_prayer.py::TestMorningPrayerInstantiation::test_morning_prayer_instantiates_with_valid_date -v
+
+# Run with coverage report
+podman exec dailyoffice2019_backend_1 python -m pytest \
+  --cov=office --cov=churchcal --cov=bible --cov-report=html --cov-report=term
+
+# Run performance tests
+podman exec dailyoffice2019_backend_1 python -m pytest office/tests/test_performance.py -v
+
+# Run tests in parallel (faster)
+podman exec dailyoffice2019_backend_1 python -m pytest -n auto
+```
+
+**Local Environment** (if not using Podman):
+```bash
+cd site
+source env/bin/activate
+
+# Run all tests
+pytest
 
 # Run with coverage
-pytest --cov=office --cov-report=html
+pytest --cov=office --cov=churchcal --cov=bible --cov-report=html
 
-# Frontend tests (Vitest)
+# Run specific test file
+pytest office/tests/test_morning_prayer.py -v
+
+# Run with verbose output and show print statements
+pytest office/tests/test_morning_prayer.py -v -s
+```
+
+### Running Frontend Tests
+
+**Unit Tests (Vitest)**:
+```bash
 cd app
 npm run test
 
-# E2E tests (Cypress)
-cd app
-npm run test:e2e
+# Run in watch mode
+npm run test:watch
+
+# Run with coverage
+npm run test:coverage
 ```
+
+**E2E Tests (Cypress)**:
+```bash
+cd app
+
+# Run E2E tests (headless)
+npm run test:e2e
+
+# Run E2E tests (interactive)
+npm run test:e2e:open
+
+# Run specific spec file
+npm run test:e2e -- --spec tests/e2e/specs/morning_prayer.spec.js
+
+# Run performance tests
+npm run test:e2e -- --spec tests/e2e/specs/performance.spec.js
+```
+
+### Test Data Setup
+
+**Production Database Approach**:
+
+The project uses a production database dump for testing instead of creating fixtures:
+
+```python
+# site/conftest.py automatically loads dailyoffice_2024_01_30.sql
+
+# In your tests, all data is available:
+from office.models import StandardOfficeDay
+
+def test_something():
+    # Production data already loaded - no fixtures needed!
+    office_day = StandardOfficeDay.objects.filter(date='2025-12-25').first()
+    assert office_day is not None
+```
+
+**Benefits**:
+- ✅ Realistic test data
+- ✅ No fixture maintenance
+- ✅ Fast setup (~13s database load)
+- ✅ All dates from 2018-2021 available
+
+### Test Coverage Reports
+
+**Generate HTML Coverage Report**:
+```bash
+# Using Podman
+podman exec dailyoffice2019_backend_1 python -m pytest \
+  --cov=office --cov=churchcal --cov=bible \
+  --cov-report=html --cov-report=term
+
+# View report
+firefox site/htmlcov/index.html  # Or your preferred browser
+```
+
+**Coverage by Module**:
+- `office/`: ~35% (230+ tests, growing)
+- `churchcal/`: ~78% (robust calendar logic tests)
+- `bible/`: ~20% (needs expansion)
+- `psalter/`: ~7% (needs expansion)
 
 ### Writing Tests
 
@@ -945,9 +1058,9 @@ npm run test:e2e
 
 import pytest
 from datetime import date
-from office.models import StandardOfficeDay
 from office.morning_prayer import MorningPrayer
 
+@pytest.mark.django_db
 class TestFeatureName:
     """
     Test suite for [feature name].
@@ -958,26 +1071,48 @@ class TestFeatureName:
     def test_basic_functionality(self):
         """[Feature] performs basic function correctly."""
         # Arrange
-        office_day = StandardOfficeDay.objects.get_date(2025, 1, 1)
-        office = MorningPrayer(office_day, date(2025, 1, 1))
-
+        test_date = date(2025, 12, 25)  # Christmas
+        
         # Act
-        result = office.some_method()
-
+        office = MorningPrayer(test_date)
+        result = office.modules
+        
         # Assert
-        assert result == expected_value
-        assert result.has_property
+        assert len(result) > 20  # Morning Prayer has 20+ modules
+        assert result[0][0].__class__.__name__ == "MPHeading"
 
-    def test_edge_case_1(self):
+    def test_edge_case(self):
         """[Feature] handles [edge case] correctly."""
-        # Test edge case
-        pass
-
+        test_date = date(2025, 2, 29)  # Leap year edge case
+        # Test implementation
+        
     def test_error_handling(self):
         """[Feature] raises appropriate errors for invalid input."""
         with pytest.raises(ValueError):
-            # Code that should raise error
-            pass
+            MorningPrayer("invalid-date")
+```
+
+**E2E Test Structure** (Cypress):
+
+```javascript
+// app/tests/e2e/specs/feature.spec.js
+
+describe('Feature Name', () => {
+  it('should perform expected behavior', () => {
+    // Visit page
+    cy.visit('/office/morning-prayer/2025/12/25/');
+    
+    // Verify elements
+    cy.get('[data-testid="office-heading"]').should('be.visible');
+    cy.get('[data-testid="office-content"]').should('contain', 'Morning Prayer');
+    
+    // Interact
+    cy.get('[data-testid="nav-evening-prayer"]').click();
+    
+    // Assert
+    cy.url().should('include', '/evening-prayer/');
+  });
+});
 ```
 
 **Test Coverage Targets** (per Constitution):
@@ -991,6 +1126,78 @@ class TestFeatureName:
 - Every test docstring should reference FR-XXX requirement
 - Test class docstring should include "Validates: FR-XXX"
 - This enables automated traceability reporting
+
+### Performance Testing
+
+**SC-001 Validation**:
+
+```bash
+# Run performance tests
+podman exec dailyoffice2019_backend_1 python -m pytest \
+  office/tests/test_performance.py -v -s
+
+# Expected output:
+# - Office generation time: 700-800ms (target: 500ms)
+# - Database queries: 428 queries (target: 40-50)
+# - Scripture cache hit rate: 100%
+```
+
+**Performance Monitoring**:
+
+Enable DEBUG logging to see performance metrics:
+
+```python
+# In Django settings.py
+LOGGING = {
+    'loggers': {
+        'office.offices': {'level': 'DEBUG'},
+        'office.morning_prayer': {'level': 'DEBUG'},
+        'office.views': {'level': 'DEBUG'},
+    },
+}
+```
+
+### Test Documentation
+
+For detailed test implementation guidance, see:
+- `docs/testing/phase_13_settings_system.md` - Settings integration testing
+- `docs/testing/phase_14_canticle_system.md` - Canticle rotation testing
+- `docs/testing/phase_15_collects_testing.md` - Collects system testing
+- `docs/testing/phase_19_performance_testing.md` - Performance testing summary
+
+### Common Testing Patterns
+
+**Testing with Production Data**:
+```python
+def test_christmas_day():
+    """Test Christmas Day office generation."""
+    christmas = date(2025, 12, 25)
+    office = MorningPrayer(christmas)
+    
+    # Production data available - no need to create StandardOfficeDay
+    assert office.date.primary.name == "The Nativity of Our Lord Jesus Christ: Christmas Day"
+```
+
+**Testing Settings Integration** (Skipped - handled by Vue.js):
+```python
+# Settings are in frontend - backend doesn't receive settings parameters
+# Test settings in E2E tests instead
+```
+
+**Mocking External APIs**:
+```python
+from unittest.mock import patch
+
+@patch('bible.passage.Passage.lookup')
+def test_with_mocked_scripture(mock_lookup):
+    """Test office generation without hitting Bible Gateway API."""
+    mock_lookup.return_value = "Mocked scripture text"
+    
+    office = MorningPrayer(date(2025, 1, 1))
+    modules = office.modules
+    
+    # Test logic without API delay
+```
 
 ---
 
