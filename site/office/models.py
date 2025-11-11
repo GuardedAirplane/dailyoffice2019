@@ -267,6 +267,17 @@ class CollectTag(BaseModel):
 
 
 class AbstractCollect(object):
+    """
+    Helper class for dynamically-generated collects.
+
+    Used by sanctorale commemorations with common collects to generate
+    collect text with saint name and pronouns filled in from template.
+
+    FR Requirements:
+    - FR-009: Include full text of prayers and collects (provides collect text)
+
+    Related: Phase 15 (T185-T186), Collect system testing
+    """
     text = ""
     traditional_text = ""
 
@@ -288,6 +299,30 @@ class AbstractCollect(object):
 
 
 class Collect(BaseModel):
+    """
+    Model for prayers and collects used in Daily Office and other liturgies.
+
+    Stores collects with contemporary and traditional language versions,
+    organized by type (year, occasional, liturgical) and tagged for filtering.
+
+    FR Requirements:
+    - FR-009: Include full text of prayers and collects
+      * Stores full contemporary and traditional text
+      * Provides text_no_tags property for clean display
+      * Includes attribution for historical sources
+    - FR-007: Proper collects for feast days
+      * Linked to commemorations via commemoration.collect_1/collect_2
+      * Linked to propers via proper.collect_1
+      * Supports seasonal and feast-specific collects
+
+    Collect Hierarchy (implemented in churchcal/calculations.py):
+    1. Principal Feast: Uses commemoration.collect_1
+    2. Proper Collect: Uses proper.collect_1 for Sundays in Ordinary Time
+    3. Seasonal Collect: Uses commemoration.collect_1 for seasonal feasts
+    4. Feria: Inherits from previous Sunday/feast
+
+    Related: Phase 15 (T185-T186), Collect system testing
+    """
     COLLECT_TYPES = (
         ("year", "Collects of the Christian Year"),
         ("occasional", "Occasional Prayers"),

@@ -1268,6 +1268,24 @@ class Prayers(Module):
 
 
 class MPCollectOfTheDay(Module):
+    """
+    Module for displaying the Collect of the Day in Morning Prayer.
+
+    Retrieves and displays the proper collect for the liturgical day,
+    respecting language style setting (contemporary vs traditional).
+
+    FR Requirements:
+    - FR-009: Include full text of prayers and collects
+      * Displays full collect text from commemoration.morning_prayer_collect
+      * Supports both contemporary and traditional language
+      * Includes "Amen." response
+    - FR-007: Proper collects for feast days
+      * Uses commemoration.morning_prayer_collect set by SetNamesAndCollects
+      * Respects collect hierarchy (proper > commemoration > seasonal > feria)
+      * Displays commemoration name as context for collect
+
+    Related: Phase 15 (T185-T186), Collect system testing
+    """
     name = "Collect(s) of the Day"
     attribute = "morning_prayer_collect"
     commemoration_attribute = "all"
@@ -1295,11 +1313,46 @@ class MPCollectOfTheDay(Module):
 
 
 class EPCollectOfTheDay(MPCollectOfTheDay):
+    """
+    Module for displaying the Collect of the Day in Evening Prayer.
+
+    Extends MPCollectOfTheDay to use evening_prayer_collect, which may
+    differ from morning_prayer_collect when commemoration has collect_2.
+
+    FR Requirements:
+    - FR-009: Include full text of prayers and collects
+    - FR-007: Proper collects for feast days
+      * Uses evening_prayer_collect which may be collect_2
+      * Supports feasts with distinct evening collects
+
+    Related: Phase 15 (T185-T186), Collect system testing
+    """
     attribute = "evening_prayer_collect"
     commemoration_attribute = "all_evening"
 
 
 class AdditionalCollects(Module):
+    """
+    Module for displaying Additional Collects after the Collect of the Day.
+
+    Provides collects for mission, weekly devotion, or user-selected extras.
+    Supports rotation modes: weekly (by weekday), fixed (same daily), or custom.
+
+    FR Requirements:
+    - FR-009: Include full text of prayers and collects
+      * Displays full text of mission collect (rotates by day_of_year % 3)
+      * Displays weekly collect with weekday rotation (7 collects)
+      * Displays fixed collects (same set daily)
+      * Supports user-selected extra collects via settings
+      * Respects language style (contemporary vs traditional)
+
+    Rotation Logic:
+    - Weekly: Different collect for each day of week (Monday-Sunday)
+    - Fixed: Same collects every day
+    - Mission: Rotates through 3 mission collects by day of year
+
+    Related: Phase 15 (T185-T186), Collect system testing
+    """
     name = "Additional Collects"
 
     def get_collects(self):

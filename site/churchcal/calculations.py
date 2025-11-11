@@ -599,6 +599,25 @@ class SetNamesAndCollects(object):
         previous.evening_season = calendar_date.season
 
     def own_collect(self, commemoration, calendar_date):
+        """
+        Assign commemoration's own collect to morning and evening prayer.
+
+        Sets morning_prayer_collect and evening_prayer_collect from
+        commemoration.collect_1 and commemoration.collect_2 (if available).
+
+        FR Requirements:
+        - FR-007: Proper collects for feast days
+          * Principal feasts use their own collect_1
+          * Seasonal feasts use their own collect_1
+          * Evening Prayer may use collect_2 when available
+
+        Collect Hierarchy (Priority 1):
+        - Principal Feasts: Always use own collect
+        - Seasonal Feasts: Use own collect, not proper
+        - Ferias: Return False (handled by feria_collect or proper_collect)
+
+        Related: Phase 15 (T185-T186), Collect system testing
+        """
         if "FERIA" in commemoration.rank.name:
             return False
 
@@ -613,6 +632,25 @@ class SetNamesAndCollects(object):
             #     commemoration.evening_prayer_collect = commemoration.alternate_collect
 
     def proper_collect(self, commemoration, calendar_date):
+        """
+        Assign proper collect for Sundays in Ordinary Time.
+
+        Uses calendar_date.proper.collect_1 for Sundays after Pentecost
+        and appends "(Proper X)" to commemoration name.
+
+        FR Requirements:
+        - FR-007: Proper collects for feast days
+          * Sundays in Ordinary Time use numbered propers (1-28)
+          * Proper collect used for both morning and evening prayer
+          * Commemoration name updated to show proper number
+
+        Collect Hierarchy (Priority 2):
+        - Applied after own_collect check
+        - Only for required ranks (SUNDAY, specific feasts)
+        - Requires calendar_date.proper with collect_1
+
+        Related: Phase 15 (T185-T186), Collect system testing
+        """
         if not commemoration.rank.required:
             return
         if calendar_date.proper and calendar_date.proper.collect_1:
@@ -625,6 +663,25 @@ class SetNamesAndCollects(object):
                 commemoration.name = "{}{}".format(commemoration.name, proper_string)
 
     def feria_collect(self, commemoration, calendar_date):
+        """
+        Assign collect to feria (weekday) from previous Sunday or feast.
+
+        Searches backward through calendar dates to find the most recent
+        commemoration with a collect, then assigns that collect to the feria.
+
+        FR Requirements:
+        - FR-007: Proper collects for feast days
+          * Ferias inherit collect from previous Sunday/feast
+          * Feria name includes "after [Sunday/Feast name]"
+          * Proper number preserved if previous day had proper
+
+        Collect Hierarchy (Priority 3):
+        - Applied when commemoration rank is FERIA
+        - Looks backward for has_collect_for_feria
+        - Inherits morning_prayer_collect and evening_prayer_collect
+
+        Related: Phase 15 (T185-T186), Collect system testing
+        """
         if "FERIA" in commemoration.rank.name:
             i = self.i.get_current_index()
             while True:

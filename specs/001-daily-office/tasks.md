@@ -549,20 +549,20 @@
 
 ### Collects Tests
 
-- [ ] T177 [P] Unit test: Collect model text retrieval in site/office/tests/test_models.py
-- [ ] T178 [P] Unit test: Collect traditional vs contemporary text in site/office/tests/test_models.py
-- [ ] T179 [P] Unit test: CollectType categorization in site/office/tests/test_models.py
-- [ ] T180 [P] Unit test: CollectTag filtering in site/office/tests/test_models.py
-- [ ] T181 [P] Unit test: MetricalCollect linking in site/office/tests/test_models.py
-- [ ] T182 [P] Unit test: Commemoration collect relationships in site/churchcal/tests/test_models.py
-- [ ] T183 [P] Integration test: Collect of the Day retrieval in site/office/tests/test_collects_integration.py
-- [ ] T184 [P] Integration test: Feast day proper collect in site/office/tests/test_collects_integration.py
-- [ ] T185 [P] Integration test: Common collect for saint without proper in site/office/tests/test_collects_integration.py
+- [x] T177 [P] Unit test: Collect model text retrieval in site/office/tests/test_models.py
+- [x] T178 [P] Unit test: Collect traditional vs contemporary text in site/office/tests/test_models.py
+- [x] T179 [P] Unit test: CollectType categorization in site/office/tests/test_models.py
+- [x] T180 [P] Unit test: CollectTag filtering in site/office/tests/test_models.py
+- [x] T181 [P] Unit test: MetricalCollect linking in site/office/tests/test_models.py
+- [x] T182 [P] Unit test: Commemoration collect relationships in site/churchcal/tests/test_models.py
+- [x] T183 [P] Integration test: Collect of the Day retrieval in site/office/tests/test_collects_integration.py
+- [x] T184 [P] Integration test: Feast day proper collect in site/office/tests/test_collects_integration.py
+- [x] T185 [P] Integration test: Common collect for saint without proper in site/office/tests/test_collects_integration.py
 
 ### Code Traceability for Collects
 
-- [ ] T186 Add FR-009 traceability to site/office/models.py (Collect model)
-- [ ] T187 Add FR-007 traceability to collect selection logic in site/office/offices.py
+- [x] T186 Add FR-009 traceability to site/office/models.py (Collect model)
+- [x] T187 Add FR-007 traceability to collect selection logic in site/office/offices.py
 
 **Checkpoint**: Collects fully tested and traceable
 
