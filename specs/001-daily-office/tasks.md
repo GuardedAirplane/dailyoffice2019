@@ -408,7 +408,7 @@
 
 ### Bible Retrieval Tests
 
-- [ ] T123 [P] Unit test: BibleGateway adapter success in site/bible/tests/test_sources.py
+- [x] T123 [P] Unit test: BibleGateway adapter success in site/bible/tests/test_sources.py
 - [x] T124 [P] Unit test: BibleGateway adapter timeout in site/bible/tests/test_sources.py
 - [x] T125 [P] Unit test: BibleGateway adapter rate limit in site/bible/tests/test_sources.py
 - [x] T126 [P] Unit test: BibleGateway adapter 404 error in site/bible/tests/test_sources.py
