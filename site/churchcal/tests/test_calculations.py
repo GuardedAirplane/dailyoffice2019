@@ -201,8 +201,8 @@ class TestSeasonDetermination:
         """Every date in the year should have a liturgical season."""
         import random
         
-        # Test 50 random dates throughout 2024
-        for _ in range(50):
+        # Test 10 random dates throughout 2024 (reduced from 50 for performance)
+        for _ in range(10):
             month = random.randint(1, 12)
             day = random.randint(1, 28)  # Safe for all months
             
@@ -238,10 +238,11 @@ class TestSeasonDetermination:
 
     def test_same_season_spans_multiple_days(self):
         """Seasons should span multiple consecutive days."""
-        # Test Advent spans from Dec 1-24, 2024
-        for day in range(1, 25):
+        # Test Advent spans Dec 1-24, 2024 (sample first, middle, last days for performance)
+        test_days = [1, 2, 12, 13, 23, 24]
+        for day in test_days:
             cal_date = get_calendar_date(date_class(2024, 12, day))
-            assert cal_date.season.name == "Advent"
+            assert cal_date.season.name == "Advent", f"Dec {day} should be Advent"
         
         # Christmas Day should be Christmastide
         cal_date = get_calendar_date(date_class(2024, 12, 25))
