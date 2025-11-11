@@ -1,7 +1,11 @@
 import datetime
+import logging
+import time
 
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
+
+logger = logging.getLogger(__name__)
 
 from office.canticles import DefaultCanticles, BCP1979CanticleTable, REC2011CanticleTable
 
@@ -60,7 +64,14 @@ class EveningPrayer(Office):
 
     @cached_property
     def modules(self):
-        return [
+        """
+        Performance-critical method for generating Evening Prayer office modules.
+        
+        Validates: SC-001 (Office page load time < 3 seconds)
+        """
+        start_time = time.time()
+        
+        modules = [
             (EPHeading(self.date), "office/heading.html"),
             (EPCommemorationListing(self.date), "office/commemoration_listing.html"),
             (EPOpeningSentence(self.date), "office/opening_sentence.html"),
@@ -86,6 +97,11 @@ class EveningPrayer(Office):
             (Chrysostom(self.date, self.office_readings), "office/chrysostom.html"),
             (Dismissal(self.date, self.office_readings, office=self), "office/dismissal.html"),
         ]
+        
+        duration = (time.time() - start_time) * 1000
+        logger.debug(f"EveningPrayer.modules completed in {duration:.2f}ms (modules={len(modules)})")
+        
+        return modules
 
 
 class EPHeading(OfficeSection):

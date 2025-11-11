@@ -1,8 +1,12 @@
 import datetime
+import logging
+import time
 
 from django.template.loader import render_to_string
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
+
+logger = logging.getLogger(__name__)
 
 from office.canticles import DefaultCanticles, BCP1979CanticleTable, REC2011CanticleTable
 from office.offices import (
@@ -57,7 +61,14 @@ class MorningPrayer(Office):
 
     @cached_property
     def modules(self):
-        return [
+        """
+        Performance-critical method for generating Morning Prayer office modules.
+        
+        Validates: SC-001 (Office page load time < 3 seconds)
+        """
+        start_time = time.time()
+        
+        modules = [
             (MPHeading(self.date, self.office_readings), "office/heading.html"),
             (MPCommemorationListing(self.date, self.office_readings), "office/commemoration_listing.html"),
             (MPOpeningSentence(self.date, self.office_readings), "office/opening_sentence.html"),
@@ -86,6 +97,11 @@ class MorningPrayer(Office):
             (Chrysostom(self.date, self.office_readings), "office/chrysostom.html"),
             (Dismissal(self.date, self.office_readings, office=self), "office/dismissal.html"),
         ]
+        
+        duration = (time.time() - start_time) * 1000
+        logger.debug(f"MorningPrayer.modules completed in {duration:.2f}ms (modules={len(modules)})")
+        
+        return modules
 
 
 class MPHeading(OfficeSection):

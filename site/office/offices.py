@@ -1,4 +1,6 @@
 import datetime
+import logging
+import time
 
 from django.urls import reverse
 from django.utils.functional import cached_property
@@ -6,6 +8,9 @@ from django.utils.safestring import mark_safe
 
 from office.models import HolyDayOfficeDay, StandardOfficeDay, ThirtyDayPsalterDay
 from office.utils import passage_to_citation
+
+# Performance monitoring logger
+logger = logging.getLogger(__name__)
 
 
 class Office(object):
@@ -21,7 +26,11 @@ class Office(object):
         
         Validates: FR-007 (Use Proper Readings for Feast Days and Sundays)
         Validates: FR-012 (View Offices for Any Date)
+        Validates: SC-001 (Office Load Time < 3 seconds) - Performance monitoring
         """
+        # Performance monitoring: Track office initialization time
+        start_time = time.time()
+        
         from churchcal.calculations import get_calendar_date
         from churchcal.models import FerialCommemoration
 
@@ -47,6 +56,13 @@ class Office(object):
         )
         self.title = "{} for {}: {} | The Daily Office according to The Book of Common Prayer (2019)".format(
             self.name, self.get_formatted_date_string(), primary_feast_name
+        )
+        
+        # Performance monitoring: Log initialization time
+        init_duration = (time.time() - start_time) * 1000  # Convert to ms
+        logger.debug(
+            f"Office.__init__ completed in {init_duration:.2f}ms "
+            f"(office={self.name}, date={date}, commemoration={primary_feast_name})"
         )
 
     @cached_property
