@@ -715,7 +715,7 @@
 - [x] T236 [P] Update research.md with test coverage results
 - [x] T237 [P] Update quickstart.md with test execution instructions
 - [x] T238 [P] Create Architecture Decision Records (ADRs) in .specify/adr/ (5 ADRs from research.md)
-- [ ] T239 [P] Update contracts/README.md with complete API documentation
+- [x] T239 [P] Update contracts/README.md with complete API documentation
 - [ ] T240 [P] Add docstrings to all public methods in site/office/offices.py
 - [ ] T241 [P] Add docstrings to all public methods in site/office/morning_prayer.py
 - [ ] T242 [P] Add docstrings to all public methods in site/office/evening_prayer.py
