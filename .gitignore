@@ -9,6 +9,7 @@ sermons/static/
 static_export
 sermons/static_export
 cap/node_modules
+node_modules/.vue-global-types/
 .idea
 site/.env
 site/website/.env
