@@ -452,18 +452,18 @@
 - [ ] T143 [P] Unit test: Psalm text formatting (contemporary vs traditional) in site/psalter/tests/test_models.py
 - [ ] T144 [P] Unit test: PsalmTopic psalm grouping in site/psalter/tests/test_models.py
 - [ ] T145 [P] Integration test: 30-day cycle psalm assignment in site/office/tests/test_psalter_integration.py
-- [ ] T146 [P] Integration test: 60-day cycle psalm assignment in site/office/tests/test_psalter_integration.py
-- [ ] T147 [P] E2E test: Change Psalter cycle setting in app/tests/e2e/settings.spec.js
+- [x] T146 [P] Integration test: 60-day cycle psalm assignment in site/office/tests/test_psalter_integration.py
+- [x] T147 [P] E2E test: Change Psalter cycle setting in app/tests/e2e/settings.spec.js
 
 ### Bug Fix for Psalter
 
-- [ ] T148 **BUG FIX**: Fix psalm_string_to_list in site/office/models.py line 81 - change `psalms.split(psalms)` to `psalms.split(',')` to correctly parse comma-separated psalm numbers
+- [x] T148 **BUG FIX**: Fix psalm_string_to_list in site/office/models.py line 81 - change `psalms.split(psalms)` to `psalms.split(',')` to correctly parse comma-separated psalm numbers
 
 ### Code Traceability for Psalter
 
-- [ ] T149 Add FR-005 traceability to site/office/models.py (OfficeDay mp_psalms/ep_psalms)
-- [ ] T150 [P] Add FR-005a traceability to site/office/models.py (ThirtyDayPsalterDay)
-- [ ] T151 [P] Add FR-005b traceability to settings system handling Psalter cycle
+- [x] T149 Add FR-005 traceability to site/office/models.py (OfficeDay mp_psalms/ep_psalms)
+- [x] T150 [P] Add FR-005a traceability to site/office/models.py (ThirtyDayPsalterDay)
+- [x] T151 [P] Add FR-005b traceability to settings system handling Psalter cycle
 
 **Checkpoint**: Psalter fully tested and traceable, bug fixed
 

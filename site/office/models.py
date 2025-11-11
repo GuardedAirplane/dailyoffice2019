@@ -12,6 +12,13 @@ from office.utils import passage_to_citation
 
 
 class OfficeDay(BaseModel):
+    """
+    Base model for Daily Office readings and psalm assignments.
+    
+    FR-005: Different psalm assignments for Morning Prayer vs Evening Prayer
+    MP psalms (mp_psalms) differ from EP psalms (ep_psalms) to provide
+    variety and cover the Psalter systematically.
+    """
     TESTAMENTS = (("OT", "Old Testament"), ("DC", "Deuterocanon"), ("AP", "Apocrypha"), ("NT", "New Testament"))
 
     holy_day_name = models.CharField(max_length=255, null=True, blank=True)
@@ -80,12 +87,24 @@ class HolyDayOfficeDay(OfficeDay):
 
 
 class ThirtyDayPsalterDay(BaseModel):
+    """
+    30-day Psalter cycle psalm assignments.
+    
+    FR-005a: 30-day and 60-day Psalter cycles
+    Provides psalm assignments for each day of a 30-day cycle, systematically
+    covering Psalms 1-150 over the course of a month. Different psalms are
+    assigned for Morning Prayer (mp_psalms) and Evening Prayer (ep_psalms).
+    
+    FR-005b: User Psalter cycle selection
+    This model supports the 30-day cycle option. Users can select between
+    30-day and 60-day cycles in settings (60-day cycle planned for future).
+    """
     day = models.IntegerField()
     mp_psalms = models.CharField(max_length=255)
     ep_psalms = models.CharField(max_length=255)
 
     def psalm_string_to_list(self, psalms):
-        return psalms.split(psalms)
+        return psalms.split(',')
 
     def get_mp_pslams(self):
         return self.psalm_string_to_list(self.mp_psalms)
