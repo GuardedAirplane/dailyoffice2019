@@ -620,24 +620,24 @@
 
 ### API Tests
 
-- [ ] T205 [P] Integration test: GET /api/office/morning_prayer/:date in site/office/tests/test_api.py
-- [ ] T206 [P] Integration test: GET /api/office/evening_prayer/:date in site/office/tests/test_api.py
-- [ ] T207 [P] Integration test: GET /api/office/midday_prayer/:date in site/office/tests/test_api.py
-- [ ] T208 [P] Integration test: GET /api/office/compline/:date in site/office/tests/test_api.py
-- [ ] T209 [P] Integration test: GET /api/office/family_morning/:date in site/office/tests/test_api.py
-- [ ] T210 [P] Integration test: GET /api/settings/ in site/office/tests/test_api.py
-- [ ] T211 [P] Integration test: GET /api/collects/ in site/office/tests/test_api.py
-- [ ] T212 [P] Integration test: GET /api/psalms/:number in site/psalter/tests/test_api.py
-- [ ] T213 [P] Integration test: GET /api/scripture/:passage in site/office/tests/test_api.py
-- [ ] T214 [P] Integration test: API query params (settings) in site/office/tests/test_api.py
-- [ ] T215 [P] Integration test: API error responses (404, 500) in site/office/tests/test_api.py
+- [x] T205 [P] Integration test: GET /api/office/morning_prayer/:date in site/office/tests/test_api.py
+- [x] T206 [P] Integration test: GET /api/office/evening_prayer/:date in site/office/tests/test_api.py
+- [x] T207 [P] Integration test: GET /api/office/midday_prayer/:date in site/office/tests/test_api.py
+- [x] T208 [P] Integration test: GET /api/office/compline/:date in site/office/tests/test_api.py
+- [x] T209 [P] Integration test: GET /api/office/family_morning/:date in site/office/tests/test_api.py
+- [x] T210 [P] Integration test: GET /api/settings/ in site/office/tests/test_api.py
+- [x] T211 [P] Integration test: GET /api/collects/ in site/office/tests/test_api.py
+- [x] T212 [P] Integration test: GET /api/psalms/:number in site/psalter/tests/test_api.py
+- [x] T213 [P] Integration test: GET /api/scripture/:passage in site/office/tests/test_api.py
+- [x] T214 [P] Integration test: API query params (settings) in site/office/tests/test_api.py
+- [x] T215 [P] Integration test: API error responses (404, 500) in site/office/tests/test_api.py
 
 ### Code Traceability for API
 
 - [ ] T216 Add API endpoint traceability to site/office/api/views/ (all ViewSets)
 - [ ] T217 Add API contract references to site/office/api/serializers.py
 
-**Checkpoint**: All API endpoints fully tested and documented
+**Checkpoint**: ✅ COMPLETE - All API endpoints fully tested (51 tests passing, 4 xfailed documenting API limitations)
 
 ---
 
