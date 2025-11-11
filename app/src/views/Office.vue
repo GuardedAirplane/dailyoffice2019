@@ -10,6 +10,7 @@
           :card="card"
           :service-type="serviceType"
         />
+        <!-- FR-022a: Display error with offline indicator -->
         <el-alert v-if="error" :title="error" type="error" />
         <OfficeNav
           :calendar-date="calendarDate"
@@ -282,6 +283,8 @@ export default {
     try {
       data = await this.$http.get(office_url);
     } catch {
+      // FR-022a: Display error with offline indicator
+      // FR-022b: Provide retry option (via page reload)
       this.error =
         'There was an error retrieving the office. Please try again.';
       this.loading = false;

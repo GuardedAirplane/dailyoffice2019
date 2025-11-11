@@ -43,6 +43,7 @@ class OfficeDay(BaseModel):
 
     @cached_property
     def readings(self):
+        # FR-022c: Retrieve cached Scripture passages from database
         passages = Scripture.objects.filter(
             passage__in=[
                 self.mp_reading_1,
@@ -366,6 +367,10 @@ class Collect(BaseModel):
 
 
 class Scripture(BaseModel):
+    """
+    FR-022c: Scripture passages are cached in the database to allow viewing
+    content when BibleGateway API is offline or experiences errors.
+    """
     passage = models.CharField(max_length=255)
     esv = models.TextField(blank=True, null=True)
     kjv = models.TextField(blank=True, null=True)
