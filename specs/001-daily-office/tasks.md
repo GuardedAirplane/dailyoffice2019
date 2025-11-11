@@ -518,20 +518,20 @@
 
 ### Canticle Tests
 
-- [ ] T166 [P] Unit test: DefaultCanticles table lookup in site/office/tests/test_canticles.py
-- [ ] T167 [P] Unit test: BCP1979CanticleTable lookup in site/office/tests/test_canticles.py
-- [ ] T168 [P] Unit test: REC2011CanticleTable lookup in site/office/tests/test_canticles.py
-- [ ] T169 [P] Unit test: Canticle rotation (traditional/seasonal/daily) in site/office/tests/test_canticles.py
-- [ ] T170 [P] Integration test: Morning canticle (Benedictus) in site/office/tests/test_canticles_integration.py
-- [ ] T171 [P] Integration test: Evening canticle (Magnificat) in site/office/tests/test_canticles_integration.py
-- [ ] T172 [P] Integration test: Compline canticle (Nunc Dimittis) in site/office/tests/test_canticles_integration.py
-- [ ] T173 [P] E2E test: Change canticle table setting in app/tests/e2e/settings.spec.js
-- [ ] T174 [P] E2E test: Change canticle rotation setting in app/tests/e2e/settings.spec.js
+- [x] T166 [P] Unit test: DefaultCanticles table lookup in site/office/tests/test_canticles.py
+- [x] T167 [P] Unit test: BCP1979CanticleTable lookup in site/office/tests/test_canticles.py
+- [x] T168 [P] Unit test: REC2011CanticleTable lookup in site/office/tests/test_canticles.py
+- [x] T169 [P] Unit test: Canticle rotation (traditional/seasonal/daily) in site/office/tests/test_canticles.py
+- [x] T170 [P] Integration test: Morning canticle (Benedictus) in site/office/tests/test_canticles_integration.py
+- [x] T171 [P] Integration test: Evening canticle (Magnificat) in site/office/tests/test_canticles_integration.py
+- [x] T172 [P] Integration test: Compline canticle (Nunc Dimittis) in site/office/tests/test_canticles_integration.py
+- [x] T173 [P] E2E test: Change canticle table setting in app/tests/e2e/settings.spec.js
+- [x] T174 [P] E2E test: Change canticle rotation setting in app/tests/e2e/settings.spec.js
 
 ### Code Traceability for Canticles
 
-- [ ] T175 Add FR-008 traceability to site/office/canticles.py (all canticle tables)
-- [ ] T176 Add FR-026 traceability to canticle customization logic in site/office/canticles.py
+- [x] T175 Add FR-008 traceability to site/office/canticles.py (all canticle tables)
+- [x] T176 Add FR-026 traceability to canticle customization logic in site/office/canticles.py
 
 **Checkpoint**: Canticle system fully tested and traceable
 

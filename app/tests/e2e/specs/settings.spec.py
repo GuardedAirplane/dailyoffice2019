@@ -1,10 +1,11 @@
 """
 E2E tests for Settings System in the frontend.
 
-Tests: T159-T160 - E2E settings management
+Tests: T159-T160, T173-T174 - E2E settings management including canticle customization
 
 Validates: FR-023 (Client-side preference storage), FR-024 (Settings persistence),
-          FR-026 (Liturgical customization), FR-027 (Sensible defaults), FR-028 (Accessible settings)
+          FR-008 (Display appropriate canticles), FR-026 (Liturgical customization), 
+          FR-027 (Sensible defaults), FR-028 (Accessible settings)
 
 NOTE: These tests require a working frontend setup with FontAwesome Pro authentication.
 The tests are currently placeholders/documentation until the frontend npm install issue
@@ -339,6 +340,226 @@ class TestSettingsAccessibilityE2E:
         pass
 
 
+@pytest.mark.skip(reason="Frontend E2E tests require FontAwesome Pro setup")
+class TestCanticleSettingsE2E:
+    """E2E tests for canticle customization settings (T173-T174, Phase 14)."""
+
+    def test_change_canticle_table_setting(self):
+        """
+        User should be able to change canticle table setting (T173, FR-008, FR-026).
+        
+        E2E Test Steps:
+        1. Navigate to /morning-prayer/2024-01-15 (Monday)
+        2. Note the first canticle displayed
+        3. Navigate to /settings
+        4. Find "Canticle Table" dropdown
+        5. Verify current value is "BCP 2019" (default)
+        6. Change to "BCP 1979"
+        7. Click "Save Settings"
+        8. Verify success message appears
+        9. Navigate back to /morning-prayer/2024-01-15
+        10. Verify first canticle has changed (Monday in BCP1979 uses S8)
+        11. Return to /settings
+        12. Change to "REC 2011"
+        13. Save and navigate to Morning Prayer
+        14. Verify first canticle reflects REC2011 table (Epiphany uses S2)
+        
+        Expected Behavior:
+        - BCP 2019 (Default): Te Deum on Sundays, A Song of Praise in Lent
+        - BCP 1979: Daily rotation (Monday=S8, Tuesday=MP2, etc.)
+        - REC 2011: Seasonal rotation (Advent=S1, Epiphany=S2, Lent=MP2, Easter=S5)
+        
+        Frontend Implementation:
+        - Canticle Table setting in Main Settings or Additional Settings
+        - Options: "BCP 2019", "BCP 1979", "REC 2011"
+        - Setting value stored as "default", "1979", "2011"
+        - MorningPrayer component reads setting from DynamicStorage
+        - Office requests correct canticle table from backend
+        """
+        pass
+
+    def test_change_canticle_rotation_setting(self):
+        """
+        User should be able to change canticle rotation preference (T174, FR-008, FR-026).
+        
+        E2E Test Steps:
+        1. Navigate to /settings
+        2. Find "Canticle Rotation" dropdown
+        3. Verify current value is "BCP 2019" (default)
+        4. Verify available options:
+           - "BCP 2019" (minimal variation)
+           - "Traditional" (seasonal only)
+           - "BCP 1979" (daily rotation)
+           - "REC 2011" (seasonal rotation)
+        5. Select "Traditional"
+        6. Click "Save Settings"
+        7. Navigate to /morning-prayer/2024-02-14 (Ash Wednesday, Lent)
+        8. Verify first canticle is "A Song of Praise" (MP2)
+        9. Navigate to /morning-prayer/2024-04-01 (Easter season)
+        10. Verify first canticle is "We Praise You, O God" (MP1, Te Deum)
+        11. Verify second canticle is always "The Song of Zechariah" (MP3, Benedictus)
+        
+        Expected Behavior:
+        - Traditional: Only varies MP1 by season (Te Deum vs Song of Praise)
+        - BCP 2019: Same as Traditional (default)
+        - BCP 1979: Daily rotation for both canticles
+        - REC 2011: Seasonal rotation with additional canticles
+        
+        Frontend Implementation:
+        - Canticle Rotation setting displays user-friendly names
+        - Backend API receives setting value
+        - MorningPrayer/EveningPrayer components pass setting to API
+        - Canticle selection updated in real-time on office pages
+        """
+        pass
+
+    def test_canticle_settings_affect_morning_prayer(self):
+        """
+        Canticle settings should affect Morning Prayer canticles (T173, FR-008).
+        
+        E2E Test Steps:
+        1. Set Canticle Table to "BCP 1979"
+        2. Navigate to /morning-prayer/2024-01-08 (Monday in Epiphany)
+        3. Verify first canticle is "Surely, it is God who saves me" (S8, Ecce Deus)
+        4. Verify canticle includes: "Surely, it is God who saves me"
+        5. Navigate to /morning-prayer/2024-01-09 (Tuesday)
+        6. Verify first canticle is "A Song of Praise" (MP2, Benedictus es)
+        7. Navigate to /morning-prayer/2024-01-13 (Saturday)
+        8. Verify first canticle is "A Song of Creation" (S10, Benedicite)
+        9. Verify second canticle is always "The Song of Zechariah" (MP3, Benedictus)
+        
+        Expected Behavior:
+        - First canticle varies by table setting
+        - Second canticle usually consistent (Benedictus)
+        - Canticle text rendered correctly
+        - Gloria Patri included where appropriate
+        
+        Frontend Implementation:
+        - MorningPrayer requests canticles from backend with setting
+        - Canticle 1 section displays correct canticle
+        - Canticle 2 section displays correct canticle
+        - Canticle text includes full prayer text
+        - Latin and English names displayed
+        """
+        pass
+
+    def test_canticle_settings_affect_evening_prayer(self):
+        """
+        Canticle settings should affect Evening Prayer canticles (T173, FR-008).
+        
+        E2E Test Steps:
+        1. Set Canticle Table to "BCP 1979"
+        2. Navigate to /evening-prayer/2024-01-07 (Sunday)
+        3. Verify first canticle is "The Song of Mary" (EP1, Magnificat)
+        4. Verify second canticle is "The Song of Simeon" (EP2, Nunc Dimittis)
+        5. Navigate to /evening-prayer/2024-01-09 (Tuesday)
+        6. Verify first canticle is "Seek the Lord" (S4, Quaerite Dominum)
+        7. Verify second canticle is "The Song of Mary" (EP1, Magnificat)
+        8. Navigate to /evening-prayer/2024-01-10 (Wednesday)
+        9. Verify first canticle is "A Song of Creation" (S10, Benedicite)
+        10. Verify second canticle is "The Song of Simeon" (EP2, Nunc Dimittis)
+        
+        Expected Behavior:
+        - First canticle varies significantly in BCP1979
+        - Second canticle rotates between Magnificat and Nunc Dimittis
+        - Sunday always uses traditional Gospel canticles (Magnificat, Nunc Dimittis)
+        
+        Frontend Implementation:
+        - EveningPrayer requests canticles from backend with setting
+        - Both canticles reflect chosen table
+        - Proper canticle names and texts displayed
+        """
+        pass
+
+    def test_canticle_settings_do_not_affect_compline(self):
+        """
+        Canticle settings should NOT affect Compline (T174, FR-008).
+        
+        E2E Test Steps:
+        1. Set Canticle Table to "BCP 1979"
+        2. Navigate to /compline/2024-01-15
+        3. Verify canticle is "The Song of Simeon" (EP2, Nunc Dimittis)
+        4. Change Canticle Table to "REC 2011"
+        5. Navigate to /compline/2024-02-14 (Lent)
+        6. Verify canticle is still "The Song of Simeon" (EP2, Nunc Dimittis)
+        7. Navigate to /compline/2024-04-14 (Easter)
+        8. Verify canticle is still "The Song of Simeon" (EP2, Nunc Dimittis)
+        
+        Expected Behavior:
+        - Compline always uses Nunc Dimittis
+        - Canticle table setting does not affect Compline
+        - Compline canticle does not vary by season or day
+        
+        Frontend Implementation:
+        - Compline component ignores canticle table setting
+        - Always requests Nunc Dimittis from backend
+        - Consistent canticle regardless of settings
+        """
+        pass
+
+    def test_canticle_table_options_are_descriptive(self):
+        """
+        Canticle table options should have descriptive labels (T173, FR-026, FR-027).
+        
+        E2E Test Steps:
+        1. Navigate to /settings
+        2. Find "Canticle Table" dropdown
+        3. Verify option labels are descriptive:
+           - "BCP 2019 (Default)" or "Book of Common Prayer 2019"
+           - "BCP 1979" or "Book of Common Prayer 1979"
+           - "REC 2011" or "Reformed Episcopal Church 2011"
+        4. Hover over each option
+        5. Verify tooltip or description explains the difference:
+           - BCP 2019: Minimal variation, traditional Gospel canticles
+           - BCP 1979: Daily rotation with supplemental canticles
+           - REC 2011: Seasonal rotation following liturgical year
+        6. Verify default is clearly marked
+        
+        Expected Behavior:
+        - Clear, descriptive option labels
+        - Help text or tooltips explain differences
+        - Default option clearly indicated
+        - User can make informed choice
+        
+        Frontend Implementation:
+        - SettingOption.text provides user-friendly names
+        - Tooltips or help text for each option
+        - Default option has visual indicator
+        - Descriptions mention key characteristics
+        """
+        pass
+
+    def test_canticle_settings_reset_with_all_settings(self):
+        """
+        Canticle settings should reset to defaults with all settings (T174, FR-027).
+        
+        E2E Test Steps:
+        1. Change Canticle Table to "BCP 1979"
+        2. Change Canticle Rotation to "REC 2011"
+        3. Save settings
+        4. Navigate to /morning-prayer
+        5. Verify BCP 1979 or REC 2011 canticles appear
+        6. Return to /settings
+        7. Click "Reset to Defaults"
+        8. Confirm reset
+        9. Verify Canticle Table returns to "BCP 2019"
+        10. Verify Canticle Rotation returns to "BCP 2019"
+        11. Navigate to /morning-prayer
+        12. Verify BCP 2019 canticles appear
+        
+        Expected Behavior:
+        - Reset clears all canticle customizations
+        - Returns to BCP 2019 defaults
+        - Changes take effect immediately
+        
+        Frontend Implementation:
+        - Reset button clears canticle settings
+        - DynamicStorage.clear() or set to defaults
+        - Office pages reflect reset settings
+        """
+        pass
+
+
 # Cypress test examples (for reference)
 """
 // app/tests/e2e/specs/settings.spec.js
@@ -393,6 +614,78 @@ describe('Settings System', () => {
     cy.focused().should('have.attr', 'data-testid', 'bible-translation-select')
     cy.focused().tab()
     cy.focused().should('have.attr', 'data-testid', 'canticle-rotation-select')
+  })
+})
+
+describe('Canticle Settings (T173-T174, Phase 14)', () => {
+  beforeEach(() => {
+    cy.clearLocalStorage()
+    cy.visit('/settings')
+  })
+
+  it('allows changing canticle table setting (T173)', () => {
+    // Change to BCP 1979 table
+    cy.get('[data-testid="canticle-table-select"]').select('1979')
+    cy.get('[data-testid="save-settings"]').click()
+    cy.get('[data-testid="success-message"]').should('be.visible')
+    
+    // Verify setting persisted
+    cy.reload()
+    cy.get('[data-testid="canticle-table-select"]').should('have.value', '1979')
+    
+    // Verify affects Morning Prayer
+    cy.visit('/morning-prayer/2024-01-08')  // Monday
+    cy.get('[data-testid="mp-canticle-1"]').should('contain', 'Ecce, Deus')  // S8 for Monday
+  })
+
+  it('allows changing canticle rotation setting (T174)', () => {
+    // Change to Traditional rotation
+    cy.get('[data-testid="canticle-rotation-select"]').select('traditional')
+    cy.get('[data-testid="save-settings"]').click()
+    
+    // Verify affects Morning Prayer in Lent
+    cy.visit('/morning-prayer/2024-02-14')  // Ash Wednesday
+    cy.get('[data-testid="mp-canticle-1"]').should('contain', 'A Song of Praise')  // MP2 in Lent
+    
+    // Verify affects Morning Prayer outside Lent
+    cy.visit('/morning-prayer/2024-01-15')
+    cy.get('[data-testid="mp-canticle-1"]').should('contain', 'We Praise You, O God')  // MP1 (Te Deum)
+  })
+
+  it('canticle table affects Evening Prayer (T173)', () => {
+    cy.get('[data-testid="canticle-table-select"]').select('1979')
+    cy.get('[data-testid="save-settings"]').click()
+    
+    // Verify Evening Prayer canticles change
+    cy.visit('/evening-prayer/2024-01-09')  // Tuesday
+    cy.get('[data-testid="ep-canticle-1"]').should('contain', 'Quaerite Dominum')  // S4 for Tuesday
+  })
+
+  it('canticle settings do not affect Compline (T174)', () => {
+    cy.get('[data-testid="canticle-table-select"]').select('1979')
+    cy.get('[data-testid="save-settings"]').click()
+    
+    // Compline always uses Nunc Dimittis
+    cy.visit('/compline/2024-01-15')
+    cy.get('[data-testid="compline-canticle"]').should('contain', 'Song of Simeon')
+    cy.get('[data-testid="compline-canticle"]').should('contain', 'Lord, now lettest thou')
+  })
+
+  it('canticle options have descriptive labels (T173)', () => {
+    cy.get('[data-testid="canticle-table-select"]').children('option').should('have.length.at.least', 3)
+    cy.get('[data-testid="canticle-table-select"]').children('option').first().should('contain', '2019')
+    cy.get('[data-testid="canticle-table-select"]').children('option').eq(1).should('contain', '1979')
+    cy.get('[data-testid="canticle-table-select"]').children('option').eq(2).should('contain', '2011')
+  })
+
+  it('canticle settings reset with all settings (T174)', () => {
+    cy.get('[data-testid="canticle-table-select"]').select('1979')
+    cy.get('[data-testid="save-settings"]').click()
+    
+    cy.get('[data-testid="reset-defaults"]').click()
+    cy.get('[data-testid="confirm-reset"]').click()
+    
+    cy.get('[data-testid="canticle-table-select"]').should('have.value', 'default')
   })
 })
 """

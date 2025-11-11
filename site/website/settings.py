@@ -228,7 +228,10 @@ def show_toolbar(request):
     return True
 
 
-DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": show_toolbar}
+DEBUG_TOOLBAR_CONFIG = {
+    "SHOW_TOOLBAR_CALLBACK": show_toolbar,
+    "IS_RUNNING_TESTS": False,  # Bypass debug toolbar check during tests
+}
 
 DISTILL_DIR = "{}/../static_export".format(BASE_DIR)
 
