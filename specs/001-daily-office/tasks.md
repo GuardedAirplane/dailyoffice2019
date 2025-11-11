@@ -409,22 +409,22 @@
 ### Bible Retrieval Tests
 
 - [ ] T123 [P] Unit test: BibleGateway adapter success in site/bible/tests/test_sources.py
-- [ ] T124 [P] Unit test: BibleGateway adapter timeout in site/bible/tests/test_sources.py
-- [ ] T125 [P] Unit test: BibleGateway adapter rate limit in site/bible/tests/test_sources.py
-- [ ] T126 [P] Unit test: BibleGateway adapter 404 error in site/bible/tests/test_sources.py
-- [ ] T127 [P] Unit test: Scripture caching on first retrieval in site/office/tests/test_models.py
-- [ ] T128 [P] Unit test: Scripture cache hit on subsequent requests in site/office/tests/test_models.py
-- [ ] T129 [P] Unit test: Translation fallback (ESV → NRSVCE for Apocrypha) in site/office/tests/test_models.py
-- [ ] T130 [P] Unit test: Passage.lookup supports all 9 translations in site/bible/tests/test_passage.py
-- [ ] T131 [P] Integration test: Scripture retrieval and display in office in site/office/tests/test_scripture_integration.py
-- [ ] T132 [P] E2E test: Change Bible translation setting in app/tests/e2e/settings.spec.js
-- [ ] T133 [P] E2E test: View office with different translations in app/tests/e2e/settings.spec.js
+- [x] T124 [P] Unit test: BibleGateway adapter timeout in site/bible/tests/test_sources.py
+- [x] T125 [P] Unit test: BibleGateway adapter rate limit in site/bible/tests/test_sources.py
+- [x] T126 [P] Unit test: BibleGateway adapter 404 error in site/bible/tests/test_sources.py
+- [x] T127 [P] Unit test: Scripture caching on first retrieval in site/office/tests/test_models.py
+- [x] T128 [P] Unit test: Scripture cache hit on subsequent requests in site/office/tests/test_models.py
+- [x] T129 [P] Unit test: Translation fallback (ESV → NRSVCE for Apocrypha) in site/office/tests/test_models.py
+- [x] T130 [P] Unit test: Passage.lookup supports all 9 translations in site/bible/tests/test_passage.py
+- [x] T131 [P] Integration test: Scripture retrieval and display in office in site/office/tests/test_scripture_integration.py
+- [x] T132 [P] E2E test: Change Bible translation setting in app/tests/e2e/settings.spec.js
+- [x] T133 [P] E2E test: View office with different translations in app/tests/e2e/settings.spec.js
 
 ### Code Traceability for Bible
 
-- [ ] T134 Add FR-016 traceability to site/bible/passage.py (BibleVersions)
-- [ ] T135 [P] Add FR-017 traceability to app/src/store/modules/settings.js
-- [ ] T136 [P] Add FR-020 traceability to site/bible/sources.py (BibleGateway class)
+- [x] T134 Add FR-016 traceability to site/bible/passage.py (BibleVersions)
+- [x] T135 [P] Add FR-017 traceability to app/src/store/modules/settings.js
+- [x] T136 [P] Add FR-020 traceability to site/bible/sources.py (BibleGateway class)
 - [ ] T137 [P] Add FR-021 traceability to site/office/models.py (Scripture model)
 - [ ] T138 [P] Add FR-022 traceability to site/office/models.py (passage_to_text fallback)
 
