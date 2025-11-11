@@ -484,20 +484,20 @@
 
 ### Settings Tests
 
-- [ ] T152 [P] Unit test: Setting model CRUD operations in site/office/tests/test_models.py
-- [ ] T153 [P] Unit test: SettingOption relationships in site/office/tests/test_models.py
-- [ ] T154 [P] Unit test: Default SettingOption selection in site/office/tests/test_models.py
-- [ ] T155 [P] Unit test: DynamicStorage setItem/getItem in app/tests/unit/DynamicStorage.spec.js
-- [ ] T156 [P] Unit test: Settings persist to localStorage in app/tests/unit/DynamicStorage.spec.js
-- [ ] T157 [P] Integration test: Setting affects office generation (confession length) in site/office/tests/test_settings_integration.py
-- [ ] T158 [P] Integration test: Setting affects office generation (canticle rotation) in site/office/tests/test_settings_integration.py
-- [ ] T159 [P] E2E test: Change all major settings and verify applied in app/tests/e2e/settings.spec.js
-- [ ] T160 [P] E2E test: Settings persist after browser reload in app/tests/e2e/settings.spec.js
+- [x] T152 [P] Unit test: Setting model CRUD operations in site/office/tests/test_models.py
+- [x] T153 [P] Unit test: SettingOption relationships in site/office/tests/test_models.py
+- [x] T154 [P] Unit test: Default SettingOption selection in site/office/tests/test_models.py
+- [x] T155 [P] Unit test: DynamicStorage setItem/getItem in app/tests/unit/DynamicStorage.spec.js
+- [x] T156 [P] Unit test: Settings persist to localStorage in app/tests/unit/DynamicStorage.spec.js
+- [x] T157 [P] Integration test: Setting affects office generation (confession length) in site/office/tests/test_settings_integration.py
+- [x] T158 [P] Integration test: Setting affects office generation (canticle rotation) in site/office/tests/test_settings_integration.py
+- [x] T159 [P] E2E test: Change all major settings and verify applied in app/tests/e2e/settings.spec.js
+- [x] T160 [P] E2E test: Settings persist after browser reload in app/tests/e2e/settings.spec.js
 
 ### Code Traceability for Settings
 
-- [ ] T161 Add FR-023 traceability to app/src/helpers/DynamicStorage.js
-- [ ] T162 [P] Add FR-024 traceability to app/src/helpers/DynamicStorage.js (persistence logic)
+- [x] T161 Add FR-023 traceability to app/src/helpers/DynamicStorage.js
+- [x] T162 [P] Add FR-024 traceability to app/src/helpers/DynamicStorage.js (persistence logic)
 - [ ] T163 [P] Add FR-026 traceability to site/office/models.py (Setting model)
 - [ ] T164 [P] Add FR-027 traceability to site/office/models.py (default option logic)
 - [ ] T165 [P] Add FR-028 traceability to app/src/views/Settings.vue

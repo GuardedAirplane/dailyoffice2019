@@ -1,5 +1,20 @@
 import { Preferences } from '@capacitor/preferences';
 
+/**
+ * DynamicStorage - Client-side preference storage
+ * 
+ * Implements FR-023 (Client-side preference storage) and FR-024 (Settings persistence)
+ * 
+ * Provides a unified interface for storing user preferences using Capacitor Preferences API.
+ * Preferences persist across browser sessions and app restarts.
+ * 
+ * Used for:
+ * - Bible translation selection (FR-017)
+ * - Liturgical customization settings (FR-026)
+ * - All user-configurable settings
+ * 
+ * Related Tasks: T155, T156, T161, T162
+ */
 export const DynamicStorage = {
   setItem: async (key, value) => {
     // console.log("SET ITEM", key, value, typeof value);

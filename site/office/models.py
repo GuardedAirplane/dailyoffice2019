@@ -185,6 +185,24 @@ class UpdateNotice(BaseModel):
 
 
 class Setting(BaseModel):
+    """
+    Setting model for liturgical customization options.
+    
+    Implements FR-026 (Liturgical customization) and FR-027 (Sensible defaults)
+    
+    Settings are organized by type (MAIN/ADDITIONAL/EXPERT) and site (DAILY_OFFICE/FAMILY_PRAYER).
+    Each setting has multiple options (SettingOption model), with the first option by order
+    serving as the default (FR-027).
+    
+    Frontend displays these settings at /settings, allowing users to customize:
+    - Bible translation (FR-017)
+    - Canticle rotation
+    - Confession length  
+    - Psalter cycle
+    - And other liturgical preferences
+    
+    Related Tasks: T152, T153, T163, T164
+    """
     MAIN_SETTINGS = 1
     ADDITIONAL_SETTINGS = 2
     EXPERT_SETTINGS = 3

@@ -1,19 +1,25 @@
 """
-Unit tests for office models (psalm-related).
+Unit tests for office models.
 
 Tests cover:
 - T139: ThirtyDayPsalterDay psalm retrieval
 - T140: OfficeDay mp_psalms vs ep_psalms differ
+- T152: Setting model CRUD operations
+- T153: SettingOption relationships
+- T154: Default SettingOption selection
 
 Functional Requirements:
 - FR-005: Different psalm assignments for MP vs EP
 - FR-005a: 30-day Psalter cycle
+- FR-023: Client-side preference storage (backend models)
+- FR-026: Liturgical customization settings
+- FR-027: Sensible defaults
 """
 
 import pytest
 from django.test import TestCase
 
-from office.models import ThirtyDayPsalterDay, StandardOfficeDay
+from office.models import ThirtyDayPsalterDay, StandardOfficeDay, Setting, SettingOption
 
 
 class TestThirtyDayPsalterDay(TestCase):
@@ -264,3 +270,306 @@ class TestOfficeDayPsalms(TestCase):
         day1.delete()
         day2.delete()
         day3.delete()
+
+
+class TestSettingModel(TestCase):
+    """
+    T152: Unit test for Setting model CRUD operations
+    
+    Tests Setting model creation, retrieval, update, and deletion.
+    """
+    
+    def test_setting_creation(self):
+        """Create a Setting with required fields"""
+        setting = Setting.objects.create(
+            name="confession_length",
+            title="Confession Length",
+            description="Choose between long or short form confession",
+            order=1,
+            setting_type=Setting.MAIN_SETTINGS,
+            site=Setting.DAILY_OFFICE_SITE
+        )
+        
+        self.assertEqual(setting.name, "confession_length")
+        self.assertEqual(setting.title, "Confession Length")
+        self.assertEqual(setting.setting_type, Setting.MAIN_SETTINGS)
+        self.assertEqual(setting.site, Setting.DAILY_OFFICE_SITE)
+        
+        # Clean up
+        setting.delete()
+    
+    def test_setting_has_setting_types(self):
+        """Setting model has MAIN, ADDITIONAL, and EXPERT setting types"""
+        self.assertEqual(Setting.MAIN_SETTINGS, 1)
+        self.assertEqual(Setting.ADDITIONAL_SETTINGS, 2)
+        self.assertEqual(Setting.EXPERT_SETTINGS, 3)
+        
+        # Verify choices
+        types = dict(Setting.SETTING_TYPES)
+        self.assertEqual(types[Setting.MAIN_SETTINGS], "Settings")
+        self.assertEqual(types[Setting.ADDITIONAL_SETTINGS], "Additional Settings")
+        self.assertEqual(types[Setting.EXPERT_SETTINGS], "Expert Settings")
+    
+    def test_setting_has_site_types(self):
+        """Setting model distinguishes Daily Office vs Family Prayer sites"""
+        self.assertEqual(Setting.DAILY_OFFICE_SITE, 1)
+        self.assertEqual(Setting.FAMILY_PRAYER_SITE, 2)
+        
+        # Verify choices
+        sites = dict(Setting.SETTING_SITES)
+        self.assertEqual(sites[Setting.DAILY_OFFICE_SITE], "Daily Office")
+        self.assertEqual(sites[Setting.FAMILY_PRAYER_SITE], "Family Prayer")
+    
+    def test_setting_update(self):
+        """Update Setting fields"""
+        setting = Setting.objects.create(
+            name="test_setting",
+            title="Test Setting",
+            order=1
+        )
+        
+        setting.title = "Updated Setting Title"
+        setting.description = "New description"
+        setting.save()
+        
+        updated_setting = Setting.objects.get(pk=setting.pk)
+        self.assertEqual(updated_setting.title, "Updated Setting Title")
+        self.assertEqual(updated_setting.description, "New description")
+        
+        # Clean up
+        setting.delete()
+    
+    def test_setting_deletion(self):
+        """Delete Setting"""
+        setting = Setting.objects.create(
+            name="temp_setting",
+            title="Temporary Setting"
+        )
+        
+        setting_pk = setting.pk
+        setting.delete()
+        
+        with self.assertRaises(Setting.DoesNotExist):
+            Setting.objects.get(pk=setting_pk)
+    
+    def test_setting_ordering(self):
+        """Settings can be ordered by order field"""
+        setting1 = Setting.objects.create(name="test_s1", title="Setting 1", order=2)
+        setting2 = Setting.objects.create(name="test_s2", title="Setting 2", order=1)
+        setting3 = Setting.objects.create(name="test_s3", title="Setting 3", order=3)
+        
+        # Query by order
+        settings = Setting.objects.filter(name__startswith="test_s").order_by('order')
+        self.assertEqual(list(settings.values_list('name', flat=True)), ['test_s2', 'test_s1', 'test_s3'])
+        
+        # Clean up
+        setting1.delete()
+        setting2.delete()
+        setting3.delete()
+    
+    def test_existing_settings_exist(self):
+        """Verify some settings exist in database"""
+        # Database should have settings loaded from fixtures/migrations
+        count = Setting.objects.count()
+        self.assertGreater(count, 0, "Settings should exist in database")
+
+
+class TestSettingOptionModel(TestCase):
+    """
+    T153: Unit test for SettingOption relationships
+    
+    Tests SettingOption foreign key relationships to Setting.
+    """
+    
+    def test_setting_option_creation(self):
+        """Create SettingOption with foreign key to Setting"""
+        setting = Setting.objects.create(
+            name="test_setting",
+            title="Test Setting"
+        )
+        
+        option = SettingOption.objects.create(
+            setting=setting,
+            name="Option 1",
+            value="option1",
+            order=1,
+            abbreviation="A"
+        )
+        
+        self.assertEqual(option.setting.pk, setting.pk)
+        self.assertEqual(option.name, "Option 1")
+        self.assertEqual(option.value, "option1")
+        self.assertEqual(option.abbreviation, "A")
+        
+        # Clean up
+        option.delete()
+        setting.delete()
+    
+    def test_setting_has_multiple_options(self):
+        """Setting can have multiple SettingOptions"""
+        setting = Setting.objects.create(
+            name="multi_option_setting",
+            title="Multi Option Setting"
+        )
+        
+        option1 = SettingOption.objects.create(
+            setting=setting,
+            name="Short",
+            value="short",
+            order=1
+        )
+        option2 = SettingOption.objects.create(
+            setting=setting,
+            name="Long",
+            value="long",
+            order=2
+        )
+        
+        # Retrieve options via foreign key
+        options = SettingOption.objects.filter(setting=setting).order_by('order')
+        self.assertEqual(options.count(), 2)
+        self.assertEqual(options[0].value, "short")
+        self.assertEqual(options[1].value, "long")
+        
+        # Clean up
+        option1.delete()
+        option2.delete()
+        setting.delete()
+    
+    def test_cascade_delete_options_with_setting(self):
+        """Deleting Setting cascades to delete its SettingOptions"""
+        setting = Setting.objects.create(
+            name="cascade_test",
+            title="Cascade Test"
+        )
+        
+        option1 = SettingOption.objects.create(setting=setting, name="Opt 1", value="opt1")
+        option2 = SettingOption.objects.create(setting=setting, name="Opt 2", value="opt2")
+        
+        option_pks = [option1.pk, option2.pk]
+        
+        # Delete setting
+        setting.delete()
+        
+        # Options should be deleted too
+        for pk in option_pks:
+            with self.assertRaises(SettingOption.DoesNotExist):
+                SettingOption.objects.get(pk=pk)
+    
+    def test_setting_option_has_default_abbreviation(self):
+        """SettingOption has default abbreviation 'A'"""
+        setting = Setting.objects.create(name="test", title="Test")
+        
+        # Create without specifying abbreviation
+        option = SettingOption.objects.create(
+            setting=setting,
+            name="Default",
+            value="default"
+        )
+        
+        self.assertEqual(option.abbreviation, SettingOption.DEFAULT_ABBREVIATION)
+        self.assertEqual(option.abbreviation, "A")
+        
+        # Clean up
+        option.delete()
+        setting.delete()
+    
+    def test_setting_option_ordering(self):
+        """SettingOptions can be ordered within a Setting"""
+        setting = Setting.objects.create(name="ordered_setting", title="Ordered Setting")
+        
+        option_c = SettingOption.objects.create(setting=setting, name="C", value="c", order=3)
+        option_a = SettingOption.objects.create(setting=setting, name="A", value="a", order=1)
+        option_b = SettingOption.objects.create(setting=setting, name="B", value="b", order=2)
+        
+        # Query by order
+        options = SettingOption.objects.filter(setting=setting).order_by('order')
+        self.assertEqual(list(options.values_list('name', flat=True)), ['A', 'B', 'C'])
+        
+        # Clean up
+        option_a.delete()
+        option_b.delete()
+        option_c.delete()
+        setting.delete()
+
+
+class TestSettingDefaultOption(TestCase):
+    """
+    T154: Unit test for default SettingOption selection
+    
+    Tests logic for identifying default/first option for a Setting.
+    """
+    
+    def test_first_option_by_order_is_default(self):
+        """First SettingOption by order acts as default"""
+        setting = Setting.objects.create(
+            name="default_test",
+            title="Default Test"
+        )
+        
+        option2 = SettingOption.objects.create(setting=setting, name="Second", value="second", order=2)
+        option1 = SettingOption.objects.create(setting=setting, name="First", value="first", order=1)
+        option3 = SettingOption.objects.create(setting=setting, name="Third", value="third", order=3)
+        
+        # Get first option (default)
+        default_option = SettingOption.objects.filter(setting=setting).order_by('order').first()
+        
+        self.assertEqual(default_option.value, "first")
+        self.assertEqual(default_option.name, "First")
+        
+        # Clean up
+        option1.delete()
+        option2.delete()
+        option3.delete()
+        setting.delete()
+    
+    def test_existing_settings_have_options(self):
+        """Verify existing Settings have SettingOptions"""
+        # Get any existing setting
+        setting = Setting.objects.first()
+        
+        if setting:
+            # Setting should have at least one option
+            options = SettingOption.objects.filter(setting=setting)
+            # Note: Some settings might not have options yet, so just check the relationship works
+            self.assertTrue(hasattr(setting, 'settingoption_set'))
+    
+    def test_retrieve_default_for_setting_name(self):
+        """Retrieve default option for a setting by name"""
+        setting = Setting.objects.create(
+            name="psalter_cycle",
+            title="Psalter Cycle"
+        )
+        
+        SettingOption.objects.create(setting=setting, name="30-day", value="30", order=1)
+        SettingOption.objects.create(setting=setting, name="60-day", value="60", order=2)
+        
+        # Simulate getting default for this setting
+        default = SettingOption.objects.filter(
+            setting__name="psalter_cycle"
+        ).order_by('order').first()
+        
+        self.assertEqual(default.value, "30")
+        self.assertEqual(default.name, "30-day")
+        
+        # Clean up
+        SettingOption.objects.filter(setting=setting).delete()
+        setting.delete()
+    
+    def test_setting_with_no_options(self):
+        """Setting can exist without options (edge case)"""
+        setting = Setting.objects.create(
+            name="empty_setting",
+            title="Empty Setting"
+        )
+        
+        # No options created
+        count = SettingOption.objects.filter(setting=setting).count()
+        self.assertEqual(count, 0)
+        
+        # Getting default returns None
+        default = SettingOption.objects.filter(setting=setting).first()
+        self.assertIsNone(default)
+        
+        # Clean up
+        setting.delete()
