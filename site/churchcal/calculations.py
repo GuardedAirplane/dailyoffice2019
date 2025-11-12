@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+from typing import List, Optional, Dict, Any
 
 from dateutil.parser import parse
 from django.core.cache import cache
@@ -20,7 +21,7 @@ class CalendarDate(object):
     Calculates the liturgical season for any date and determines primary and
     secondary commemorations based on the church calendar rules.
     """
-    def __init__(self, date, calendar, year):
+    def __init__(self, date: date, calendar: Calendar, year: 'ChurchYear') -> None:
         self.date = date
         self.calendar = calendar
 
@@ -33,7 +34,13 @@ class CalendarDate(object):
 
         self.year = year
 
-    def _find_proper(self):
+    def _find_proper(self) -> Optional[Proper]:
+        """
+        Find the liturgical Proper for a given Sunday in the Season After Pentecost.
+        
+        Returns:
+            Proper or None: The proper for this Sunday, or None if not applicable
+        """
         sunday_date = self.date
         if sunday_date.weekday() != 6:
             sun_offset = (sunday_date.weekday() - 6) % 7
@@ -42,17 +49,37 @@ class CalendarDate(object):
         return Proper.objects.filter(calendar=self.calendar, start_date__lte=date, end_date__gte=date).first()
 
     @property
-    def all(self):
+    def all(self) -> List[Commemoration]:
+        """
+        Get all commemorations for this date (required + optional).
+        
+        Validates: FR-011 (Display Commemorations for Each Day)
+        
+        Returns:
+            list: All commemorations (primary, black letter, etc.)
+        """
         return self.required + self.optional
 
     @property
-    def all_evening(self):
+    def all_evening(self) -> List[Commemoration]:
+        """
+        Get all commemorations for evening observance (may differ from morning).
+        
+        Returns:
+            list: All evening commemorations
+        """
         required = self.evening_required if hasattr(self, "evening_required") else self.required
         optional = self.evening_optional if hasattr(self, "evening_optional") else self.optional
         return required + optional
 
     @property
-    def morning_and_evening(self):
+    def morning_and_evening(self) -> List[Commemoration]:
+        """
+        Get combined list of morning and evening commemorations (no duplicates).
+        
+        Returns:
+            list: Union of morning and evening commemorations
+        """
         start = self.all
         for commemoration in self.all_evening:
             if commemoration not in start:
@@ -60,7 +87,13 @@ class CalendarDate(object):
         return start
 
     @property
-    def primary_evening(self):
+    def primary_evening(self) -> Commemoration:
+        """
+        Get the primary commemoration for evening observance.
+        
+        Returns:
+            Commemoration: Primary evening commemoration
+        """
         return self.all_evening[0]
 
     @cached_property
@@ -160,11 +193,11 @@ class CalendarDate(object):
 
         return self.FAST_NONE
 
-    def _sort_commemorations(self):
+    def _sort_commemorations(self) -> None:
         self.required = sorted(self.required, key=lambda commemoration: (commemoration.rank.precedence_rank))
         self.optional = sorted(self.optional, key=lambda commemoration: (commemoration.rank.precedence_rank))
 
-    def add_commemoration(self, commemoration):
+    def add_commemoration(self, commemoration: Commemoration) -> None:
         if not commemoration.rank.required:
             self.optional.append(commemoration)
         else:
@@ -172,14 +205,14 @@ class CalendarDate(object):
 
         self._sort_commemorations()
 
-    def apply_rules(self):
+    def apply_rules(self) -> List[Any]:
         self._sort_commemorations()
 
         transfers = self.process_transfers()
         self.finalize_day()
         return transfers
 
-    def handle_privileged_lesser_feast(self):
+    def handle_privileged_lesser_feast(self) -> Optional[Commemoration]:
         if len(self.required) < 1:
             return None
 
@@ -193,7 +226,7 @@ class CalendarDate(object):
         self.required = []
         return required
 
-    def process_transfers(self):
+    def process_transfers(self) -> List[Commemoration]:
         transfers = self.handle_privileged_lesser_feast()
         if transfers:
             return transfers
@@ -222,7 +255,7 @@ class CalendarDate(object):
             transfer.transferred = True
         return [feast for feast in transfers if feast.rank.name != "SUNDAY"]
 
-    def append_feria_if_needed(self):
+    def append_feria_if_needed(self) -> None:
         # Don't append Feria to a Sunday!
         if self.date.weekday() == 6:
             return
@@ -235,7 +268,7 @@ class CalendarDate(object):
 
         self.optional.append(FerialCommemoration(self.date, self.season, self.calendar))
 
-    def finalize_day(self):
+    def finalize_day(self) -> None:
         self.append_feria_if_needed()
         self.optional = sorted(self.optional, key=lambda commemoration: (commemoration.rank.precedence_rank))
         if len(self.required) > 0:
@@ -244,7 +277,7 @@ class CalendarDate(object):
             self.primary = self.optional[0]
         self.finalized = True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{} {} - {}".format(
             self.date.strftime("%A"),
             str(self.date),
@@ -877,7 +910,16 @@ class SetNamesAndCollects(object):
         return None
 
 
-def to_date(date_string):
+def to_date(date_string: Any) -> Optional[date]:
+    """
+    Convert various date formats to Python date object.
+    
+    Args:
+        date_string: Can be datetime, date, or string (e.g., "2025-01-01", "January 1, 2025")
+    
+    Returns:
+        date or None: Python date object, or None if conversion fails
+    """
     if isinstance(date_string, datetime):
         return date_string.date()
 
@@ -893,7 +935,18 @@ def to_date(date_string):
     return None
 
 
-def get_church_year(date_string):
+def get_church_year(date_string: Any) -> 'ChurchYear':
+    """
+    Retrieve the ChurchYear object for a given date.
+    
+    Caches ChurchYear instances for performance (12-hour TTL).
+    
+    Args:
+        date_string: Any valid date format (string, date, datetime)
+    
+    Returns:
+        ChurchYear: The liturgical year containing this date
+    """
     date = to_date(date_string)
     advent_start = advent(date.year)
     year = date.year if date >= advent_start else date.year - 1
@@ -904,11 +957,22 @@ def get_church_year(date_string):
     return church_year
 
 
-def get_calendar_date(date_string):
+def get_calendar_date(date_string: Any) -> CalendarDate:
     """
     Calculate liturgical date with dynamic season and feast calculations.
     
+    This is the primary entry point for liturgical date calculations. It determines:
+    - The liturgical season (Advent, Lent, Easter, etc.)
+    - Primary and secondary commemorations
+    - Mass readings and lectionary assignments
+    
     Validates: FR-012a (Dynamic Liturgical Calculation)
+    
+    Args:
+        date_string: Any valid date format (string, date, datetime)
+    
+    Returns:
+        CalendarDate: Complete liturgical date object with season and commemorations
     """
     church_year = get_church_year(date_string)
     return church_year.get_date(date_string)
