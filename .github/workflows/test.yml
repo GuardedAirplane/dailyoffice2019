@@ -102,16 +102,7 @@ jobs:
           PERPLEXITY_API_KEY: test-perplexity-key
         run: |
           python manage.py migrate --noinput
-
-      - name: Load production data
-        env:
-          PGPASSWORD: dailyoffice
-        run: |
-          # Load data-only dump into schema created by migrations
-          psql -h localhost -U dailyoffice -d dailyoffice_test -v ON_ERROR_STOP=0 --quiet \
-            -c "SET session_replication_role = replica;" \
-            -f ./site/dailyoffice_data_only.sql \
-            -c "SET session_replication_role = DEFAULT;"
+          # Note: Pytest conftest.py will load dailyoffice_data_only.sql into test databases
 
       - name: Run backend tests with coverage
         working-directory: ./site

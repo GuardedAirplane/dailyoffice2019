@@ -99,7 +99,17 @@ def django_db_setup(django_db_setup, django_db_blocker):
         db_settings = settings.DATABASES["default"]
 
         # Use data-only dump (no schema, only data)
-        data_dump = "/workspace/site/dailyoffice_data_only.sql"
+        # Try workspace path (Docker) first, then relative path (CI/local)
+        data_dump_paths = [
+            "/workspace/site/dailyoffice_data_only.sql",  # Docker container
+            os.path.join(os.path.dirname(__file__), "dailyoffice_data_only.sql"),  # CI/local relative
+        ]
+        
+        data_dump = None
+        for path in data_dump_paths:
+            if os.path.exists(path):
+                data_dump = path
+                break
 
         if os.path.exists(data_dump):
             env = os.environ.copy()
