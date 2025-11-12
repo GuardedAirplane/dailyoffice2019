@@ -162,9 +162,8 @@ jobs:
 
       - name: Check Python formatting
         run: |
-          podman-compose exec -T backend \
-            find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" -print0 | \
-            xargs -0 black --check --target-version=py313 --line-length=119
+          podman-compose exec -T backend bash -c \
+            "find . -iname '*.py' -not -path '*/migrations/*' -not -path '*/__pycache__/*' -print0 | xargs -0 black --check --target-version=py313 --line-length=119"
 
       - name: Stop services
         if: always()

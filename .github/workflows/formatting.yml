@@ -30,9 +30,8 @@ jobs:
         id: black_check
         run: |
           set +e
-          podman-compose exec -T backend \
-            find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" -print0 | \
-            xargs -0 black --check --target-version=py313 --line-length=119
+          podman-compose exec -T backend bash -c \
+            "find . -iname '*.py' -not -path '*/migrations/*' -not -path '*/__pycache__/*' -print0 | xargs -0 black --check --target-version=py313 --line-length=119"
           BLACK_EXIT_CODE=$?
           set -e
           
@@ -49,9 +48,8 @@ jobs:
       - name: Run Black formatter (fix)
         if: failure() && github.event_name == 'pull_request'
         run: |
-          podman-compose exec -T backend \
-            find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" -print0 | \
-            xargs -0 black --target-version=py313 --line-length=119
+          podman-compose exec -T backend bash -c \
+            "find . -iname '*.py' -not -path '*/migrations/*' -not -path '*/__pycache__/*' -print0 | xargs -0 black --target-version=py313 --line-length=119"
 
       - name: Copy formatted files
         if: failure() && github.event_name == 'pull_request'
