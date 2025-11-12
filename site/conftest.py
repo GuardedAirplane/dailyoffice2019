@@ -111,7 +111,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
                 data_dump = path
                 break
 
-        if os.path.exists(data_dump):
+        if data_dump and os.path.exists(data_dump):
             env = os.environ.copy()
             env["PGPASSWORD"] = db_settings["PASSWORD"]
 
@@ -177,12 +177,12 @@ def django_db_setup(django_db_setup, django_db_blocker):
                 if os.path.exists(tmp_sql_file):
                     os.unlink(tmp_sql_file)
         else:
-            print(f"\n⚠ Warning: Data dump not found at {data_dump}")
-            print("Tests will run with empty database - some tests may fail")
-            print("To create the dump, run:")
-            print("  podman exec dailyoffice2019_db_1 pg_dump -U dailyoffice -d dailyoffice \\")
-            print("    --data-only --inserts --column-inserts -f /tmp/dailyoffice_data_only.sql")
-            print("  podman cp dailyoffice2019_db_1:/tmp/dailyoffice_data_only.sql \\")
+            print(f"\n⚠ Warning: Data dump not found")
+            print(f"Searched paths:")
+            for path in data_dump_paths:
+                print(f"  - {path}")
+            print("Assuming database is already loaded (e.g., in CI workflow)")
+            print("If tests fail, check that database was loaded before pytest ran")
             print("    site/dailyoffice_data_only.sql\n")
 
 

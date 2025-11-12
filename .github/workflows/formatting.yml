@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  black-formatting:
+  black:
     name: Python Black Formatting
     runs-on: ubuntu-latest
 
@@ -17,7 +17,10 @@ jobs:
       - name: Set up Podman
         run: |
           sudo apt-get update
-          sudo apt-get install -y podman podman-compose
+          sudo apt-get install -y podman python3-pip
+          # Install latest podman-compose via pip for -T flag support
+          pip3 install --user podman-compose
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Start backend service
         run: |
@@ -90,7 +93,10 @@ jobs:
       - name: Set up Podman
         run: |
           sudo apt-get update
-          sudo apt-get install -y podman podman-compose
+          sudo apt-get install -y podman python3-pip
+          # Install latest podman-compose via pip for -T flag support
+          pip3 install --user podman-compose
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Start frontend service
         run: |
@@ -135,7 +141,10 @@ jobs:
       - name: Set up Podman
         run: |
           sudo apt-get update
-          sudo apt-get install -y podman podman-compose
+          sudo apt-get install -y podman python3-pip
+          # Install latest podman-compose via pip for -T flag support
+          pip3 install --user podman-compose
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Start backend service
         run: |
