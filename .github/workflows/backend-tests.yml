@@ -1,0 +1,139 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: ["main", "develop"]
+    paths:
+      - "site/**"
+      - "docker-compose.yml"
+      - ".github/workflows/backend-tests.yml"
+  pull_request:
+    paths:
+      - "site/**"
+      - "docker-compose.yml"
+      - ".github/workflows/backend-tests.yml"
+
+jobs:
+  test:
+    name: Run Backend Tests with Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman podman-compose
+
+      - name: Verify Podman installation
+        run: |
+          podman --version
+          podman-compose --version
+
+      - name: Start services with Podman Compose
+        run: |
+          podman-compose up -d db cache backend
+          
+      - name: Wait for database to be ready
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..30}; do
+            if podman exec dailyoffice2019_db_1 pg_isready -U dailyoffice; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+
+      - name: Load database dump
+        run: |
+          echo "Loading database dump..."
+          if [ -f site/dailyoffice_2024_01_30.sql ]; then
+            podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice < site/dailyoffice_2024_01_30.sql
+          elif [ -f site/dailyoffice_2024_01_30.sql.zip ]; then
+            unzip -p site/dailyoffice_2024_01_30.sql.zip dailyoffice_2024_01_30.sql | \
+              podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
+          else
+            echo "Warning: Database dump not found. Tests may fail."
+          fi
+
+      - name: Run Django system check
+        run: |
+          podman exec dailyoffice2019_backend_1 python manage.py check
+
+      - name: Run pytest with coverage
+        run: |
+          podman exec dailyoffice2019_backend_1 python -m pytest \
+            --verbose \
+            --cov=office \
+            --cov=churchcal \
+            --cov=bible \
+            --cov=psalter \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --cov-report=html:htmlcov \
+            --junit-xml=pytest-results.xml
+
+      - name: Copy coverage reports from container
+        if: always()
+        run: |
+          podman cp dailyoffice2019_backend_1:/workspace/site/coverage.xml ./coverage.xml || true
+          podman cp dailyoffice2019_backend_1:/workspace/site/pytest-results.xml ./pytest-results.xml || true
+          podman cp dailyoffice2019_backend_1:/workspace/site/htmlcov ./htmlcov || true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        if: always()
+        with:
+          files: ./coverage.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: |
+            pytest-results.xml
+            coverage.xml
+            htmlcov/
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            pytest-results.xml
+          check_name: Backend Test Results
+
+      - name: Comment PR with coverage
+        uses: py-cov-action/python-coverage-comment-action@v3
+        if: github.event_name == 'pull_request'
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          COVERAGE_DATA_BRANCH: coverage-data
+          MINIMUM_GREEN: 90
+          MINIMUM_ORANGE: 75
+
+      - name: Stop services
+        if: always()
+        run: |
+          podman-compose down -v
+
+      - name: Display test summary
+        if: always()
+        run: |
+          echo "## Backend Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f coverage.xml ]; then
+            echo "✅ Tests completed with coverage report" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📊 Coverage reports have been uploaded as artifacts" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Coverage report not found" >> $GITHUB_STEP_SUMMARY
+          fi

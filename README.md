@@ -140,6 +140,44 @@ The project follows a constitutional testing approach with phases:
 
 See `docs/testing/` for detailed phase documentation.
 
+### Continuous Integration
+
+The project uses GitHub Actions for automated testing and code quality checks:
+
+![Backend Tests](https://github.com/GuardedAirplane/dailyoffice2019/workflows/Backend%20Tests/badge.svg)
+![Frontend Tests](https://github.com/GuardedAirplane/dailyoffice2019/workflows/Frontend%20Tests/badge.svg)
+![Code Formatting](https://github.com/GuardedAirplane/dailyoffice2019/workflows/Code%20Formatting%20%26%20Linting/badge.svg)
+![CI](https://github.com/GuardedAirplane/dailyoffice2019/workflows/CI%20-%20Full%20Test%20Suite/badge.svg)
+
+**All workflows leverage the existing Podman infrastructure** (`docker-compose.yml`) to ensure consistency between local development and CI environments.
+
+#### Available Workflows
+
+1. **Backend Tests** - Runs pytest with coverage for Django backend
+2. **Frontend Tests** - Runs Vitest (unit) and Cypress (E2E) tests
+3. **Code Formatting & Linting** - Checks Black (Python) and ESLint (JavaScript/Vue)
+4. **Full CI Suite** - Runs all tests in parallel with unified reporting
+
+#### Running CI Tests Locally
+
+All CI workflows can be replicated locally using Podman:
+
+```bash
+# Backend tests (same as CI)
+podman-compose up -d db cache backend
+podman exec dailyoffice2019_backend_1 python -m pytest --cov=office --cov=churchcal --cov=bible --cov=psalter
+
+# Frontend unit tests (same as CI)
+podman-compose up -d frontend
+podman exec dailyoffice2019_frontend_1 npm run test:unit
+
+# Python formatting check (same as CI)
+podman exec dailyoffice2019_backend_1 find . -iname "*.py" -not -path "*/migrations/*" | \
+  xargs black --check --target-version=py313 --line-length=119
+```
+
+See `.github/workflows/README.md` for complete documentation and `.github/workflows/QUICKREF.md` for quick reference commands.
+
 ## Quick overview
 
 The application is built around several Django "apps". The most important are:

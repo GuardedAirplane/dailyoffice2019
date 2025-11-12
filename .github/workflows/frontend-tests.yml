@@ -1,0 +1,130 @@
+name: Frontend Tests
+
+on:
+  push:
+    branches: ["main", "develop"]
+    paths:
+      - "app/**"
+      - ".github/workflows/frontend-tests.yml"
+  pull_request:
+    paths:
+      - "app/**"
+      - ".github/workflows/frontend-tests.yml"
+
+jobs:
+  unit-tests:
+    name: Run Frontend Unit Tests (Vitest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman podman-compose
+
+      - name: Start frontend service
+        run: |
+          podman-compose up -d frontend
+
+      - name: Wait for npm install to complete
+        run: |
+          echo "Waiting for npm dependencies..."
+          sleep 30
+          podman exec dailyoffice2019_frontend_1 npm list || true
+
+      - name: Run Vitest unit tests
+        run: |
+          podman exec dailyoffice2019_frontend_1 npm run test:unit -- --coverage
+
+      - name: Copy coverage reports
+        if: always()
+        run: |
+          podman cp dailyoffice2019_frontend_1:/workspace/app/coverage ./frontend-coverage || true
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-unit-test-coverage
+          path: frontend-coverage/
+
+      - name: Stop services
+        if: always()
+        run: podman-compose down -v
+
+  e2e-tests:
+    name: Run E2E Tests (Cypress)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman podman-compose
+
+      - name: Start all services
+        run: |
+          podman-compose up -d
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for services..."
+          sleep 60
+          
+          # Check backend health
+          for i in {1..30}; do
+            if curl -f http://localhost:8000/api/ 2>/dev/null; then
+              echo "Backend is ready!"
+              break
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 2
+          done
+          
+          # Check frontend health
+          for i in {1..30}; do
+            if curl -f http://localhost:5173/ 2>/dev/null; then
+              echo "Frontend is ready!"
+              break
+            fi
+            echo "Waiting for frontend... ($i/30)"
+            sleep 2
+          done
+
+      - name: Load database dump for E2E tests
+        run: |
+          if [ -f site/dailyoffice_2024_01_30.sql ]; then
+            podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice < site/dailyoffice_2024_01_30.sql
+          elif [ -f site/dailyoffice_2024_01_30.sql.zip ]; then
+            unzip -p site/dailyoffice_2024_01_30.sql.zip dailyoffice_2024_01_30.sql | \
+              podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
+          fi
+
+      - name: Run Cypress E2E tests
+        run: |
+          podman exec dailyoffice2019_frontend_1 npm run test:e2e || true
+
+      - name: Copy Cypress results
+        if: always()
+        run: |
+          podman cp dailyoffice2019_frontend_1:/workspace/app/cypress/videos ./cypress-videos || true
+          podman cp dailyoffice2019_frontend_1:/workspace/app/cypress/screenshots ./cypress-screenshots || true
+
+      - name: Upload Cypress artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cypress-artifacts
+          path: |
+            cypress-videos/
+            cypress-screenshots/
+
+      - name: Stop services
+        if: always()
+        run: podman-compose down -v

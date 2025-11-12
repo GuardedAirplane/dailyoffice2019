@@ -1,0 +1,153 @@
+name: Code Formatting & Linting
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+
+jobs:
+  black-formatting:
+    name: Python Black Formatting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman podman-compose
+
+      - name: Start backend service
+        run: |
+          podman-compose up -d backend
+
+      - name: Run Black formatter check
+        id: black_check
+        run: |
+          set +e
+          podman exec dailyoffice2019_backend_1 \
+            find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" | \
+            xargs black --check --target-version=py313 --line-length=119
+          BLACK_EXIT_CODE=$?
+          set -e
+          
+          if [ $BLACK_EXIT_CODE -ne 0 ]; then
+            echo "needs_formatting=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Code formatting issues detected" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "needs_formatting=false" >> $GITHUB_OUTPUT
+            echo "✅ All Python code is properly formatted" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          exit $BLACK_EXIT_CODE
+
+      - name: Run Black formatter (fix)
+        if: failure() && github.event_name == 'pull_request'
+        run: |
+          podman exec dailyoffice2019_backend_1 \
+            find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" | \
+            xargs black --target-version=py313 --line-length=119
+
+      - name: Copy formatted files
+        if: failure() && github.event_name == 'pull_request'
+        run: |
+          podman cp dailyoffice2019_backend_1:/workspace/site/. ./site/
+
+      - name: Create Pull Request with formatting fixes
+        if: failure() && github.event_name == 'pull_request' && steps.black_check.outputs.needs_formatting == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "style: Apply Black formatting to Python files"
+          title: "🤖 Auto-format Python code with Black"
+          body: |
+            This PR automatically applies Black formatting to Python files that failed the formatting check.
+            
+            ## Changes
+            - Applied `black --target-version=py313 --line-length=119` to all Python files
+            - Excluded migrations and __pycache__ directories
+            
+            ## Review
+            Please review the formatting changes and merge if acceptable.
+          branch: auto-format-black-${{ github.event.pull_request.number }}
+          delete-branch: true
+
+      - name: Stop services
+        if: always()
+        run: podman-compose down -v
+
+  eslint:
+    name: JavaScript/Vue ESLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman podman-compose
+
+      - name: Start frontend service
+        run: |
+          podman-compose up -d frontend
+
+      - name: Wait for npm install
+        run: |
+          echo "Waiting for npm dependencies..."
+          sleep 30
+
+      - name: Run ESLint check
+        id: eslint_check
+        continue-on-error: true
+        run: |
+          set +e
+          podman exec dailyoffice2019_frontend_1 npm run lint
+          ESLINT_EXIT_CODE=$?
+          set -e
+          
+          if [ $ESLINT_EXIT_CODE -ne 0 ]; then
+            echo "has_issues=true" >> $GITHUB_OUTPUT
+            echo "⚠️ ESLint issues detected" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "has_issues=false" >> $GITHUB_OUTPUT
+            echo "✅ All JavaScript/Vue code passes ESLint" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          exit $ESLINT_EXIT_CODE
+
+      - name: Stop services
+        if: always()
+        run: podman-compose down -v
+
+  pre-commit:
+    name: Pre-commit Hooks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman podman-compose
+
+      - name: Start backend service
+        run: |
+          podman-compose up -d backend
+
+      - name: Install pre-commit in container
+        run: |
+          podman exec dailyoffice2019_backend_1 pip install pre-commit
+
+      - name: Run pre-commit hooks
+        run: |
+          podman exec dailyoffice2019_backend_1 pre-commit run --all-files || true
+
+      - name: Stop services
+        if: always()
+        run: podman-compose down -v
