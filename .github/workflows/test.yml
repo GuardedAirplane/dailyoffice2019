@@ -110,7 +110,7 @@ jobs:
           # Load data-only dump into schema created by migrations
           psql -h localhost -U dailyoffice -d dailyoffice_test -v ON_ERROR_STOP=0 --quiet \
             -c "SET session_replication_role = replica;" \
-            -f site/dailyoffice_data_only.sql \
+            -f ./site/dailyoffice_data_only.sql \
             -c "SET session_replication_role = DEFAULT;"
 
       - name: Run backend tests with coverage
