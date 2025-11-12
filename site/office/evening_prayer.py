@@ -133,8 +133,19 @@ class EPCommemorationListing(OfficeSection):
 
 
 class EPInvitatory(OfficeSection):
+    """
+    Evening Prayer invitatory section (typically omitted).
+    
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    """
     @cached_property
     def data(self):
+        """
+        Generate invitatory section data (empty for Evening Prayer).
+        
+        Returns:
+            dict: Empty dict as Evening Prayer typically omits the invitatory
+        """
         return {}
 
 
@@ -146,6 +157,19 @@ class EPOpeningSentence(OfficeSection):
     Validates: FR-009 (Include full text of prayers and liturgical responses)
     """
     def get_sentence(self):
+        """
+        Select the appropriate evening opening sentence based on season, feast, or weekday.
+        
+        Opening sentences vary by:
+        - Specific feasts (Thanksgiving, Pentecost, Trinity Sunday, Easter, Ascension)
+        - Liturgical seasons (Advent, Lent, Holy Week, Christmastide, Epiphanytide, Eastertide)
+        - Weekday rotation (Sunday through Saturday)
+        
+        Validates: FR-009 (Include full text of liturgical components)
+        
+        Returns:
+            dict: Contains 'sentence' (scripture text) and 'citation' (biblical reference)
+        """
         if "Thanksgiving Day" in self.date.primary_evening.name:
             return {
                 "sentence": "The Lord by wisdom founded the earth; by understanding he established the heavens; by his knowledge the deeps broke open, and the clouds drop down the dew.",

@@ -142,6 +142,19 @@ class MPOpeningSentence(OfficeSection):
     Validates: FR-009 (Include full text of prayers and liturgical responses)
     """
     def get_sentence(self):
+        """
+        Select the appropriate opening sentence based on season, feast, or weekday.
+        
+        Opening sentences vary by:
+        - Specific feasts (Thanksgiving, Pentecost, Trinity Sunday, Easter, Ascension)
+        - Liturgical seasons (Advent, Lent, Holy Week, Christmastide, Epiphanytide, Eastertide)
+        - Weekday rotation (Sunday through Saturday)
+        
+        Validates: FR-009 (Include full text of liturgical components)
+        
+        Returns:
+            dict: Contains 'sentence' (scripture text) and 'citation' (biblical reference)
+        """
         if "Thanksgiving Day" in self.date.primary.name:
             return {
                 "sentence": "Honor the Lord with your wealth and with the firstfruits of all your produce; then your barns will be filled with plenty, and your vats will be bursting with wine.",
@@ -259,6 +272,12 @@ class MPOpeningSentence(OfficeSection):
 
     @cached_property
     def data(self):
+        """
+        Generate opening sentence section data.
+        
+        Returns:
+            dict: Heading and selected sentence data
+        """
         return {"heading": "Opening Sentence", "sentence": self.get_sentence()}
 
 
@@ -271,6 +290,15 @@ class MPInvitatory(OfficeSection):
     """
     @cached_property
     def antiphon(self):
+        """
+        Determine the appropriate antiphon based on liturgical season and feast.
+        
+        Returns the antiphon that will be said before and after the invitatory canticle.
+        Antiphons vary by season (Advent, Lent, Eastertide, etc.) and major feasts.
+        
+        Returns:
+            dict: Contains 'first_line' and 'second_line' of the antiphon text
+        """
         if "Presentation" in self.date.primary.name or "Annunciation" in self.date.primary.name:
             return {
                 "first_line": "The Word was made flesh and dwelt among us:",
@@ -350,6 +378,17 @@ class MPInvitatory(OfficeSection):
             return {"first_line": "The mercy of the Lord is everlasting: ", "second_line": "O come, let us adore him."}
 
     def rotating(self):
+        """
+        Determine which invitatory canticle to use based on seasonal and daily rotation.
+        
+        Rotates between Venite (Psalm 95), Jubilate (Psalm 100), and Pascha Nostrum
+        (Easter anthem). Pascha Nostrum is used during Easter Week and some days in
+        Eastertide. Otherwise, Venite and Jubilate alternate daily with psalm conflicts
+        considered.
+        
+        Returns:
+            tuple: (thirty_day_canticle, sixty_day_canticle) - One for each psalter cycle
+        """
         if "Easter Day" in self.date.primary.name or "Easter Week" in self.date.primary.name:
             return (self.pascha_nostrum, self.pascha_nostrum)
 
@@ -377,6 +416,12 @@ class MPInvitatory(OfficeSection):
         return (thirty_day, sixty_day)
 
     def venite_most_days(self):
+        """
+        Use Venite (Psalm 95) most days, switching to Jubilate when Psalm 95 appears.
+        
+        Returns:
+            tuple: (thirty_day_canticle, sixty_day_canticle)
+        """
         if "Easter Day" in self.date.primary.name or "Easter Week" in self.date.primary.name:
             return (self.pascha_nostrum, self.pascha_nostrum)
 
@@ -392,6 +437,14 @@ class MPInvitatory(OfficeSection):
         return (thirty_day, sixty_day)
 
     def jubilate_on_sundays_and_feasts(self):
+        """
+        Use Jubilate (Psalm 100) on Sundays and major feasts, Venite on other days.
+        
+        Uses Pascha Nostrum during Easter Week and on major feasts during Eastertide.
+        
+        Returns:
+            tuple: (thirty_day_canticle, sixty_day_canticle)
+        """
         if "Easter Day" in self.date.primary.name or "Easter Week" in self.date.primary.name:
             return (self.pascha_nostrum, self.pascha_nostrum)
 
@@ -424,6 +477,12 @@ class MPInvitatory(OfficeSection):
         return (thirty_day, sixty_day)
 
     def celebratory_always(self):
+        """
+        Always use celebratory canticles: Jubilate most of the year, Pascha Nostrum in Eastertide.
+        
+        Returns:
+            tuple: (thirty_day_canticle, sixty_day_canticle)
+        """
         if self.date.season.name == "Eastertide":
             return (self.pascha_nostrum, self.pascha_nostrum)
 
@@ -438,6 +497,12 @@ class MPInvitatory(OfficeSection):
 
     @cached_property
     def pascha_nostrum(self):
+        """
+        Generate Pascha Nostrum (Christ Our Passover) invitatory canticle for Eastertide.
+        
+        Returns:
+            dict: Heading, subheading, rubric, HTML content, and scriptural citation
+        """
         return {
             "heading": "PASCHA NOSTRUM",
             "subheading": "Christ Our Passover",
@@ -449,6 +514,12 @@ class MPInvitatory(OfficeSection):
 
     @cached_property
     def jubilate(self):
+        """
+        Generate Jubilate Deo (Psalm 100) invitatory canticle.
+        
+        Returns:
+            dict: Heading, subheading, rubric, HTML content, and psalm citation
+        """
         return {
             "heading": "Jubilate",
             "subheading": "Be Joyful",
@@ -460,6 +531,12 @@ class MPInvitatory(OfficeSection):
 
     @cached_property
     def venite(self):
+        """
+        Generate Venite (Psalm 95:1-7) invitatory canticle.
+        
+        Returns:
+            dict: Heading, subheading, rubric, HTML content, and psalm citation
+        """
         lent = self.date.season.name == "Lent" or self.date.season.name == "Holy Week"
         return {
             "heading": "Venite",
@@ -472,6 +549,12 @@ class MPInvitatory(OfficeSection):
 
     @cached_property
     def data(self):
+        """
+        Compile invitatory section data with all canticle rotation options.
+        
+        Returns:
+            dict: All invitatory rotation schemes and antiphon data
+        """
         values = {
             "jubilate_on_sundays_and_feasts": self.jubilate_on_sundays_and_feasts(),
             "venite_most_days": self.venite_most_days(),
