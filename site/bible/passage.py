@@ -4,14 +4,15 @@ from bible.sources import BibleGateway, OremusBibleBrowser, BCPPsalter
 class BibleVersions(object):
     """
     Registry of supported Bible translations and their adapters.
-    
+
     Validates: FR-016 (Support Multiple Bible Translations)
-    
+
     Provides access to 10 Bible versions:
     - NRSVCE, ESV, RSV, KJV, NABRE, NIV, NASB (via Bible Gateway)
     - AV (via Oremus Bible Browser)
     - Coverdale and Renewed Coverdale Psalters (via BCP Psalter)
     """
+
     VERSIONS = {
         "nrsvce": {"name": "New Revised Standard Version", "adapter": BibleGateway},
         "esv": {"name": "English Standard Version", "adapter": BibleGateway},
@@ -29,22 +30,23 @@ class BibleVersions(object):
 class Passage(object):
     """
     Represents a Bible passage in a specific translation.
-    
+
     Validates: FR-016 (Support Multiple Bible Translations)
     Validates: FR-020 (Retrieve Scripture from Bible Gateway API)
-    
+
     Fetches scripture text from external sources (Bible Gateway, Oremus)
     and provides access to formatted text, HTML, and headings.
-    
+
     Args:
         passage (str): Scripture reference (e.g., "John 3:16", "Genesis 1:1-5")
         source (str): Bible version abbreviation (default: "nrsv")
-    
+
     Attributes:
         lookup: Adapter instance for fetching scripture
         version_abbreviation (str): Version code (e.g., "esv")
         version_name (str): Full version name (e.g., "English Standard Version")
     """
+
     def __init__(self, passage, source="nrsv"):
         source = source.lower()
         version = BibleVersions.VERSIONS.get(source, {"name": source, "adapter": BibleGateway})
@@ -57,7 +59,7 @@ class Passage(object):
     def text(self):
         """
         Retrieve plain text of the scripture passage.
-        
+
         Returns:
             str: Scripture text without formatting
         """
@@ -67,7 +69,7 @@ class Passage(object):
     def html(self):
         """
         Retrieve HTML-formatted scripture passage.
-        
+
         Returns:
             str: Scripture text with HTML markup (paragraphs, verse numbers, etc.)
         """
@@ -77,7 +79,7 @@ class Passage(object):
     def headings(self):
         """
         Retrieve section headings within the passage.
-        
+
         Returns:
             list: Section headings (if available from source)
         """

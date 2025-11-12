@@ -32,18 +32,17 @@ from churchcal.models import Calendar, Denomination
 def acna_calendar(db):
     """
     Create ACNA 2019 calendar for testing.
-    
+
     Returns the ACNA_BCP2019 calendar created via factories.
     Uses get_or_create to ensure calendar exists without duplicates.
     """
     from churchcal.models import Calendar, Denomination
-    
+
     # Create or get ACNA denomination
     denomination, _ = Denomination.objects.get_or_create(
-        abbreviation="ACNA",
-        defaults={"name": "Anglican Church in North America"}
+        abbreviation="ACNA", defaults={"name": "Anglican Church in North America"}
     )
-    
+
     # Create or get ACNA BCP 2019 calendar
     calendar, _ = Calendar.objects.get_or_create(
         abbreviation="ACNA_BCP2019",
@@ -51,9 +50,9 @@ def acna_calendar(db):
             "name": "ACNA Book of Common Prayer 2019",
             "denomination": denomination,
             "year": "2019",
-        }
+        },
     )
-    
+
     return calendar
 
 
@@ -158,10 +157,7 @@ def frozen_january(db):
 @pytest.fixture
 def office_day_sequence(db):
     """Create sequence of 7 consecutive office days (week of readings)."""
-    return [
-        StandardOfficeDayFactory.create(month=1, day=i)
-        for i in range(1, 8)
-    ]
+    return [StandardOfficeDayFactory.create(month=1, day=i) for i in range(1, 8)]
 
 
 @pytest.fixture

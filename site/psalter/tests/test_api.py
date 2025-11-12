@@ -20,7 +20,7 @@ from rest_framework import status
 @pytest.fixture
 def client():
     """Client with debug toolbar disabled."""
-    with override_settings(DEBUG=False, DEBUG_TOOLBAR_CONFIG={'SHOW_TOOLBAR_CALLBACK': lambda r: False}):
+    with override_settings(DEBUG=False, DEBUG_TOOLBAR_CONFIG={"SHOW_TOOLBAR_CALLBACK": lambda r: False}):
         yield Client()
 
 
@@ -28,7 +28,7 @@ def client():
 class TestPsalmsAPI:
     """
     Test Psalms API endpoint.
-    
+
     FR-003: Psalm texts retrievable via API
     T212: Integration test for GET /api/v1/psalms/
     """
@@ -88,7 +88,7 @@ class TestPsalmsAPI:
 class TestPsalmAPICrossStory:
     """
     Test Psalm API integration with office services.
-    
+
     Validates that psalm API data integrates with daily office.
     """
 
@@ -110,7 +110,7 @@ class TestPsalmAPICrossStory:
         """Psalm API should support different formatting styles."""
         # With headings
         response1 = client.get("/api/v1/psalms/?number=23&headings=true")
-        
+
         # Without headings
         response2 = client.get("/api/v1/psalms/?number=23&headings=false")
 

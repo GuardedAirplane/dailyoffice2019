@@ -16,9 +16,10 @@ from office.offices import Office, OfficeSection, FMCreed
 class FamilyEarlyEvening(Office):
     """
     Family Prayer in the Early Evening office.
-    
+
     Validates: FR-018 (Provide Family Prayer offices)
     """
+
     name = "Family Prayer in the Early Evening"
     office = "family_early_evening_prayer"
 

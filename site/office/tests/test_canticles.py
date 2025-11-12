@@ -6,7 +6,7 @@ canticles based on liturgical date, season, and day of week.
 
 Test Coverage:
 - T166: Unit test DefaultCanticles table lookup
-- T167: Unit test BCP1979CanticleTable lookup  
+- T167: Unit test BCP1979CanticleTable lookup
 - T168: Unit test REC2011CanticleTable lookup
 - T169: Unit test Canticle rotation (traditional/seasonal/daily)
 

@@ -15,13 +15,14 @@ from .utils import advent, week_days, easter
 class CalendarDate(object):
     """
     Represents a liturgical calendar date with commemorations and season.
-    
+
     Validates: FR-014 (Calculate and Display Liturgical Season)
-    
+
     Calculates the liturgical season for any date and determines primary and
     secondary commemorations based on the church calendar rules.
     """
-    def __init__(self, date: date, calendar: Calendar, year: 'ChurchYear') -> None:
+
+    def __init__(self, date: date, calendar: Calendar, year: "ChurchYear") -> None:
         self.date = date
         self.calendar = calendar
 
@@ -37,7 +38,7 @@ class CalendarDate(object):
     def _find_proper(self) -> Optional[Proper]:
         """
         Find the liturgical Proper for a given Sunday in the Season After Pentecost.
-        
+
         Returns:
             Proper or None: The proper for this Sunday, or None if not applicable
         """
@@ -52,9 +53,9 @@ class CalendarDate(object):
     def all(self) -> List[Commemoration]:
         """
         Get all commemorations for this date (required + optional).
-        
+
         Validates: FR-011 (Display Commemorations for Each Day)
-        
+
         Returns:
             list: All commemorations (primary, black letter, etc.)
         """
@@ -64,7 +65,7 @@ class CalendarDate(object):
     def all_evening(self) -> List[Commemoration]:
         """
         Get all commemorations for evening observance (may differ from morning).
-        
+
         Returns:
             list: All evening commemorations
         """
@@ -76,7 +77,7 @@ class CalendarDate(object):
     def morning_and_evening(self) -> List[Commemoration]:
         """
         Get combined list of morning and evening commemorations (no duplicates).
-        
+
         Returns:
             list: Union of morning and evening commemorations
         """
@@ -90,7 +91,7 @@ class CalendarDate(object):
     def primary_evening(self) -> Commemoration:
         """
         Get the primary commemoration for evening observance.
-        
+
         Returns:
             Commemoration: Primary evening commemoration
         """
@@ -913,10 +914,10 @@ class SetNamesAndCollects(object):
 def to_date(date_string: Any) -> Optional[date]:
     """
     Convert various date formats to Python date object.
-    
+
     Args:
         date_string: Can be datetime, date, or string (e.g., "2025-01-01", "January 1, 2025")
-    
+
     Returns:
         date or None: Python date object, or None if conversion fails
     """
@@ -935,15 +936,15 @@ def to_date(date_string: Any) -> Optional[date]:
     return None
 
 
-def get_church_year(date_string: Any) -> 'ChurchYear':
+def get_church_year(date_string: Any) -> "ChurchYear":
     """
     Retrieve the ChurchYear object for a given date.
-    
+
     Caches ChurchYear instances for performance (12-hour TTL).
-    
+
     Args:
         date_string: Any valid date format (string, date, datetime)
-    
+
     Returns:
         ChurchYear: The liturgical year containing this date
     """
@@ -960,17 +961,17 @@ def get_church_year(date_string: Any) -> 'ChurchYear':
 def get_calendar_date(date_string: Any) -> CalendarDate:
     """
     Calculate liturgical date with dynamic season and feast calculations.
-    
+
     This is the primary entry point for liturgical date calculations. It determines:
     - The liturgical season (Advent, Lent, Easter, etc.)
     - Primary and secondary commemorations
     - Mass readings and lectionary assignments
-    
+
     Validates: FR-012a (Dynamic Liturgical Calculation)
-    
+
     Args:
         date_string: Any valid date format (string, date, datetime)
-    
+
     Returns:
         CalendarDate: Complete liturgical date object with season and commemorations
     """

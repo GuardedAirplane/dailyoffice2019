@@ -37,7 +37,7 @@ from office.models import StandardOfficeDay, HolyDayOfficeDay, Scripture, Settin
 @pytest.fixture
 def client():
     """Client with debug toolbar disabled."""
-    with override_settings(DEBUG=False, DEBUG_TOOLBAR_CONFIG={'SHOW_TOOLBAR_CALLBACK': lambda r: False}):
+    with override_settings(DEBUG=False, DEBUG_TOOLBAR_CONFIG={"SHOW_TOOLBAR_CALLBACK": lambda r: False}):
         yield Client()
 
 
@@ -45,7 +45,7 @@ def client():
 class TestMorningPrayerAPI:
     """
     Test Morning Prayer API endpoint.
-    
+
     FR-001: Morning Prayer service rendered correctly
     T205: Integration test for GET /api/v1/office/morning_prayer/:date
     """
@@ -102,7 +102,7 @@ class TestMorningPrayerAPI:
 class TestEveningPrayerAPI:
     """
     Test Evening Prayer API endpoint.
-    
+
     FR-002: Evening Prayer service rendered correctly
     T206: Integration test for GET /api/v1/office/evening_prayer/:date
     """
@@ -137,7 +137,7 @@ class TestEveningPrayerAPI:
 class TestMiddayPrayerAPI:
     """
     Test Midday Prayer API endpoint.
-    
+
     FR-002: Midday Prayer service rendered correctly
     T207: Integration test for GET /api/v1/office/midday_prayer/:date
     """
@@ -165,7 +165,7 @@ class TestMiddayPrayerAPI:
 class TestComplineAPI:
     """
     Test Compline API endpoint.
-    
+
     FR-002: Compline service rendered correctly
     T208: Integration test for GET /api/v1/office/compline/:date
     """
@@ -193,7 +193,7 @@ class TestComplineAPI:
 class TestFamilyPrayerAPI:
     """
     Test Family Prayer API endpoints.
-    
+
     FR-018: Family Prayer services accessible via API
     T209: Integration test for GET /api/v1/family/morning_prayer/:date
     """
@@ -231,7 +231,7 @@ class TestFamilyPrayerAPI:
 class TestSettingsAPI:
     """
     Test Settings API endpoint.
-    
+
     FR-016: Settings API for user customization
     T210: Integration test for GET /api/v1/available_settings/
     """
@@ -269,7 +269,7 @@ class TestSettingsAPI:
 class TestCollectsAPI:
     """
     Test Collects API endpoint.
-    
+
     FR-009: Collects API for prayers
     T211: Integration test for GET /api/v1/collects/
     """
@@ -305,7 +305,7 @@ class TestCollectsAPI:
 class TestScriptureAPI:
     """
     Test Scripture API endpoint.
-    
+
     FR-012: Scripture retrieval via API
     T213: Integration test for GET /api/v1/scripture/:passage
     """
@@ -313,19 +313,13 @@ class TestScriptureAPI:
     def test_scripture_api_returns_200(self, client):
         """API should return 200 OK for cached scripture."""
         # First ensure there's a scripture entry
-        Scripture.objects.get_or_create(
-            passage="John 3:16",
-            defaults={"esv": "<p>For God so loved the world...</p>"}
-        )
+        Scripture.objects.get_or_create(passage="John 3:16", defaults={"esv": "<p>For God so loved the world...</p>"})
         response = client.get("/api/v1/scripture/?passage=John 3:16")
         assert response.status_code == status.HTTP_200_OK
 
     def test_scripture_api_returns_json(self, client):
         """API should return JSON response."""
-        Scripture.objects.get_or_create(
-            passage="John 3:16",
-            defaults={"esv": "<p>For God so loved the world...</p>"}
-        )
+        Scripture.objects.get_or_create(passage="John 3:16", defaults={"esv": "<p>For God so loved the world...</p>"})
         response = client.get("/api/v1/scripture/?passage=John 3:16")
         # Scripture API may return HTML or JSON depending on implementation
         assert response["Content-Type"] in ["application/json", "text/html; charset=utf-8"]
@@ -335,7 +329,7 @@ class TestScriptureAPI:
 class TestAPIQueryParameters:
     """
     Test API query parameter handling.
-    
+
     FR-016: Settings customization via query params
     T214: Integration test for API query params (settings)
     """
@@ -391,7 +385,7 @@ class TestAPIQueryParameters:
         collect = Collect.objects.create(
             title="Test Collect",
             text="<p>O Lord, hear our prayer. <strong>Amen.</strong></p>",
-            traditional_text="<p>O Lord, hear our prayer. <strong>Amen.</strong></p>"
+            traditional_text="<p>O Lord, hear our prayer. <strong>Amen.</strong></p>",
         )
         response = client.get(f"/api/v1/office/morning_prayer/2024-1-1?extra_collects={collect.pk}")
         assert response.status_code == status.HTTP_200_OK
@@ -403,39 +397,35 @@ class TestAPIQueryParameters:
 class TestAPIErrorResponses:
     """
     Test API error responses.
-    
+
     T215: Integration test for API error responses (404, 500)
-    
-    NOTE: Current implementation returns 500 errors for invalid dates.
-    These tests document existing behavior. Future improvement would be
-    to return 400 Bad Request for invalid input.
+
+    Tests validate proper error handling for invalid dates and endpoints.
+    API should return 400 Bad Request for invalid input, not 500 Internal Server Error.
     """
 
-    @pytest.mark.xfail(reason="API currently returns 500 instead of proper error handling")
     def test_invalid_date_format_returns_error(self, client):
         """API should handle invalid date format gracefully."""
         response = client.get("/api/v1/office/morning_prayer/2024-13-32")
-        # FUTURE: Should return 400 Bad Request
+        # Should return 400 Bad Request for invalid date
         assert response.status_code in [
             status.HTTP_400_BAD_REQUEST,
             status.HTTP_404_NOT_FOUND,
         ]
 
-    @pytest.mark.xfail(reason="API currently returns 500 instead of proper error handling")
     def test_invalid_month_returns_error(self, client):
         """API should handle invalid month."""
         response = client.get("/api/v1/office/morning_prayer/2024-13-1")
-        # FUTURE: Should return 400 Bad Request
+        # Should return 400 Bad Request for month out of range
         assert response.status_code in [
             status.HTTP_400_BAD_REQUEST,
             status.HTTP_404_NOT_FOUND,
         ]
 
-    @pytest.mark.xfail(reason="API currently returns 500 instead of proper error handling")
     def test_invalid_day_returns_error(self, client):
         """API should handle invalid day."""
         response = client.get("/api/v1/office/morning_prayer/2024-2-30")
-        # FUTURE: Should return 400 Bad Request
+        # Should return 400 Bad Request for day that doesn't exist
         assert response.status_code in [
             status.HTTP_400_BAD_REQUEST,
             status.HTTP_404_NOT_FOUND,
@@ -451,17 +441,14 @@ class TestAPIErrorResponses:
         """API should handle malformed query parameters."""
         response = client.get("/api/v1/office/morning_prayer/2024-1-1?extra_collects=invalid")
         # Should not crash, either ignore or return error
-        assert response.status_code in [
-            status.HTTP_200_OK,  # Ignores invalid param
-            status.HTTP_400_BAD_REQUEST
-        ]
+        assert response.status_code in [status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST]  # Ignores invalid param
 
 
 @pytest.mark.django_db
 class TestAPICrossStoryIntegration:
     """
     Test API integration across multiple user stories.
-    
+
     Validates that API endpoints work together cohesively.
     """
 

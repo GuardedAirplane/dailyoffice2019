@@ -32,3 +32,4 @@ site/.coverage
 site/coverage.xml
 site/htmlcov/
 site/.pytest_cache/
+site/site/

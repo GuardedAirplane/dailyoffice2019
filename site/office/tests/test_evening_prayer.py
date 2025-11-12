@@ -18,6 +18,7 @@ Constitution Requirements:
 - FR-011: Display commemorations and feast names
 - FR-013: Provide navigation between office types
 """
+
 import pytest
 from datetime import date as date_class
 from freezegun import freeze_time
@@ -38,7 +39,7 @@ from office.tests.fixtures import (
 class TestEveningPrayerInstantiation:
     """
     Test EveningPrayer class instantiation and initialization.
-    
+
     Validates: FR-002, US2
     Tasks: T047
     """
@@ -46,10 +47,10 @@ class TestEveningPrayerInstantiation:
     def test_evening_prayer_instantiates_with_date_class(self, db, acna_calendar, regular_office_day):
         """Evening Prayer instantiates with valid date."""
         office_date = date_class(2025, 1, 15)
-        
+
         # Act
         ep = EveningPrayer(date=office_date)
-        
+
         # Assert
         assert ep is not None
         assert ep.date.date == office_date
@@ -65,10 +66,10 @@ class TestEveningPrayerInstantiation:
     def test_evening_prayer_retrieves_office_readings(self, db, acna_calendar, regular_office_day):
         """Evening Prayer retrieves correct OfficeDay readings for date."""
         office_date = date_class(2025, 1, 15)
-        
+
         # Act
         ep = EveningPrayer(date=office_date)
-        
+
         # Assert
         assert ep.office_readings is not None
         assert isinstance(ep.office_readings, StandardOfficeDay)
@@ -81,7 +82,7 @@ class TestEveningPrayerInstantiation:
 class TestEveningPrayerModules:
     """
     Test Evening Prayer module list composition.
-    
+
     Validates: FR-002 (Complete office structure)
     Tasks: T048
     """
@@ -89,10 +90,10 @@ class TestEveningPrayerModules:
     def test_evening_prayer_has_modules_property(self, db, regular_office_day):
         """Evening Prayer has modules property that returns list of tuples."""
         ep = EveningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         modules = ep.modules
-        
+
         # Assert
         assert modules is not None
         assert isinstance(modules, list)
@@ -100,20 +101,20 @@ class TestEveningPrayerModules:
     def test_evening_prayer_has_minimum_20_modules(self, db, regular_office_day):
         """Evening Prayer contains at least 20 liturgical modules."""
         ep = EveningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         modules = ep.modules
-        
+
         # Assert
         assert len(modules) >= 20, f"Expected at least 20 modules, got {len(modules)}"
 
     def test_evening_prayer_modules_are_tuples(self, db, regular_office_day):
         """Evening Prayer modules are tuples of (instance, template_path)."""
         ep = EveningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         modules = ep.modules
-        
+
         # Assert
         for module in modules:
             assert isinstance(module, tuple)
@@ -123,11 +124,11 @@ class TestEveningPrayerModules:
     def test_evening_prayer_includes_required_sections(self, db, regular_office_day):
         """Evening Prayer includes all required liturgical sections."""
         ep = EveningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         modules = ep.modules
         module_names = [m[0].__class__.__name__ for m in modules]
-        
+
         # Assert - Evening Prayer specific sections
         assert "EPHeading" in module_names
         assert "EPOpeningSentence" in module_names
@@ -135,7 +136,7 @@ class TestEveningPrayerModules:
         assert "EPCanticle1" in module_names
         assert "EPCanticle2" in module_names
         assert "EPSuffrages" in module_names
-        
+
         # Assert - Common sections
         assert "Confession" in module_names
         assert "Creed" in module_names
@@ -148,7 +149,7 @@ class TestEveningPrayerModules:
 class TestEveningPrayerDateHandling:
     """
     Test Evening Prayer date handling capabilities.
-    
+
     Validates: FR-012 (View offices for any date)
     Tasks: T047
     """
@@ -156,37 +157,37 @@ class TestEveningPrayerDateHandling:
     def test_evening_prayer_accepts_current_date_class(self, db, regular_office_day):
         """Evening Prayer accepts current date."""
         ep = EveningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Assert
         assert ep.date.date == date_class(2025, 1, 15)
 
     def test_evening_prayer_accepts_past_date_class(self, db):
         """Evening Prayer accepts past date."""
         past_date = date_class(2020, 1, 1)
-        
+
         # Act
         ep = EveningPrayer(date=past_date)
-        
+
         # Assert
         assert ep.date.date == past_date
 
     def test_evening_prayer_accepts_future_date_class(self, db):
         """Evening Prayer accepts future date."""
         future_date = date_class(2030, 12, 31)
-        
+
         # Act
         ep = EveningPrayer(date=future_date)
-        
+
         # Assert
         assert ep.date.date == future_date
 
     def test_evening_prayer_handles_leap_year(self, db):
         """Evening Prayer handles leap year date (Feb 29)."""
         leap_date = date_class(2024, 2, 29)
-        
+
         # Act
         ep = EveningPrayer(date=leap_date)
-        
+
         # Assert
         assert ep.date.date == leap_date
         assert ep.office_readings is not None
@@ -197,7 +198,7 @@ class TestEveningPrayerDateHandling:
 class TestEveningPrayerNavigation:
     """
     Test Evening Prayer navigation links generation.
-    
+
     Validates: FR-013 (Navigate between office types)
     Tasks: T047
     """
@@ -205,20 +206,20 @@ class TestEveningPrayerNavigation:
     def test_evening_prayer_has_links_property(self, db, regular_office_day, mock_url_reverse):
         """Evening Prayer has links property."""
         ep = EveningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         links = ep.links
-        
+
         # Assert
         assert links is not None
 
     def test_evening_prayer_links_to_morning_prayer(self, db, regular_office_day, mock_url_reverse):
         """Evening Prayer links to Morning Prayer."""
         ep = EveningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         links = ep.links
-        
+
         # Assert
         links_str = str(links)
         assert "morning_prayer" in links_str.lower() or "morning" in links_str.lower()
@@ -226,10 +227,10 @@ class TestEveningPrayerNavigation:
     def test_evening_prayer_links_to_midday_prayer(self, db, regular_office_day, mock_url_reverse):
         """Evening Prayer links to Midday Prayer."""
         ep = EveningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         links = ep.links
-        
+
         # Assert
         links_str = str(links)
         assert "midday_prayer" in links_str.lower() or "midday" in links_str.lower()
@@ -237,10 +238,10 @@ class TestEveningPrayerNavigation:
     def test_evening_prayer_links_to_compline(self, db, regular_office_day, mock_url_reverse):
         """Evening Prayer links to Compline."""
         ep = EveningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         links = ep.links
-        
+
         # Assert
         links_str = str(links)
         assert "compline" in links_str.lower()
@@ -249,10 +250,10 @@ class TestEveningPrayerNavigation:
         """Evening Prayer navigation links preserve the current date."""
         test_date = date_class(2025, 1, 15)
         ep = EveningPrayer(date=test_date)
-        
+
         # Act
         links = ep.links
-        
+
         # Assert
         links_str = str(links)
         assert "2025" in links_str and "15" in links_str
@@ -260,10 +261,10 @@ class TestEveningPrayerNavigation:
     def test_evening_prayer_previous_day_link(self, db, mock_url_reverse):
         """Evening Prayer provides link to previous day."""
         ep = EveningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         links = ep.links
-        
+
         # Assert
         links_str = str(links)
         assert "prev" in links_str.lower() or "yesterday" in links_str.lower() or "14" in links_str
@@ -271,10 +272,10 @@ class TestEveningPrayerNavigation:
     def test_evening_prayer_next_day_link(self, db, mock_url_reverse):
         """Evening Prayer provides link to next day."""
         ep = EveningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         links = ep.links
-        
+
         # Assert
         links_str = str(links)
         assert "next" in links_str.lower() or "tomorrow" in links_str.lower() or "16" in links_str
@@ -285,7 +286,7 @@ class TestEveningPrayerNavigation:
 class TestEPHeading:
     """
     Test EPHeading module for Evening Prayer.
-    
+
     Validates: FR-002 (Display Evening Prayer heading)
     Tasks: T049
     """
@@ -293,12 +294,12 @@ class TestEPHeading:
     def test_ep_heading_has_data_property(self, db, regular_office_day):
         """EPHeading module has data property that returns dict."""
         from office.evening_prayer import EPHeading
-        
+
         ep_heading = EPHeading(date=date_class(2025, 1, 15), office_readings=regular_office_day)
-        
+
         # Act
         data = ep_heading.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -306,12 +307,12 @@ class TestEPHeading:
     def test_ep_heading_includes_heading_text(self, db, regular_office_day):
         """EPHeading data includes 'Daily Evening Prayer' heading."""
         from office.evening_prayer import EPHeading
-        
+
         ep_heading = EPHeading(date=date_class(2025, 1, 15), office_readings=regular_office_day)
-        
+
         # Act
         data = ep_heading.data
-        
+
         # Assert
         assert "heading" in data
         assert "Evening Prayer" in str(data["heading"]) or "Evening" in str(data["heading"])
@@ -319,12 +320,12 @@ class TestEPHeading:
     def test_ep_heading_includes_calendar_date(self, db, regular_office_day):
         """EPHeading data includes calendar_date for liturgical context."""
         from office.evening_prayer import EPHeading
-        
+
         ep_heading = EPHeading(date=date_class(2025, 1, 15), office_readings=regular_office_day)
-        
+
         # Act
         data = ep_heading.data
-        
+
         # Assert
         assert "calendar_date" in data
         assert data["calendar_date"] is not None
@@ -335,7 +336,7 @@ class TestEPHeading:
 class TestEPOpeningSentence:
     """
     Test EPOpeningSentence module for Evening Prayer.
-    
+
     Validates: FR-009 (Include full text of opening sentences)
     Tasks: T049
     """
@@ -344,13 +345,13 @@ class TestEPOpeningSentence:
         """EPOpeningSentence module has data property that returns dict."""
         from office.evening_prayer import EPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         opening = EPOpeningSentence(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = opening.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -359,13 +360,13 @@ class TestEPOpeningSentence:
         """EPOpeningSentence data includes sentence text."""
         from office.evening_prayer import EPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         opening = EPOpeningSentence(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = opening.data
-        
+
         # Assert
         assert "sentence" in data
         assert data["sentence"] is not None
@@ -377,17 +378,17 @@ class TestEPOpeningSentence:
         """EPOpeningSentence returns Advent-specific sentence during Advent."""
         from office.evening_prayer import EPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         # Use First Sunday of Advent
         advent_date = date_class(2024, 12, 1)
         calendar_date = get_calendar_date(advent_date)
         office_day = StandardOfficeDay.objects.get(month=advent_date.month, day=advent_date.day)
-        
+
         opening = EPOpeningSentence(date=calendar_date, office_readings=office_day)
-        
+
         # Act
         data = opening.data
-        
+
         # Assert
         assert "sentence" in data
         assert "MARK 13:35-36" in data["sentence"]["citation"]
@@ -397,17 +398,17 @@ class TestEPOpeningSentence:
         """EPOpeningSentence returns Christmas-specific sentence during Christmastide."""
         from office.evening_prayer import EPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         # Use Christmas Day
         christmas_date = date_class(2024, 12, 25)
         calendar_date = get_calendar_date(christmas_date)
         office_day = StandardOfficeDay.objects.get(month=christmas_date.month, day=christmas_date.day)
-        
+
         opening = EPOpeningSentence(date=calendar_date, office_readings=office_day)
-        
+
         # Act
         data = opening.data
-        
+
         # Assert
         assert "sentence" in data
         assert "REVELATION 21:3" in data["sentence"]["citation"]
@@ -417,17 +418,17 @@ class TestEPOpeningSentence:
         """EPOpeningSentence returns Lent-specific sentence during Lent."""
         from office.evening_prayer import EPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         # Use Ash Wednesday 2025
         ash_wednesday = date_class(2025, 3, 5)
         calendar_date = get_calendar_date(ash_wednesday)
         office_day = StandardOfficeDay.objects.get(month=ash_wednesday.month, day=ash_wednesday.day)
-        
+
         opening = EPOpeningSentence(date=calendar_date, office_readings=office_day)
-        
+
         # Act
         data = opening.data
-        
+
         # Assert
         assert "sentence" in data
         # Lent has multiple sentences that rotate by day of week
@@ -438,17 +439,17 @@ class TestEPOpeningSentence:
         """EPOpeningSentence returns Easter-specific sentence during Eastertide."""
         from office.evening_prayer import EPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         # Use Easter Sunday 2025
         easter_date = date_class(2025, 4, 20)
         calendar_date = get_calendar_date(easter_date)
         office_day = StandardOfficeDay.objects.get(month=easter_date.month, day=easter_date.day)
-        
+
         opening = EPOpeningSentence(date=calendar_date, office_readings=office_day)
-        
+
         # Act
         data = opening.data
-        
+
         # Assert
         assert "sentence" in data
         assert "1 CORINTHIANS 15:57" in data["sentence"]["citation"]
@@ -458,20 +459,20 @@ class TestEPOpeningSentence:
         """EPOpeningSentence rotates different sentences for ordinary weekdays (non-seasonal)."""
         from office.evening_prayer import EPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         # Test a week in June (ordinary time after Trinity Sunday)
         weekday_sentences = {}
         for day_offset in range(7):
             test_date = date_class(2025, 6, 9 + day_offset)  # Monday through Sunday
             calendar_date = get_calendar_date(test_date)
             office_day = StandardOfficeDay.objects.get(month=test_date.month, day=test_date.day)
-            
+
             opening = EPOpeningSentence(date=calendar_date, office_readings=office_day)
             data = opening.data
-            
+
             weekday_name = test_date.strftime("%A")
             weekday_sentences[weekday_name] = data["sentence"]["citation"]
-        
+
         # Assert - Different sentences for different days
         unique_citations = set(weekday_sentences.values())
         assert len(unique_citations) > 1, f"Expected different opening sentences for different weekdays"
@@ -482,7 +483,7 @@ class TestEPOpeningSentence:
 class TestEPPsalms:
     """
     Test EPPsalms module for Evening Prayer.
-    
+
     Validates: FR-005 (Different psalm assignments for Evening Prayer)
     Tasks: T050
     """
@@ -492,14 +493,16 @@ class TestEPPsalms:
         from office.evening_prayer import EPPsalms
         from office.models import ThirtyDayPsalterDay
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         thirty_day_psalter = ThirtyDayPsalterDay.objects.get(day=15)
-        psalms = EPPsalms(date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter)
-        
+        psalms = EPPsalms(
+            date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter
+        )
+
         # Act
         data = psalms.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -509,14 +512,16 @@ class TestEPPsalms:
         from office.evening_prayer import EPPsalms
         from office.models import ThirtyDayPsalterDay
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         thirty_day_psalter = ThirtyDayPsalterDay.objects.get(day=15)
-        psalms = EPPsalms(date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter)
-        
+        psalms = EPPsalms(
+            date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter
+        )
+
         # Act
         data = psalms.data
-        
+
         # Assert
         assert "citations_60" in data
         assert "psalms_60" in data
@@ -527,14 +532,16 @@ class TestEPPsalms:
         from office.evening_prayer import EPPsalms
         from office.models import ThirtyDayPsalterDay
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         thirty_day_psalter = ThirtyDayPsalterDay.objects.get(day=15)
-        psalms = EPPsalms(date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter)
-        
+        psalms = EPPsalms(
+            date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter
+        )
+
         # Act
         data = psalms.data
-        
+
         # Assert
         assert "citations_30" in data
         assert "psalms_30" in data
@@ -546,21 +553,25 @@ class TestEPPsalms:
         from office.morning_prayer import MPPsalms
         from office.models import ThirtyDayPsalterDay
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         thirty_day_psalter = ThirtyDayPsalterDay.objects.get(day=15)
-        
+
         # Act
-        ep_psalms = EPPsalms(date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter)
-        mp_psalms = MPPsalms(date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter)
-        
+        ep_psalms = EPPsalms(
+            date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter
+        )
+        mp_psalms = MPPsalms(
+            date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter
+        )
+
         ep_data = ep_psalms.data
         mp_data = mp_psalms.data
-        
+
         # Assert - Evening and Morning psalms should be different
         # Check 60-day cycle
         assert ep_data["citations_60"] != mp_data["citations_60"], "Evening and Morning psalms (60-day) should differ"
-        
+
         # Check 30-day cycle
         assert ep_data["citations_30"] != mp_data["citations_30"], "Evening and Morning psalms (30-day) should differ"
 
@@ -570,7 +581,7 @@ class TestEPPsalms:
 class TestEPFirstReading:
     """
     Test EPFirstReading module for Evening Prayer.
-    
+
     Validates: FR-006 (Two scripture readings per office)
     Tasks: T049
     """
@@ -579,13 +590,13 @@ class TestEPFirstReading:
         """EPFirstReading module has data method that returns dict."""
         from office.evening_prayer import EPFirstReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = EPFirstReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -594,13 +605,13 @@ class TestEPFirstReading:
         """EPFirstReading includes heading."""
         from office.evening_prayer import EPFirstReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = EPFirstReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         assert "heading" in data
         assert "First Lesson" in data["heading"] or "First" in data["heading"]
@@ -609,13 +620,13 @@ class TestEPFirstReading:
         """EPFirstReading includes main reading from office_readings."""
         from office.evening_prayer import EPFirstReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = EPFirstReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         assert "main_reading" in data
         assert data["main_reading"] is not None
@@ -624,13 +635,13 @@ class TestEPFirstReading:
         """EPFirstReading includes passage citation."""
         from office.evening_prayer import EPFirstReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = EPFirstReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         if data["main_reading"]:
             assert "intro" in data["main_reading"]
@@ -642,7 +653,7 @@ class TestEPFirstReading:
 class TestEPSecondReading:
     """
     Test EPSecondReading module for Evening Prayer.
-    
+
     Validates: FR-006 (Two scripture readings per office)
     Tasks: T049
     """
@@ -651,13 +662,13 @@ class TestEPSecondReading:
         """EPSecondReading module has data method that returns dict."""
         from office.evening_prayer import EPSecondReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = EPSecondReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -666,13 +677,13 @@ class TestEPSecondReading:
         """EPSecondReading includes heading."""
         from office.evening_prayer import EPSecondReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = EPSecondReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         assert "heading" in data
         assert "Second Lesson" in data["heading"] or "Second" in data["heading"]
@@ -681,13 +692,13 @@ class TestEPSecondReading:
         """EPSecondReading includes main reading from office_readings."""
         from office.evening_prayer import EPSecondReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = EPSecondReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         assert "main_reading" in data
         assert data["main_reading"] is not None
@@ -698,7 +709,7 @@ class TestEPSecondReading:
 class TestEPCanticle1:
     """
     Test EPCanticle1 module for Evening Prayer.
-    
+
     Validates: FR-008 (Display appropriate canticles - Magnificat for Evening Prayer)
     Tasks: T051
     """
@@ -707,13 +718,13 @@ class TestEPCanticle1:
         """EPCanticle1 module has data property that returns dict."""
         from office.evening_prayer import EPCanticle1
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         canticle = EPCanticle1(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = canticle.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -722,13 +733,13 @@ class TestEPCanticle1:
         """EPCanticle1 includes canticles from different tables (default, 1979, 2011)."""
         from office.evening_prayer import EPCanticle1
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         canticle = EPCanticle1(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = canticle.data
-        
+
         # Assert - Should include canticles from different tables
         assert "default" in data or "1979" in data or "2011" in data
 
@@ -736,34 +747,34 @@ class TestEPCanticle1:
         """EPCanticle1 typically uses Magnificat for Evening Prayer first canticle."""
         from office.evening_prayer import EPCanticle1
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         canticle = EPCanticle1(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = canticle.data
-        
+
         # Assert - Check that default canticle is Magnificat (common for Evening Prayer)
         # The actual canticle varies by season, but we can verify structure
         assert "default" in data
         if data["default"]:
-            assert isinstance(data["default"], dict) or hasattr(data["default"], '__dict__')
+            assert isinstance(data["default"], dict) or hasattr(data["default"], "__dict__")
 
     def test_ep_canticle1_advent_antiphon(self, db):
         """EPCanticle1 includes O Antiphons during Advent (Dec 17-23)."""
         from office.evening_prayer import EPCanticle1
         from churchcal.calculations import get_calendar_date
-        
+
         # Use December 17 (O Sapientia)
         advent_date = date_class(2024, 12, 17)
         calendar_date = get_calendar_date(advent_date)
         office_day = StandardOfficeDay.objects.get(month=advent_date.month, day=advent_date.day)
-        
+
         canticle = EPCanticle1(date=calendar_date, office_readings=office_day)
-        
+
         # Act
         data = canticle.data
-        
+
         # Assert - O Antiphon should be present
         assert "antiphon" in data
         assert data["antiphon"] is not None
@@ -776,7 +787,7 @@ class TestEPCanticle1:
 class TestEPCanticle2:
     """
     Test EPCanticle2 module for Evening Prayer.
-    
+
     Validates: FR-008 (Display appropriate canticles - Nunc Dimittis for Evening Prayer)
     Tasks: T051
     """
@@ -785,13 +796,13 @@ class TestEPCanticle2:
         """EPCanticle2 module has data property that returns dict."""
         from office.evening_prayer import EPCanticle2
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         canticle = EPCanticle2(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = canticle.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -800,13 +811,13 @@ class TestEPCanticle2:
         """EPCanticle2 includes canticles from different tables (default, 1979, 2011)."""
         from office.evening_prayer import EPCanticle2
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         canticle = EPCanticle2(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = canticle.data
-        
+
         # Assert - Should include canticles from different tables
         assert "default" in data or "1979" in data or "2011" in data
 
@@ -816,7 +827,7 @@ class TestEPCanticle2:
 class TestEPSuffrages:
     """
     Test EPSuffrages module for Evening Prayer.
-    
+
     Validates: FR-009 (Include suffrages - evening versicles)
     Tasks: T052
     """
@@ -825,13 +836,13 @@ class TestEPSuffrages:
         """EPSuffrages module has data property that returns dict."""
         from office.evening_prayer import EPSuffrages
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         suffrages = EPSuffrages(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = suffrages.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -840,13 +851,13 @@ class TestEPSuffrages:
         """EPSuffrages includes names of saints for commemoration."""
         from office.evening_prayer import EPSuffrages
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         suffrages = EPSuffrages(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = suffrages.data
-        
+
         # Assert
         assert "names" in data
         # Blessed Virgin Mary is always included
@@ -856,21 +867,21 @@ class TestEPSuffrages:
         """EPSuffrages alternates between Set A and Set B by day."""
         from office.evening_prayer import EPSuffrages
         from churchcal.calculations import get_calendar_date
-        
+
         # Test odd and even day numbers
         calendar_date_odd = get_calendar_date(date_class(2025, 1, 15))  # Day 15 (odd)
         calendar_date_even = get_calendar_date(date_class(2025, 1, 16))  # Day 16 (even)
-        
+
         office_day_odd = StandardOfficeDay.objects.get(month=1, day=15)
         office_day_even = StandardOfficeDay.objects.get(month=1, day=16)
-        
+
         suffrages_odd = EPSuffrages(date=calendar_date_odd, office_readings=office_day_odd)
         suffrages_even = EPSuffrages(date=calendar_date_even, office_readings=office_day_even)
-        
+
         # Act
         data_odd = suffrages_odd.data
         data_even = suffrages_even.data
-        
+
         # Assert - Should use different sets
         assert "default_set" in data_odd
         assert "default_set" in data_even
@@ -882,7 +893,7 @@ class TestEPSuffrages:
 class TestEPCollectsOfTheDay:
     """
     Test EPCollectsOfTheDay module for Evening Prayer.
-    
+
     Validates: FR-009 (Include full text of collects), FR-007 (Proper collects for feasts)
     Tasks: T049
     """
@@ -891,13 +902,13 @@ class TestEPCollectsOfTheDay:
         """EPCollectsOfTheDay module has data property that returns dict."""
         from office.evening_prayer import EPCollectsOfTheDay
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         collects = EPCollectsOfTheDay(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = collects.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -906,13 +917,13 @@ class TestEPCollectsOfTheDay:
         """EPCollectsOfTheDay includes collects generator."""
         from office.evening_prayer import EPCollectsOfTheDay
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         collects = EPCollectsOfTheDay(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = collects.data
-        
+
         # Assert
         assert "collects" in data
 
@@ -920,17 +931,17 @@ class TestEPCollectsOfTheDay:
         """EPCollectsOfTheDay includes feast day collect."""
         from office.evening_prayer import EPCollectsOfTheDay
         from churchcal.calculations import get_calendar_date
-        
+
         # Use Christmas Day
         christmas_date = date_class(2024, 12, 25)
         calendar_date = get_calendar_date(christmas_date)
         office_day = StandardOfficeDay.objects.get(month=christmas_date.month, day=christmas_date.day)
-        
+
         collects = EPCollectsOfTheDay(date=calendar_date, office_readings=office_day)
-        
+
         # Act
         data = collects.data
-        
+
         # Assert - Christmas should have a collect
         collects_list = list(data["collects"])
         assert len(collects_list) >= 1
@@ -941,7 +952,7 @@ class TestEPCollectsOfTheDay:
 class TestEPCollects:
     """
     Test EPCollects module for Evening Prayer.
-    
+
     Validates: FR-009 (Include full text of collects)
     Tasks: T049
     """
@@ -950,13 +961,13 @@ class TestEPCollects:
         """EPCollects module has data property that returns dict."""
         from office.evening_prayer import EPCollects
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         collects = EPCollects(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = collects.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -965,13 +976,13 @@ class TestEPCollects:
         """EPCollects includes weekday-specific collect."""
         from office.evening_prayer import EPCollects
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))  # Wednesday
         collects = EPCollects(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = collects.data
-        
+
         # Assert
         assert "collect" in data
         assert data["collect"] is not None
@@ -981,13 +992,13 @@ class TestEPCollects:
         """EPCollects includes fixed collects (peace and aid against perils)."""
         from office.evening_prayer import EPCollects
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         collects = EPCollects(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = collects.data
-        
+
         # Assert
         assert "fixed_collects" in data
         assert len(data["fixed_collects"]) == 2  # Peace and Aid Against Perils
@@ -996,20 +1007,20 @@ class TestEPCollects:
         """EPCollects rotates different collects for each weekday."""
         from office.evening_prayer import EPCollects
         from churchcal.calculations import get_calendar_date
-        
+
         # Test a week
         weekday_collects = {}
         for day_offset in range(7):
             test_date = date_class(2025, 1, 13 + day_offset)  # Monday through Sunday
             calendar_date = get_calendar_date(test_date)
             office_day = StandardOfficeDay.objects.get(month=test_date.month, day=test_date.day)
-            
+
             collects = EPCollects(date=calendar_date, office_readings=office_day)
             data = collects.data
-            
+
             weekday_name = test_date.strftime("%A")
             weekday_collects[weekday_name] = data["collect"][0]  # Collect title
-        
+
         # Assert - Different collects for different days
         unique_collects = set(weekday_collects.values())
         assert len(unique_collects) == 7, f"Expected 7 different weekday collects, got {len(unique_collects)}"

@@ -13,7 +13,7 @@ Test Coverage:
 
 FR Requirements:
 - FR-022a: Display error with offline indicator
-- FR-022b: Provide retry option  
+- FR-022b: Provide retry option
 - FR-022c: Allow viewing cached content
 """
 
@@ -35,25 +35,25 @@ from bible.passage import Passage
 class TestAPITimeoutHandling:
     """T188: Test Bible Gateway API timeout handling."""
 
-    @patch('bible.sources.requests.get')
+    @patch("bible.sources.requests.get")
     def test_bible_gateway_timeout_raises_timeout_error(self, mock_get):
         """Bible Gateway should raise Timeout when API times out."""
         # FR-022a: API timeout should be detected
         mock_get.side_effect = Timeout("Request timed out")
-        
+
         with pytest.raises(Timeout):
             BibleGateway("John 3:16", "ESV")
 
-    @patch('bible.sources.requests.get')
+    @patch("bible.sources.requests.get")
     def test_bible_gateway_connection_error_raises_connection_error(self, mock_get):
         """Bible Gateway should raise ConnectionError when network unavailable."""
         # FR-022a: Network errors should be detected
         mock_get.side_effect = ConnectionError("Network unreachable")
-        
+
         with pytest.raises(ConnectionError):
             BibleGateway("John 3:16", "ESV")
 
-    @patch('bible.sources.requests.get')
+    @patch("bible.sources.requests.get")
     def test_bible_gateway_500_error_raises_exception(self, mock_get):
         """Bible Gateway should handle 500 server errors gracefully."""
         # FR-022a: Server errors should be detected
@@ -61,20 +61,20 @@ class TestAPITimeoutHandling:
         mock_response.status_code = 500
         mock_response.text = "Internal Server Error"
         mock_get.return_value = mock_response
-        
+
         # BibleGateway will raise Exception when status code != 200
         with pytest.raises(Exception):
             BibleGateway("John 3:16", "ESV")
 
-    @patch('bible.sources.requests.get')
+    @patch("bible.sources.requests.get")
     def test_passage_lookup_with_api_timeout_uses_cache(self, mock_get):
         """Passage should handle API timeouts gracefully."""
         # FR-022c: System should attempt to use cached content
         mock_get.side_effect = Timeout("API timeout")
-        
+
         # Clear any existing cache for this passage
         Scripture.objects.filter(passage="Ephesians 1:1-10").delete()
-        
+
         # When API times out, Passage() constructor will raise Timeout
         with pytest.raises(Timeout):
             Passage("Ephesians 1:1-10", "ESV")
@@ -88,7 +88,7 @@ class TestDatabaseErrorHandling:
         """Office should handle database query failures gracefully."""
         # Note: This test validates that the system doesn't crash
         # In production, we expect proper error messages
-        
+
         # This is a structural test - actual DB connection errors
         # are handled at the Django layer with middleware
         assert connection.ensure_connection() is None
@@ -96,10 +96,10 @@ class TestDatabaseErrorHandling:
     def test_scripture_cache_miss_does_not_crash(self):
         """Missing Scripture cache should not crash the system."""
         # FR-022c: System should handle missing cache gracefully
-        
+
         # Query for a passage that doesn't exist in cache
         non_existent = Scripture.objects.filter(passage="ZZZ 999:999").first()
-        
+
         assert non_existent is None  # Should return None, not crash
 
 
@@ -146,9 +146,9 @@ class TestMissingOfficeDayData:
         """Office should handle dates without StandardOfficeDay data."""
         # Far future dates might not have StandardOfficeDay entries
         # The system should either create them dynamically or handle gracefully
-        
+
         future_date = date_class(3000, 1, 1)
-        
+
         # System should either work or provide clear error
         # This validates no silent failures or data corruption
         try:
@@ -164,29 +164,29 @@ class TestMissingOfficeDayData:
         """Office should handle commemorations without complete data."""
         # Some commemorations might be missing readings or collects
         # System should provide defaults or graceful degradation
-        
+
         # Test with a regular day to ensure baseline works
         regular_date = date_class(2025, 6, 15)
         office = MorningPrayer(date=regular_date)
-        
+
         assert office is not None
         assert len(office.modules) > 0
 
 
-@pytest.mark.django_db  
+@pytest.mark.django_db
 class TestMissingScriptureCache:
     """T192: Test handling of missing Scripture cache."""
 
     def test_scripture_lookup_without_cache_attempts_api(self):
         """Passage() should attempt API call when instantiated."""
         # FR-022c: System should try API first
-        
+
         # Use a passage unlikely to be in cache
         obscure_passage = "Obadiah 1:1-4"
-        
+
         # Clear cache if it exists
         Scripture.objects.filter(passage=obscure_passage).delete()
-        
+
         # Note: This will attempt real API call in test environment
         # We expect it to work or raise an exception
         try:
@@ -200,35 +200,32 @@ class TestMissingScriptureCache:
     def test_scripture_cache_miss_does_not_block_office(self):
         """Office generation should not be blocked by Scripture cache misses."""
         # FR-022c: Office should display with placeholder if Scripture unavailable
-        
+
         test_date = date_class(2025, 3, 15)
         office = MorningPrayer(date=test_date)
-        
+
         # Office should generate successfully even if some Scriptures are missing
         assert office is not None
         assert len(office.modules) > 0
-        
+
         # Verify office structure is intact (modules is list of tuples)
         module_names = [m[0].__class__.__name__ for m in office.modules]
         assert "MPHeading" in module_names
         assert "MPPsalms" in module_names
 
-    @patch('bible.sources.requests.get')
+    @patch("bible.sources.requests.get")
     def test_cached_scripture_used_when_api_fails(self, mock_get):
         """System should use cached Scripture when API fails."""
         # FR-022c: Cached content should be available when API offline
-        
+
         # Create a cache entry
         test_passage = "Romans 8:28"
         cached_text = "And we know that for those who love God..."
-        Scripture.objects.update_or_create(
-            passage=test_passage,
-            defaults={"esv": cached_text}
-        )
-        
+        Scripture.objects.update_or_create(passage=test_passage, defaults={"esv": cached_text})
+
         # Simulate API failure
         mock_get.side_effect = Timeout("API timeout")
-        
+
         # When API fails, Passage() will raise Timeout
         # In the actual application, the cache lookup happens at a different layer
         # (in the office models when retrieving scripture text)
@@ -243,10 +240,10 @@ class TestErrorRecoveryMechanisms:
     def test_office_generation_continues_after_non_critical_error(self):
         """Office generation should continue if non-critical components fail."""
         # FR-022a: System should degrade gracefully, not crash entirely
-        
+
         test_date = date_class(2025, 7, 20)
         office = EveningPrayer(date=test_date)
-        
+
         # Even if some modules have issues, core structure should exist
         assert office is not None
         assert office.date.date == test_date
@@ -255,13 +252,13 @@ class TestErrorRecoveryMechanisms:
     def test_multiple_scripture_failures_do_not_cascade(self):
         """Multiple Scripture failures should be isolated, not cascade."""
         # FR-022c: Individual failures should not break entire office
-        
+
         test_date = date_class(2025, 8, 10)
         office = MorningPrayer(date=test_date)
-        
+
         # Office should still generate with structure intact
         assert office is not None
-        
+
         # Verify multiple reading modules exist (modules is list of tuples)
         module_names = [m[0].__class__.__name__ for m in office.modules]
         assert "MPFirstReading" in module_names

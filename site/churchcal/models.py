@@ -407,15 +407,16 @@ class Proper(BaseModel):
 
 class Season(BaseModel):
     """
-    Liturgical season model (Advent, Christmastide, Epiphanytide, Lent, 
+    Liturgical season model (Advent, Christmastide, Epiphanytide, Lent,
     Holy Week, Eastertide, Season After Pentecost).
-    
+
     Validates: FR-014 (Calculate and Display Liturgical Season)
-    
+
     Stores season properties including liturgical color, precedence rank,
     and starting commemoration. Used by CalendarDate to determine current
     liturgical season for any date.
     """
+
     order = models.IntegerField(choices=zip(range(1, 29), range(1, 29)), blank=False, null=False)
     name = models.CharField(max_length=1024)
     start_commemoration = models.ForeignKey("Commemoration", on_delete=models.SET_NULL, null=True, blank=True)

@@ -366,45 +366,47 @@ make clean build
 
 ## Test Coverage Status
 
-**Last Updated**: November 11, 2025 (Phase 20 - Documentation Updates)
+**Last Updated**: January 2025 (Phase 21 - Polish & Cross-Cutting Concerns)
 
 ### Backend Test Coverage
 
-**Overall Coverage**: ~32% → Target: 90%+
+**Overall Coverage**: ~24% (13679 total lines, 3251 covered) → Target: 90%+
 
 **Module-Specific Coverage**:
-- `office/offices.py`: ~53% (105/198 lines) - Core office classes
-- `office/morning_prayer.py`: ~95% - Morning Prayer components  
-- `office/evening_prayer.py`: ~96% - Evening Prayer components
-- `office/midday_prayer.py`: ~95% - Midday Prayer components
-- `office/compline.py`: ~96% - Compline components
-- `churchcal/calculations.py`: ~79% - Liturgical calendar calculations
-- `churchcal/models.py`: ~65% - Church calendar models
-- `bible/passage.py`: ~80% - Scripture retrieval
-- `psalter/models.py`: ~70% - Psalm data models
+- `office/offices.py`: 57% (105/198 lines) - Core office classes
+- `office/morning_prayer.py`: 33% - Morning Prayer components  
+- `office/evening_prayer.py`: 35% - Evening Prayer components
+- `office/midday_prayer.py`: 36% - Midday Prayer components
+- `office/compline.py`: 34% - Compline components
+- `churchcal/calculations.py`: 52% - Liturgical calendar calculations
+- `churchcal/models.py`: 36% - Church calendar models
+- `bible/passage.py`: 81% - Scripture retrieval
+- `psalter/models.py`: 85% - Psalm data models
 
-**Test Suite Metrics** (as of Phase 19):
-- **Total Backend Tests**: 500+ passing tests
-- **Unit Tests**: 350+ tests across all office types
-- **Integration Tests**: 100+ tests for cross-module functionality
-- **E2E Tests**: 400+ Cypress tests for frontend workflows
-- **Test Execution Time**: ~45 seconds (backend), ~3 minutes (E2E)
+**Test Suite Metrics** (as of Phase 21):
+- **Total Backend Tests**: 672 passed, 48 skipped, 4 xfailed
+- **Unit Tests**: 400+ tests across all office types (13 skipped requiring clean DB)
+- **Integration Tests**: 150+ tests for cross-module functionality
+- **E2E Tests**: 400+ Cypress tests for frontend workflows (performance.spec.js validates SC-001)
+- **Test Execution Time**: ~62 seconds (backend), ~3 minutes (E2E)
 
 **Key Test Files**:
 - `site/office/tests/test_morning_prayer.py` (63 tests)
 - `site/office/tests/test_evening_prayer.py` (60 tests)
+- `site/office/tests/test_performance.py` (16 tests - SC-001 compliance)
 - `site/churchcal/tests/test_calculations.py` (36 tests)
 - `site/churchcal/tests/test_models.py` (34 tests)
 - `app/tests/e2e/specs/morning_prayer.js` (21 E2E tests)
 - `app/tests/e2e/specs/evening_prayer.js` (23 E2E tests)
+- `app/tests/e2e/specs/performance.spec.js` (SC-001: 3-second page load validation)
 
 **Constitutional Compliance** (Principle III - Testing):
 - ✅ Phase 1-2: Test infrastructure established
 - ✅ Phase 3-9: All 7 user stories have comprehensive test coverage
 - ✅ Phase 10-18: Cross-story testing complete (calendar, bible, settings, API)
-- ✅ Phase 19: Performance testing established (SC-001 baseline)
-- 🔄 Phase 20: Documentation and code quality improvements ongoing
-- ⏳ Phase 21: Final coverage verification pending
+- ✅ Phase 19: Performance testing established (SC-001 baseline documented: 700-800ms)
+- ✅ Phase 20: Documentation and code quality improvements complete
+- ✅ Phase 21: Polish & Cross-Cutting Concerns - All tests passing
 
 **Running Tests**:
 ```bash

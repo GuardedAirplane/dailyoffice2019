@@ -41,7 +41,7 @@ class TestComplineFeastDay:
         # Easter should have Alleluia in canticle and conclusion
         canticle_module = office.modules[8][0]
         assert canticle_module.data["alleluia"] is True
-        
+
         conclusion_module = office.modules[9][0]
         assert conclusion_module.data["alleluia"] is True
 
@@ -148,6 +148,6 @@ class TestComplineRegularDay:
         # Eastertide should have Alleluia in canticle and conclusion
         canticle_module = office.modules[8][0]
         assert canticle_module.data["alleluia"] is True
-        
+
         conclusion_module = office.modules[9][0]
         assert conclusion_module.data["alleluia"] is True

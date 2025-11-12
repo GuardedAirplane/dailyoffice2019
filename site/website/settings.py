@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import mimetypes
 import os
+import sys
 
 import environ
 
@@ -101,7 +102,10 @@ INSTALLED_APPS = [
     "standrew",
 ]
 
-if DEBUG:
+# Detect testing environment (pytest or manage.py test)
+TESTING = "pytest" in sys.modules or "test" in sys.argv
+
+if DEBUG and not TESTING:
     INSTALLED_APPS = ["debug_toolbar"] + INSTALLED_APPS
 
 MIDDLEWARE = [
@@ -117,7 +121,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-if DEBUG:
+if DEBUG and not TESTING:
     MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE
 
 ROOT_URLCONF = "website.urls"
@@ -315,7 +319,12 @@ REST_FRAMEWORK = {
 CORS_ALLOW_ALL_ORIGINS = True
 mimetypes.add_type("image/svg+xml", ".svg", True)
 
-SWAGGER_SETTINGS = {"USE_SESSION_AUTH": False}
+SWAGGER_SETTINGS = {
+    "USE_SESSION_AUTH": False
+}
+
+# Silence drf-yasg deprecation warning about renderer format changes
+SWAGGER_USE_COMPAT_RENDERERS = False
 
 BUGSNAG = {"api_key": env("BUGSNAG_KEY"), "project_root": BASE_DIR}
 

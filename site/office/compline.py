@@ -10,9 +10,10 @@ from psalter.utils import get_psalms
 class Compline(Office):
     """
     Compline (night prayer) office.
-    
+
     Validates: FR-002 (Daily Office - Compline)
     """
+
     name = "Compline"
     office = "compline"
 
@@ -48,9 +49,10 @@ class Compline(Office):
 class ComplineHeading(OfficeSection):
     """
     Heading module for Compline.
-    
+
     Validates: FR-002 (Daily Office - Compline)
     """
+
     @cached_property
     def data(self):
         return {"heading": mark_safe("Compline"), "calendar_date": self.date}
@@ -59,9 +61,10 @@ class ComplineHeading(OfficeSection):
 class ComplineCommemorationListing(OfficeSection):
     """
     Commemoration listing for Compline (uses evening commemorations).
-    
+
     Validates: FR-002 (Daily Office - Compline)
     """
+
     @cached_property
     def data(self):
         return {
@@ -75,9 +78,10 @@ class ComplineCommemorationListing(OfficeSection):
 class ComplineOpening(OfficeSection):
     """
     Opening module for Compline.
-    
+
     Validates: FR-002 (Daily Office - Compline)
     """
+
     @cached_property
     def data(self):
         return {}
@@ -86,9 +90,10 @@ class ComplineOpening(OfficeSection):
 class ComplineConfession(OfficeSection):
     """
     Confession of Sin module for Compline.
-    
+
     Validates: FR-002 (Daily Office - Compline)
     """
+
     @cached_property
     def data(self):
         return {"heading": "Confession of Sin"}
@@ -97,10 +102,11 @@ class ComplineConfession(OfficeSection):
 class ComplineInvitatory(OfficeSection):
     """
     Invitatory module for Compline.
-    
+
     Validates: FR-002 (Daily Office - Compline)
     Validates: FR-009 (Seasonal Prayers - Alleluia omitted in Lent/Holy Week)
     """
+
     @cached_property
     def data(self):
         return {
@@ -112,10 +118,11 @@ class ComplineInvitatory(OfficeSection):
 class ComplinePsalms(OfficeSection):
     """
     Psalms module for Compline with fixed psalm assignment.
-    
+
     Validates: FR-002 (Daily Office - Compline)
     Validates: FR-005 (Psalter Integration - Fixed psalms: 4, 31:1-6, 91, 134)
     """
+
     @cached_property
     def data(self):
         return {"heading": "The Psalms", "psalms": get_psalms("4,31:1-6,91,134")}
@@ -124,10 +131,11 @@ class ComplinePsalms(OfficeSection):
 class ComplineScripture(OfficeSection):
     """
     Scripture module for Compline with weekday rotation.
-    
+
     Validates: FR-002 (Daily Office - Compline)
     Validates: FR-006 (Scripture Integration - Weekday rotation for Compline)
     """
+
     def get_scripture(self):
         if self.date.date.weekday() in [0, 4]:
             return {
@@ -161,10 +169,11 @@ class ComplineScripture(OfficeSection):
 class ComplinePrayers(OfficeSection):
     """
     Prayers module for Compline with weekday collect rotation.
-    
+
     Validates: FR-002 (Daily Office - Compline)
     Validates: FR-009 (Seasonal Prayers - Weekday collect rotation including Saturday Paschal mystery)
     """
+
     collects = [
         (
             "A Collect for Evening",
@@ -226,11 +235,12 @@ class ComplinePrayers(OfficeSection):
 class ComplineCanticle(OfficeSection):
     """
     Nunc Dimittis (Song of Simeon) canticle for Compline.
-    
+
     Validates: FR-002 (Daily Office - Compline)
     Validates: FR-008 (Canticles - Nunc Dimittis/Song of Simeon)
     Validates: FR-009 (Seasonal Prayers - Alleluia during Eastertide)
     """
+
     @cached_property
     def data(self):
         return {
@@ -243,10 +253,11 @@ class ComplineCanticle(OfficeSection):
 class ComplineConclusion(OfficeSection):
     """
     Conclusion module for Compline.
-    
+
     Validates: FR-002 (Daily Office - Compline)
     Validates: FR-009 (Seasonal Prayers - Alleluia during Eastertide)
     """
+
     @cached_property
     def data(self):
         return {"alleluia": self.date.evening_season.name == "Eastertide"}

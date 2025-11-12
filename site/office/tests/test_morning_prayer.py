@@ -40,7 +40,7 @@ from office.tests.fixtures import (
 class TestMorningPrayerInstantiation:
     """
     Test MorningPrayer class instantiation and initialization.
-    
+
     Validates: FR-001, US1
     Tasks: T017
     """
@@ -48,10 +48,10 @@ class TestMorningPrayerInstantiation:
     def test_morning_prayer_instantiates_with_date_class(self, db, acna_calendar, regular_office_day):
         """Morning Prayer instantiates with valid date."""
         office_date = date_class(2025, 1, 15)
-        
+
         # Act
         mp = MorningPrayer(date=office_date)
-        
+
         # Assert
         assert mp is not None
         assert mp.date.date == office_date
@@ -67,10 +67,10 @@ class TestMorningPrayerInstantiation:
     def test_morning_prayer_retrieves_office_readings(self, db, acna_calendar, regular_office_day):
         """Morning Prayer retrieves correct OfficeDay readings for date."""
         office_date = date_class(2025, 1, 15)
-        
+
         # Act
         mp = MorningPrayer(date=office_date)
-        
+
         # Assert
         assert mp.office_readings is not None
         assert isinstance(mp.office_readings, StandardOfficeDay)
@@ -86,10 +86,10 @@ class TestMorningPrayerInstantiation:
     def test_morning_prayer_retrieves_office_readings(self, db, regular_office_day):
         """Morning Prayer retrieves correct OfficeDay readings for date."""
         office_date = date_class(2025, 1, 15)
-        
+
         # Act
         mp = MorningPrayer(date=office_date)
-        
+
         # Assert
         assert mp.office_readings is not None
         assert isinstance(mp.office_readings, StandardOfficeDay)
@@ -102,7 +102,7 @@ class TestMorningPrayerInstantiation:
 class TestMorningPrayerModules:
     """
     Test Morning Prayer module list composition.
-    
+
     Validates: FR-001 (Complete office structure)
     Tasks: T018
     """
@@ -110,10 +110,10 @@ class TestMorningPrayerModules:
     def test_morning_prayer_has_modules_property(self, db, regular_office_day):
         """Morning Prayer has modules property that returns list."""
         mp = MorningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         modules = mp.modules
-        
+
         # Assert
         assert modules is not None
         assert isinstance(modules, list)
@@ -121,20 +121,20 @@ class TestMorningPrayerModules:
     def test_morning_prayer_has_minimum_20_modules(self, db, regular_office_day):
         """Morning Prayer generates at least 20 liturgical modules."""
         mp = MorningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         modules = mp.modules
-        
+
         # Assert
         assert len(modules) >= 20, f"Expected at least 20 modules, got {len(modules)}"
 
     def test_morning_prayer_modules_are_tuples(self, db, regular_office_day):
         """Morning Prayer modules are returned as (section, template) tuples."""
         mp = MorningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         modules = mp.modules
-        
+
         # Assert
         for module in modules:
             assert isinstance(module, tuple), f"Module is not a tuple: {type(module)}"
@@ -143,15 +143,15 @@ class TestMorningPrayerModules:
     def test_morning_prayer_includes_required_sections(self, db, regular_office_day):
         """Morning Prayer includes all required liturgical sections."""
         mp = MorningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         modules = mp.modules
         module_names = [str(m[0].__class__.__name__) for m in modules]
-        
+
         # Assert - Check for essential sections
         required_sections = [
             "MPHeading",
-            "MPOpeningSentence", 
+            "MPOpeningSentence",
             "Confession",
             "Invitatory",
             "MPPsalms",
@@ -164,7 +164,7 @@ class TestMorningPrayerModules:
             "MPCollectsOfTheDay",
             "Dismissal",
         ]
-        
+
         # Check that at least most required sections are present
         # (exact names may vary based on implementation)
         module_names_str = " ".join(module_names)
@@ -179,11 +179,11 @@ class TestMorningPrayerModules:
 
 
 @pytest.mark.unit
-@pytest.mark.us1  
+@pytest.mark.us1
 class TestMorningPrayerDateHandling:
     """
     Test Morning Prayer date handling capabilities.
-    
+
     Validates: FR-012 (View offices for any date)
     Tasks: T019
     """
@@ -192,10 +192,10 @@ class TestMorningPrayerDateHandling:
         """Morning Prayer generates for current date."""
         with freeze_time("2025-01-15"):
             current_date = date_class.today()
-            
+
             # Act
             mp = MorningPrayer(date=current_date)
-            
+
             # Assert
             assert mp.date.date == current_date
 
@@ -203,10 +203,10 @@ class TestMorningPrayerDateHandling:
         """Morning Prayer generates for past dates."""
         # Use a past date - production database has StandardOfficeDay records
         past_date = date_class(2020, 1, 1)
-        
+
         # Act
         mp = MorningPrayer(date=past_date)
-        
+
         # Assert
         assert mp.date.date == past_date
         assert mp.office_readings is not None
@@ -215,10 +215,10 @@ class TestMorningPrayerDateHandling:
         """Morning Prayer generates for future dates."""
         # Use a future date - production database has StandardOfficeDay records
         future_date = date_class(2050, 12, 31)
-        
+
         # Act
         mp = MorningPrayer(date=future_date)
-        
+
         # Assert
         assert mp.date.date == future_date
         assert mp.office_readings is not None
@@ -227,10 +227,10 @@ class TestMorningPrayerDateHandling:
         """Morning Prayer correctly handles February 29 (leap year)."""
         # Use leap year date - production database has StandardOfficeDay records
         leap_date = date_class(2024, 2, 29)  # 2024 is a leap year
-        
+
         # Act
         mp = MorningPrayer(date=leap_date)
-        
+
         # Assert
         assert mp.date.date == leap_date
         assert mp.date.date.month == 2
@@ -240,21 +240,23 @@ class TestMorningPrayerDateHandling:
 
 @pytest.mark.unit
 @pytest.mark.us1
-@pytest.mark.skip(reason="Settings are handled by Vue.js frontend (localStorage/URL params), not backend API parameters")
+@pytest.mark.skip(
+    reason="Settings are handled by Vue.js frontend (localStorage/URL params), not backend API parameters"
+)
 class TestMorningPrayerSettings:
     """
     Test Morning Prayer settings integration.
-    
-    Validates: FR-005b (Psalter selection), FR-006b (Lectionary selection), 
+
+    Validates: FR-005b (Psalter selection), FR-006b (Lectionary selection),
                FR-017 (Bible translation selection)
     Tasks: T020
-    
+
     NOTE: These tests are marked as skip because the Daily Office is a SPA where
     user settings are managed by the Vue.js frontend (stored in browser localStorage
     and passed via URL parameters). The backend MorningPrayer class generates the
     complete office structure without settings filtering - the frontend applies
     user preferences during rendering.
-    
+
     To properly test settings, we need integration/E2E tests that exercise the
     full frontend + backend flow, not unit tests of the Python backend alone.
     """
@@ -262,11 +264,11 @@ class TestMorningPrayerSettings:
     def test_morning_prayer_uses_psalter_setting(self, db, regular_office_day):
         """Morning Prayer respects psalter cycle setting (30day/60day)."""
         office_date = date_class(2025, 1, 15)
-        
+
         # Act - Create with 30-day psalter
         mp_30 = MorningPrayer(date=office_date, psalter="30day")
         mp_60 = MorningPrayer(date=office_date, psalter="60day")
-        
+
         # Assert
         assert mp_30.psalter == "30day"
         assert mp_60.psalter == "60day"
@@ -274,11 +276,11 @@ class TestMorningPrayerSettings:
     def test_morning_prayer_uses_lectionary_setting(self, db, regular_office_day):
         """Morning Prayer respects lectionary cycle setting (1year/2year)."""
         office_date = date_class(2025, 1, 15)
-        
+
         # Act
         mp_1yr = MorningPrayer(date=office_date, lectionary="1year")
         mp_2yr = MorningPrayer(date=office_date, lectionary="2year")
-        
+
         # Assert
         assert mp_1yr.lectionary == "1year"
         assert mp_2yr.lectionary == "2year"
@@ -286,12 +288,12 @@ class TestMorningPrayerSettings:
     def test_morning_prayer_uses_bible_version_setting(self, db, regular_office_day):
         """Morning Prayer respects Bible translation setting."""
         office_date = date_class(2025, 1, 15)
-        
+
         # Act
         mp_esv = MorningPrayer(date=office_date, bible_version="esv")
         mp_kjv = MorningPrayer(date=office_date, bible_version="kjv")
         mp_nrsvce = MorningPrayer(date=office_date, bible_version="nrsvce")
-        
+
         # Assert
         assert mp_esv.bible_version == "esv"
         assert mp_kjv.bible_version == "kjv"
@@ -300,14 +302,10 @@ class TestMorningPrayerSettings:
     def test_morning_prayer_uses_canticle_settings(self, db, regular_office_day):
         """Morning Prayer respects canticle rotation and table settings."""
         office_date = date_class(2025, 1, 15)
-        
+
         # Act
-        mp = MorningPrayer(
-            date=office_date,
-            canticle_rotation="traditional",
-            canticle_table="bcp2019"
-        )
-        
+        mp = MorningPrayer(date=office_date, canticle_rotation="traditional", canticle_table="bcp2019")
+
         # Assert
         assert mp.canticle_rotation == "traditional"
         assert mp.canticle_table == "bcp2019"
@@ -315,11 +313,11 @@ class TestMorningPrayerSettings:
     def test_morning_prayer_uses_confession_length_setting(self, db, regular_office_day):
         """Morning Prayer respects confession length setting."""
         office_date = date_class(2025, 1, 15)
-        
+
         # Act
         mp_short = MorningPrayer(date=office_date, confession_length="short")
         mp_long = MorningPrayer(date=office_date, confession_length="long")
-        
+
         # Assert
         assert mp_short.confession_length == "short"
         assert mp_long.confession_length == "long"
@@ -330,7 +328,7 @@ class TestMorningPrayerSettings:
 class TestMorningPrayerNavigation:
     """
     Test Morning Prayer navigation links generation.
-    
+
     Validates: FR-013 (Navigate between office types)
     Tasks: T021
     """
@@ -338,10 +336,10 @@ class TestMorningPrayerNavigation:
     def test_morning_prayer_has_links_property(self, db, regular_office_day, mock_url_reverse):
         """Morning Prayer has links property for navigation."""
         mp = MorningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         links = mp.links
-        
+
         # Assert
         assert links is not None
         assert isinstance(links, dict)
@@ -349,30 +347,30 @@ class TestMorningPrayerNavigation:
     def test_morning_prayer_links_to_evening_prayer(self, db, regular_office_day, mock_url_reverse):
         """Morning Prayer provides link to Evening Prayer for same date."""
         mp = MorningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         links = mp.links
-        
+
         # Assert
         assert "evening_prayer" in links or "Evening Prayer" in str(links)
 
     def test_morning_prayer_links_to_midday_prayer(self, db, regular_office_day, mock_url_reverse):
         """Morning Prayer provides link to Midday Prayer for same date."""
         mp = MorningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         links = mp.links
-        
+
         # Assert
         assert "midday_prayer" in links or "Midday Prayer" in str(links)
 
     def test_morning_prayer_links_to_compline(self, db, regular_office_day, mock_url_reverse):
         """Morning Prayer provides link to Compline for same date."""
         mp = MorningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         links = mp.links
-        
+
         # Assert
         assert "compline" in links or "Compline" in str(links)
 
@@ -380,10 +378,10 @@ class TestMorningPrayerNavigation:
         """Morning Prayer navigation links preserve the current date."""
         test_date = date_class(2025, 1, 15)
         mp = MorningPrayer(date=test_date)
-        
+
         # Act
         links = mp.links
-        
+
         # Assert
         # Check that links contain the date components
         links_str = str(links)
@@ -395,10 +393,10 @@ class TestMorningPrayerNavigation:
         """Morning Prayer provides link to previous day."""
         # Use existing production data - StandardOfficeDay records exist for all dates
         mp = MorningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         links = mp.links
-        
+
         # Assert
         links_str = str(links)
         assert "previous" in links_str.lower() or "yesterday" in links_str.lower() or "14" in links_str
@@ -407,10 +405,10 @@ class TestMorningPrayerNavigation:
         """Morning Prayer provides link to next day."""
         # Use existing production data - StandardOfficeDay records exist for all dates
         mp = MorningPrayer(date=date_class(2025, 1, 15))
-        
+
         # Act
         links = mp.links
-        
+
         # Assert
         links_str = str(links)
         assert "next" in links_str.lower() or "tomorrow" in links_str.lower() or "16" in links_str
@@ -421,7 +419,7 @@ class TestMorningPrayerNavigation:
 class TestMPHeading:
     """
     Test MPHeading module for Morning Prayer.
-    
+
     Validates: FR-001 (Display Morning Prayer heading)
     Tasks: T022
     """
@@ -429,12 +427,12 @@ class TestMPHeading:
     def test_mp_heading_has_data_property(self, db, regular_office_day):
         """MPHeading module has data property that returns dict."""
         from office.morning_prayer import MPHeading
-        
+
         mp_heading = MPHeading(date=date_class(2025, 1, 15), office_readings=regular_office_day)
-        
+
         # Act
         data = mp_heading.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -442,12 +440,12 @@ class TestMPHeading:
     def test_mp_heading_includes_heading_text(self, db, regular_office_day):
         """MPHeading data includes 'Daily Morning Prayer' heading."""
         from office.morning_prayer import MPHeading
-        
+
         mp_heading = MPHeading(date=date_class(2025, 1, 15), office_readings=regular_office_day)
-        
+
         # Act
         data = mp_heading.data
-        
+
         # Assert
         assert "heading" in data
         assert "Morning Prayer" in str(data["heading"]) or "Morning" in str(data["heading"])
@@ -455,12 +453,12 @@ class TestMPHeading:
     def test_mp_heading_includes_calendar_date(self, db, regular_office_day):
         """MPHeading data includes calendar_date for liturgical context."""
         from office.morning_prayer import MPHeading
-        
+
         mp_heading = MPHeading(date=date_class(2025, 1, 15), office_readings=regular_office_day)
-        
+
         # Act
         data = mp_heading.data
-        
+
         # Assert
         assert "calendar_date" in data
         assert data["calendar_date"] is not None
@@ -471,7 +469,7 @@ class TestMPHeading:
 class TestMPOpeningSentence:
     """
     Test MPOpeningSentence module for Morning Prayer.
-    
+
     Validates: FR-009 (Include full text of opening sentences)
     Tasks: T023
     """
@@ -480,13 +478,13 @@ class TestMPOpeningSentence:
         """MPOpeningSentence module has data property that returns dict."""
         from office.morning_prayer import MPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         opening = MPOpeningSentence(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = opening.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -495,13 +493,13 @@ class TestMPOpeningSentence:
         """MPOpeningSentence data includes sentence text."""
         from office.morning_prayer import MPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         opening = MPOpeningSentence(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = opening.data
-        
+
         # Assert
         assert "sentence" in data
         assert data["sentence"] is not None
@@ -513,17 +511,17 @@ class TestMPOpeningSentence:
         """MPOpeningSentence returns Advent-specific sentence during Advent."""
         from office.morning_prayer import MPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         # Use First Sunday of Advent
         advent_date = date_class(2024, 12, 1)  # First Sunday of Advent 2024
         calendar_date = get_calendar_date(advent_date)
         office_day = StandardOfficeDay.objects.get(month=advent_date.month, day=advent_date.day)
-        
+
         opening = MPOpeningSentence(date=calendar_date, office_readings=office_day)
-        
+
         # Act
         data = opening.data
-        
+
         # Assert
         assert "sentence" in data
         assert "ISAIAH 40:3" in data["sentence"]["citation"]
@@ -533,17 +531,17 @@ class TestMPOpeningSentence:
         """MPOpeningSentence returns Christmas-specific sentence during Christmastide."""
         from office.morning_prayer import MPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         # Use Christmas Day
         christmas_date = date_class(2024, 12, 25)
         calendar_date = get_calendar_date(christmas_date)
         office_day = StandardOfficeDay.objects.get(month=christmas_date.month, day=christmas_date.day)
-        
+
         opening = MPOpeningSentence(date=calendar_date, office_readings=office_day)
-        
+
         # Act
         data = opening.data
-        
+
         # Assert
         assert "sentence" in data
         assert "LUKE 2:10" in data["sentence"]["citation"]
@@ -553,17 +551,17 @@ class TestMPOpeningSentence:
         """MPOpeningSentence returns Lent-specific sentence during Lent."""
         from office.morning_prayer import MPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         # Use Ash Wednesday 2025
         ash_wednesday = date_class(2025, 3, 5)
         calendar_date = get_calendar_date(ash_wednesday)
         office_day = StandardOfficeDay.objects.get(month=ash_wednesday.month, day=ash_wednesday.day)
-        
+
         opening = MPOpeningSentence(date=calendar_date, office_readings=office_day)
-        
+
         # Act
         data = opening.data
-        
+
         # Assert
         assert "sentence" in data
         # Lent has multiple sentences that rotate by day of week
@@ -574,17 +572,17 @@ class TestMPOpeningSentence:
         """MPOpeningSentence returns Easter-specific sentence during Eastertide."""
         from office.morning_prayer import MPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         # Use Easter Sunday 2025
         easter_date = date_class(2025, 4, 20)
         calendar_date = get_calendar_date(easter_date)
         office_day = StandardOfficeDay.objects.get(month=easter_date.month, day=easter_date.day)
-        
+
         opening = MPOpeningSentence(date=calendar_date, office_readings=office_day)
-        
+
         # Act
         data = opening.data
-        
+
         # Assert
         assert "sentence" in data
         assert "COLOSSIANS 3:1" in data["sentence"]["citation"]
@@ -594,7 +592,7 @@ class TestMPOpeningSentence:
         """MPOpeningSentence rotates different sentences for ordinary weekdays (non-seasonal)."""
         from office.morning_prayer import MPOpeningSentence
         from churchcal.calculations import get_calendar_date
-        
+
         # Test a week in June (ordinary time after Trinity Sunday, not a special season)
         # Use 2025-06-09 through 2025-06-15 (week after Trinity Sunday)
         weekday_sentences = {}
@@ -602,17 +600,19 @@ class TestMPOpeningSentence:
             test_date = date_class(2025, 6, 9 + day_offset)  # Monday through Sunday
             calendar_date = get_calendar_date(test_date)
             office_day = StandardOfficeDay.objects.get(month=test_date.month, day=test_date.day)
-            
+
             opening = MPOpeningSentence(date=calendar_date, office_readings=office_day)
             data = opening.data
-            
+
             weekday_name = test_date.strftime("%A")
             weekday_sentences[weekday_name] = data["sentence"]["citation"]
-        
+
         # Assert - Different sentences for different days (at least some variety)
         # During ordinary time, each weekday should have its own opening sentence
         unique_citations = set(weekday_sentences.values())
-        assert len(unique_citations) > 1, f"Expected different opening sentences for different weekdays, got: {weekday_sentences}"
+        assert (
+            len(unique_citations) > 1
+        ), f"Expected different opening sentences for different weekdays, got: {weekday_sentences}"
 
 
 @pytest.mark.unit
@@ -620,7 +620,7 @@ class TestMPOpeningSentence:
 class TestConfession:
     """
     Test Confession module for Morning Prayer.
-    
+
     Validates: FR-009 (Include full text of confession)
     Tasks: T024
     """
@@ -629,13 +629,13 @@ class TestConfession:
         """Confession module has data property that returns dict."""
         from office.offices import Confession
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         confession = Confession(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = confession.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -644,13 +644,13 @@ class TestConfession:
         """Confession data includes heading."""
         from office.offices import Confession
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         confession = Confession(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = confession.data
-        
+
         # Assert
         assert "heading" in data
         assert "Confession" in data["heading"]
@@ -659,17 +659,17 @@ class TestConfession:
         """Confession marks fast days appropriately."""
         from office.offices import Confession
         from churchcal.calculations import get_calendar_date
-        
+
         # Test Ash Wednesday (fast day)
         ash_wednesday = date_class(2025, 3, 5)
         calendar_date = get_calendar_date(ash_wednesday)
         office_day = StandardOfficeDay.objects.get(month=ash_wednesday.month, day=ash_wednesday.day)
-        
+
         confession = Confession(date=calendar_date, office_readings=office_day)
-        
+
         # Act
         data = confession.data
-        
+
         # Assert
         assert "fast_day" in data
 
@@ -679,7 +679,7 @@ class TestConfession:
 class TestInvitatory:
     """
     Test Invitatory module for Morning Prayer.
-    
+
     Validates: FR-009 (Include invitatory)
     Tasks: T025
     """
@@ -688,13 +688,13 @@ class TestInvitatory:
         """Invitatory module has data property that returns dict."""
         from office.offices import Invitatory
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         invitatory = Invitatory(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = invitatory.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -705,7 +705,7 @@ class TestInvitatory:
 class TestCreed:
     """
     Test Creed module for Morning Prayer.
-    
+
     Validates: FR-009 (Include the Apostles' Creed)
     Tasks: T031
     """
@@ -714,13 +714,13 @@ class TestCreed:
         """Creed module has data property that returns dict."""
         from office.offices import Creed
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         creed = Creed(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = creed.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -731,7 +731,7 @@ class TestCreed:
 class TestPrayers:
     """
     Test Prayers module for Morning Prayer.
-    
+
     Validates: FR-009 (Include the Lord's Prayer)
     Tasks: T032
     """
@@ -740,13 +740,13 @@ class TestPrayers:
         """Prayers module has data property that returns dict."""
         from office.offices import Prayers
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         prayers = Prayers(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = prayers.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -755,13 +755,13 @@ class TestPrayers:
         """Prayers data includes heading."""
         from office.offices import Prayers
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         prayers = Prayers(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = prayers.data
-        
+
         # Assert
         assert "heading" in data
         assert "Prayers" in data["heading"]
@@ -772,7 +772,7 @@ class TestPrayers:
 class TestMPSuffrages:
     """
     Test MPSuffrages module for Morning Prayer.
-    
+
     Validates: FR-009 (Include suffrages)
     Tasks: T033
     """
@@ -781,13 +781,13 @@ class TestMPSuffrages:
         """MPSuffrages module has data property that returns dict."""
         from office.morning_prayer import MPSuffrages
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         suffrages = MPSuffrages(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = suffrages.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -798,7 +798,7 @@ class TestMPSuffrages:
 class TestDismissal:
     """
     Test Dismissal module for Morning Prayer.
-    
+
     Validates: FR-009 (Include dismissal)
     Tasks: T036
     """
@@ -808,14 +808,14 @@ class TestDismissal:
         from office.offices import Dismissal
         from churchcal.calculations import get_calendar_date
         from office.morning_prayer import MorningPrayer
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         mp = MorningPrayer(date=date_class(2025, 1, 15))
         dismissal = Dismissal(date=calendar_date, office_readings=regular_office_day, office=mp)
-        
+
         # Act
         data = dismissal.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -825,17 +825,17 @@ class TestDismissal:
         from office.offices import Dismissal
         from churchcal.calculations import get_calendar_date
         from office.morning_prayer import MorningPrayer
-        
+
         # Use Easter Sunday 2025
         easter_date = date_class(2025, 4, 20)
         calendar_date = get_calendar_date(easter_date)
         office_day = StandardOfficeDay.objects.get(month=easter_date.month, day=easter_date.day)
         mp = MorningPrayer(date=easter_date)
         dismissal = Dismissal(date=calendar_date, office_readings=office_day, office=mp)
-        
+
         # Act
         data = dismissal.data
-        
+
         # Assert
         # During Easter, dismissal should include "Alleluia"
         data_str = str(data)
@@ -846,7 +846,7 @@ class TestDismissal:
         from office.offices import Dismissal
         from churchcal.calculations import get_calendar_date
         from office.morning_prayer import MorningPrayer
-        
+
         # Test a week in June (ordinary time)
         weekday_graces = {}
         for day_offset in range(7):
@@ -855,13 +855,13 @@ class TestDismissal:
             office_day = StandardOfficeDay.objects.get(month=test_date.month, day=test_date.day)
             mp = MorningPrayer(date=test_date)
             dismissal = Dismissal(date=calendar_date, office_readings=office_day, office=mp)
-            
+
             data = dismissal.data
-            
+
             weekday_name = test_date.strftime("%A")
             # Store the grace data as a string for comparison
             weekday_graces[weekday_name] = str(data.get("grace", ""))
-        
+
         # Assert - Should have some variety in graces across the week
         unique_graces = set(weekday_graces.values())
         assert len(unique_graces) >= 2, f"Expected different graces for different weekdays"
@@ -872,7 +872,7 @@ class TestDismissal:
 class TestMPPsalms:
     """
     Test MPPsalms module for Morning Prayer.
-    
+
     Validates: FR-005 (Different psalm assignments), FR-005a (30-day and 60-day cycles)
     Tasks: T026
     """
@@ -882,15 +882,17 @@ class TestMPPsalms:
         from office.morning_prayer import MPPsalms
         from office.models import ThirtyDayPsalterDay
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         # Get 30-day psalter day from production database
         thirty_day_psalter = ThirtyDayPsalterDay.objects.get(day=15)
-        psalms = MPPsalms(date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter)
-        
+        psalms = MPPsalms(
+            date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter
+        )
+
         # Act
         data = psalms.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -900,14 +902,16 @@ class TestMPPsalms:
         from office.morning_prayer import MPPsalms
         from office.models import ThirtyDayPsalterDay
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         thirty_day_psalter = ThirtyDayPsalterDay.objects.get(day=15)
-        psalms = MPPsalms(date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter)
-        
+        psalms = MPPsalms(
+            date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter
+        )
+
         # Act
         data = psalms.data
-        
+
         # Assert
         assert "citations_60" in data
         assert "psalms_60" in data
@@ -918,14 +922,16 @@ class TestMPPsalms:
         from office.morning_prayer import MPPsalms
         from office.models import ThirtyDayPsalterDay
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         thirty_day_psalter = ThirtyDayPsalterDay.objects.get(day=15)
-        psalms = MPPsalms(date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter)
-        
+        psalms = MPPsalms(
+            date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter
+        )
+
         # Act
         data = psalms.data
-        
+
         # Assert
         assert "citations_30" in data
         assert "psalms_30" in data
@@ -936,14 +942,16 @@ class TestMPPsalms:
         from office.morning_prayer import MPPsalms
         from office.models import ThirtyDayPsalterDay
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         thirty_day_psalter = ThirtyDayPsalterDay.objects.get(day=15)
-        psalms = MPPsalms(date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter)
-        
+        psalms = MPPsalms(
+            date=calendar_date, office_readings=regular_office_day, thirty_day_psalter_day=thirty_day_psalter
+        )
+
         # Act
         data = psalms.data
-        
+
         # Assert
         assert isinstance(data["citations_60"], list)
         assert isinstance(data["citations_30"], list)
@@ -954,7 +962,7 @@ class TestMPPsalms:
 class TestMPFirstReading:
     """
     Test MPFirstReading module for Morning Prayer.
-    
+
     Validates: FR-006 (Two scripture readings per office)
     Tasks: T027
     """
@@ -963,13 +971,13 @@ class TestMPFirstReading:
         """MPFirstReading module has data method that returns dict."""
         from office.morning_prayer import MPFirstReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = MPFirstReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -978,13 +986,13 @@ class TestMPFirstReading:
         """MPFirstReading includes heading."""
         from office.morning_prayer import MPFirstReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = MPFirstReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         assert "heading" in data
         assert "First Lesson" in data["heading"] or "First" in data["heading"]
@@ -993,13 +1001,13 @@ class TestMPFirstReading:
         """MPFirstReading includes main reading from office_readings."""
         from office.morning_prayer import MPFirstReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = MPFirstReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         assert "main_reading" in data
         assert data["main_reading"] is not None
@@ -1008,13 +1016,13 @@ class TestMPFirstReading:
         """MPFirstReading includes passage citation."""
         from office.morning_prayer import MPFirstReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = MPFirstReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         if data["main_reading"]:
             assert "intro" in data["main_reading"]
@@ -1026,7 +1034,7 @@ class TestMPFirstReading:
 class TestMPSecondReading:
     """
     Test MPSecondReading module for Morning Prayer.
-    
+
     Validates: FR-006 (Two scripture readings per office)
     Tasks: T029
     """
@@ -1035,13 +1043,13 @@ class TestMPSecondReading:
         """MPSecondReading module has data method that returns dict."""
         from office.morning_prayer import MPSecondReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = MPSecondReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -1050,13 +1058,13 @@ class TestMPSecondReading:
         """MPSecondReading includes heading."""
         from office.morning_prayer import MPSecondReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = MPSecondReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         assert "heading" in data
         assert "Second Lesson" in data["heading"] or "Second" in data["heading"]
@@ -1065,13 +1073,13 @@ class TestMPSecondReading:
         """MPSecondReading includes main reading from office_readings."""
         from office.morning_prayer import MPSecondReading
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         reading = MPSecondReading(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = reading.data()
-        
+
         # Assert
         assert "main_reading" in data
         assert data["main_reading"] is not None
@@ -1082,7 +1090,7 @@ class TestMPSecondReading:
 class TestMPCanticle1:
     """
     Test MPCanticle1 module for Morning Prayer.
-    
+
     Validates: FR-008 (Display appropriate canticles)
     Tasks: T028
     """
@@ -1091,13 +1099,13 @@ class TestMPCanticle1:
         """MPCanticle1 module has data property that returns dict."""
         from office.morning_prayer import MPCanticle1
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         canticle = MPCanticle1(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = canticle.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -1106,13 +1114,13 @@ class TestMPCanticle1:
         """MPCanticle1 includes canticles from different tables (default, 1979, 2011)."""
         from office.morning_prayer import MPCanticle1
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         canticle = MPCanticle1(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = canticle.data
-        
+
         # Assert - Should include canticles from different tables
         assert "default" in data or "1979" in data or "2011" in data
 
@@ -1120,17 +1128,17 @@ class TestMPCanticle1:
         """MPCanticle1 returns canticle data structures."""
         from office.morning_prayer import MPCanticle1
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         canticle = MPCanticle1(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = canticle.data
-        
+
         # Assert - Each canticle table should return a canticle
         for key in data:
             if data[key]:
-                assert isinstance(data[key], dict) or hasattr(data[key], '__dict__')
+                assert isinstance(data[key], dict) or hasattr(data[key], "__dict__")
 
 
 @pytest.mark.unit
@@ -1138,7 +1146,7 @@ class TestMPCanticle1:
 class TestMPCanticle2:
     """
     Test MPCanticle2 module for Morning Prayer.
-    
+
     Validates: FR-008 (Display appropriate canticles)
     Tasks: T030
     """
@@ -1147,13 +1155,13 @@ class TestMPCanticle2:
         """MPCanticle2 module has data property that returns dict."""
         from office.morning_prayer import MPCanticle2
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         canticle = MPCanticle2(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = canticle.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -1162,13 +1170,13 @@ class TestMPCanticle2:
         """MPCanticle2 includes canticles from different tables (default, 1979, 2011)."""
         from office.morning_prayer import MPCanticle2
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         canticle = MPCanticle2(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = canticle.data
-        
+
         # Assert - Should include canticles from different tables
         assert "default" in data or "1979" in data or "2011" in data
 
@@ -1178,7 +1186,7 @@ class TestMPCanticle2:
 class TestMPCollectsOfTheDay:
     """
     Test MPCollectsOfTheDay module for Morning Prayer.
-    
+
     Validates: FR-009 (Include full text of collects), FR-007 (Proper collects for feasts)
     Tasks: T034
     """
@@ -1187,13 +1195,13 @@ class TestMPCollectsOfTheDay:
         """MPCollectsOfTheDay module has data property that returns dict."""
         from office.morning_prayer import MPCollectsOfTheDay
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         collects = MPCollectsOfTheDay(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = collects.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -1202,13 +1210,13 @@ class TestMPCollectsOfTheDay:
         """MPCollectsOfTheDay includes collects generator."""
         from office.morning_prayer import MPCollectsOfTheDay
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         collects = MPCollectsOfTheDay(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = collects.data
-        
+
         # Assert
         assert "collects" in data
 
@@ -1216,17 +1224,17 @@ class TestMPCollectsOfTheDay:
         """MPCollectsOfTheDay includes feast day collect."""
         from office.morning_prayer import MPCollectsOfTheDay
         from churchcal.calculations import get_calendar_date
-        
+
         # Use Christmas Day
         christmas_date = date_class(2024, 12, 25)
         calendar_date = get_calendar_date(christmas_date)
         office_day = StandardOfficeDay.objects.get(month=christmas_date.month, day=christmas_date.day)
-        
+
         collects = MPCollectsOfTheDay(date=calendar_date, office_readings=office_day)
-        
+
         # Act
         data = collects.data
-        
+
         # Assert - Christmas should have a collect
         collects_list = list(data["collects"])
         assert len(collects_list) >= 1
@@ -1237,7 +1245,7 @@ class TestMPCollectsOfTheDay:
 class TestMPCollects:
     """
     Test MPCollects module for Morning Prayer.
-    
+
     Validates: FR-009 (Include full text of collects)
     Tasks: T035
     """
@@ -1246,13 +1254,13 @@ class TestMPCollects:
         """MPCollects module has data property that returns dict."""
         from office.morning_prayer import MPCollects
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         collects = MPCollects(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = collects.data
-        
+
         # Assert
         assert data is not None
         assert isinstance(data, dict)
@@ -1261,13 +1269,13 @@ class TestMPCollects:
         """MPCollects includes weekday-specific collect."""
         from office.morning_prayer import MPCollects
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))  # Wednesday
         collects = MPCollects(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = collects.data
-        
+
         # Assert
         assert "collect" in data
         assert data["collect"] is not None
@@ -1277,13 +1285,13 @@ class TestMPCollects:
         """MPCollects includes fixed collects (peace and grace)."""
         from office.morning_prayer import MPCollects
         from churchcal.calculations import get_calendar_date
-        
+
         calendar_date = get_calendar_date(date_class(2025, 1, 15))
         collects = MPCollects(date=calendar_date, office_readings=regular_office_day)
-        
+
         # Act
         data = collects.data
-        
+
         # Assert
         assert "fixed_collects" in data
         assert len(data["fixed_collects"]) == 2  # Peace and Grace
@@ -1292,20 +1300,20 @@ class TestMPCollects:
         """MPCollects rotates different collects for each weekday."""
         from office.morning_prayer import MPCollects
         from churchcal.calculations import get_calendar_date
-        
+
         # Test a week
         weekday_collects = {}
         for day_offset in range(7):
             test_date = date_class(2025, 1, 13 + day_offset)  # Monday through Sunday
             calendar_date = get_calendar_date(test_date)
             office_day = StandardOfficeDay.objects.get(month=test_date.month, day=test_date.day)
-            
+
             collects = MPCollects(date=calendar_date, office_readings=office_day)
             data = collects.data
-            
+
             weekday_name = test_date.strftime("%A")
             weekday_collects[weekday_name] = data["collect"][0]  # Collect title
-        
+
         # Assert - Different collects for different days
         unique_collects = set(weekday_collects.values())
         assert len(unique_collects) == 7, f"Expected 7 different weekday collects, got {len(unique_collects)}"

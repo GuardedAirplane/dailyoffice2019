@@ -68,11 +68,11 @@ meta = Meta(**meta_defaults)
 def morning_prayer(request, year, month, day):
     """
     Render Morning Prayer office page.
-    
+
     Validates: SC-001 (Office page load time < 3 seconds)
     """
     start_time = time.time()
-    
+
     mp = MorningPrayer("{}-{}-{}".format(year, month, day))
     mp_meta = meta_defaults.copy()
     mp_meta["title"] = mp_meta["og_title"] = mp_meta["twitter_title"] = mp_meta["gplus_title"] = mp.title
@@ -81,41 +81,41 @@ def morning_prayer(request, year, month, day):
     mp_meta["image"] = static("office/img/bcp.jpg")
     mp_meta["image_width"] = 1000
     mp_meta["image_height"] = 1333
-    
+
     duration = (time.time() - start_time) * 1000
     logger.debug(f"morning_prayer view completed in {duration:.2f}ms (date={year}-{month}-{day})")
-    
+
     return render(request, "office/office.html", {"office": mp, "meta": Meta(**mp_meta)})
 
 
 def evening_prayer(request, year, month, day):
     """
     Render Evening Prayer office page.
-    
+
     Validates: SC-001 (Office page load time < 3 seconds)
     """
     start_time = time.time()
-    
+
     ep = EveningPrayer("{}-{}-{}".format(year, month, day))
     ep_meta = meta_defaults.copy()
     ep_meta["title"] = ep_meta["og_title"] = ep_meta["twitter_title"] = ep_meta["gplus_title"] = ep.title
     ep_meta["description"] = ep.description
     ep_meta["url"] = reverse("evening_prayer", kwargs={"year": year, "month": month, "day": day})
-    
+
     duration = (time.time() - start_time) * 1000
     logger.debug(f"evening_prayer view completed in {duration:.2f}ms (date={year}-{month}-{day})")
-    
+
     return render(request, "office/office.html", {"office": ep, "meta": Meta(**ep_meta)})
 
 
 def compline(request, year, month, day):
     """
     Render Compline office page.
-    
+
     Validates: SC-001 (Office page load time < 3 seconds)
     """
     start_time = time.time()
-    
+
     cp = Compline("{}-{}-{}".format(year, month, day))
     compline_meta = meta_defaults.copy()
     compline_meta["title"] = compline_meta["og_title"] = compline_meta["twitter_title"] = compline_meta[
@@ -127,21 +127,21 @@ def compline(request, year, month, day):
 
     compline_meta["image_width"] = 1000
     compline_meta["image_height"] = 1333
-    
+
     duration = (time.time() - start_time) * 1000
     logger.debug(f"compline view completed in {duration:.2f}ms (date={year}-{month}-{day})")
-    
+
     return render(request, "office/office.html", {"office": cp, "meta": Meta(**compline_meta)})
 
 
 def midday_prayer(request, year, month, day):
     """
     Render Midday Prayer office page.
-    
+
     Validates: SC-001 (Office page load time < 3 seconds)
     """
     start_time = time.time()
-    
+
     md = MiddayPrayer("{}-{}-{}".format(year, month, day))
     midday_meta = meta_defaults.copy()
     midday_meta["title"] = midday_meta["og_title"] = midday_meta["twitter_title"] = midday_meta["gplus_title"] = (
@@ -152,10 +152,10 @@ def midday_prayer(request, year, month, day):
     midday_meta["image"] = static("office/img/bcp.jpg")
     midday_meta["image_width"] = 1000
     midday_meta["image_height"] = 1333
-    
+
     duration = (time.time() - start_time) * 1000
     logger.debug(f"midday_prayer view completed in {duration:.2f}ms (date={year}-{month}-{day})")
-    
+
     return render(request, "office/office.html", {"office": md, "meta": Meta(**midday_meta)})
 
 

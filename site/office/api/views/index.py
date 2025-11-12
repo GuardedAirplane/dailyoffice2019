@@ -1286,6 +1286,7 @@ class MPCollectOfTheDay(Module):
 
     Related: Phase 15 (T185-T186), Collect system testing
     """
+
     name = "Collect(s) of the Day"
     attribute = "morning_prayer_collect"
     commemoration_attribute = "all"
@@ -1327,6 +1328,7 @@ class EPCollectOfTheDay(MPCollectOfTheDay):
 
     Related: Phase 15 (T185-T186), Collect system testing
     """
+
     attribute = "evening_prayer_collect"
     commemoration_attribute = "all_evening"
 
@@ -1353,6 +1355,7 @@ class AdditionalCollects(Module):
 
     Related: Phase 15 (T185-T186), Collect system testing
     """
+
     name = "Additional Collects"
 
     def get_collects(self):
@@ -2910,6 +2913,45 @@ class OfficeAPIView(APIView):
 
     def get(self, request, year, month, day):
         raise NotImplementedError("You must implement this method.")
+
+    def initial(self, request, *args, **kwargs):
+        """
+        Runs anything that needs to occur prior to calling the method handler.
+
+        Adds date validation before processing the request.
+        Raises ValidationError for invalid dates, which DRF will convert to 400 Bad Request.
+        """
+        super().initial(request, *args, **kwargs)
+
+        from datetime import datetime
+
+        # Extract year, month, day from URL parameters
+        year = kwargs.get("year")
+        month = kwargs.get("month")
+        day = kwargs.get("day")
+
+        # Validate date parameters if present
+        if year is not None and month is not None and day is not None:
+            try:
+                # Convert to integers
+                year_int = int(year)
+                month_int = int(month)
+                day_int = int(day)
+
+                # Validate ranges
+                if not (1 <= month_int <= 12):
+                    raise ValidationError(f"Invalid month: {month}. Month must be between 1 and 12.")
+
+                if not (1 <= day_int <= 31):
+                    raise ValidationError(f"Invalid day: {day}. Day must be between 1 and 31.")
+
+                # Validate that it's an actual date (e.g., not Feb 30)
+                datetime(year_int, month_int, day_int)
+
+            except ValueError as e:
+                raise ValidationError(f"Invalid date: {year}-{month}-{day}. {str(e)}")
+            except (TypeError, AttributeError):
+                raise ValidationError("Invalid date format. Expected format: YYYY-M-D")
 
 
 class GenericDailyOfficeSerializer(serializers.Serializer):

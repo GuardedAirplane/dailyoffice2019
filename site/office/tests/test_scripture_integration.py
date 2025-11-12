@@ -16,7 +16,7 @@ from bible.sources import BibleGateway
 @pytest.mark.django_db
 class TestScriptureIntegration:
     """Tests for Scripture integration with Daily Office."""
-    
+
     def test_scripture_retrieval_via_passage_class(self):
         """Scripture can be retrieved via Passage class (T131)."""
         with patch("bible.sources.requests.get") as mock_get:
@@ -35,30 +35,27 @@ class TestScriptureIntegration:
                 </html>
             """
             mock_get.return_value = mock_response
-            
+
             # Create a Passage instance
             passage = Passage("John 3:16", source="nrsvce")
-            
+
             # Verify passage was retrieved
             assert passage.lookup is not None
             assert passage.version_abbreviation == "nrsvce"
             assert "God so loved the world" in passage.lookup.get_text()
-    
+
     def test_scripture_caching_prevents_duplicate_api_calls(self):
         """Cached scripture prevents duplicate API calls (T131)."""
         # Pre-populate cache
-        Scripture.objects.create(
-            passage="John 3:16",
-            nrsvce="For God so loved the world..."
-        )
-        
+        Scripture.objects.create(passage="John 3:16", nrsvce="For God so loved the world...")
+
         # Retrieve from cache
         cached = Scripture.objects.filter(passage="John 3:16").first()
-        
+
         assert cached is not None
         assert cached.nrsvce == "For God so loved the world..."
         assert Scripture.objects.filter(passage="John 3:16").count() == 1
-    
+
     def test_scripture_stores_multiple_translations_simultaneously(self):
         """Scripture can store multiple translations for same passage (T131)."""
         with patch("bible.sources.requests.get") as mock_get:
@@ -87,13 +84,13 @@ class TestScriptureIntegration:
                         </html>
                     """
                 return mock_response
-            
+
             mock_get.side_effect = mock_get_side_effect
-            
+
             # Fetch different translations
             passage_nrsvce = Passage("John 3:16", source="nrsvce")
             passage_esv = Passage("John 3:16", source="esv")
-            
+
             # Verify both were retrieved
             assert "NRSVCE" in passage_nrsvce.lookup.get_text()
             assert "ESV" in passage_esv.lookup.get_text()
@@ -102,22 +99,22 @@ class TestScriptureIntegration:
 @pytest.mark.django_db
 class TestScriptureTranslationFallback:
     """Tests for Scripture translation fallback behavior."""
-    
+
     def test_apocrypha_fallback_from_esv_to_nrsvce(self):
         """Apocrypha passages should fall back from ESV to NRSVCE (T131)."""
         # This is a documentation test - actual fallback logic would be in office generation
         # ESV doesn't include Apocrypha, so Wisdom/Sirach/etc would use NRSVCE
-        
+
         # Example: Wisdom 3:1-9 is not in ESV
         scripture = Scripture.objects.create(
             passage="Wisdom 3:1-9",
             nrsvce="The souls of the righteous are in the hand of God...",
-            esv=None  # ESV doesn't have this book
+            esv=None,  # ESV doesn't have this book
         )
-        
+
         assert scripture.nrsvce is not None
         assert scripture.esv is None
-    
+
     def test_scripture_model_supports_all_9_translations(self):
         """Scripture model can store all 9 supported translations (T131)."""
         scripture = Scripture.objects.create(
@@ -130,9 +127,9 @@ class TestScriptureTranslationFallback:
             niv="The LORD is my shepherd, I lack nothing.",
             nasb="The LORD is my shepherd, I will not be in need.",
             coverdale="The LORD is my shepherd: therefore can I lack nothing.",
-            renewed_coverdale="The LORD is my shepherd: therefore can I lack nothing."
+            renewed_coverdale="The LORD is my shepherd: therefore can I lack nothing.",
         )
-        
+
         # Verify all translations stored
         assert scripture.nrsvce is not None
         assert scripture.esv is not None
@@ -145,22 +142,22 @@ class TestScriptureTranslationFallback:
         assert scripture.renewed_coverdale is not None
 
 
-@pytest.mark.django_db  
+@pytest.mark.django_db
 class TestScriptureErrorHandling:
     """Tests for Scripture error handling in integration context."""
-    
+
     def test_biblegateway_timeout_raises_exception(self):
         """BibleGateway timeout should raise appropriate exception (T131)."""
         from bible.sources import PassageNotFoundException
         import requests
-        
+
         with patch("bible.sources.requests.get") as mock_get:
             # Simulate timeout
             mock_get.side_effect = requests.Timeout("Connection timeout")
-            
+
             with pytest.raises((requests.Timeout, PassageNotFoundException)):
                 passage = Passage("John 3:16", source="nrsvce")
-    
+
     def test_biblegateway_404_raises_exception(self):
         """BibleGateway 404 should raise exception (T131)."""
         with patch("bible.sources.requests.get") as mock_get:
@@ -168,26 +165,26 @@ class TestScriptureErrorHandling:
             mock_response = Mock()
             mock_response.status_code = 404
             mock_get.return_value = mock_response
-            
+
             # Also need to patch scriptures.extract to avoid IndexError before reaching 404 check
             with patch("bible.sources.scriptures.extract") as mock_extract:
                 mock_extract.return_value = [("Genesis", 1, 1, 1, 1)]
-                
+
                 # BibleGateway raises generic Exception on non-200 status
                 with pytest.raises(Exception, match="Error getting passage"):
                     passage = Passage("Genesis 1:1", source="nrsvce")
-    
+
     def test_invalid_passage_reference_handled_gracefully(self):
         """Invalid passage references should be handled gracefully (T131)."""
         from bible.sources import PassageNotFoundException
-        
+
         with patch("bible.sources.requests.get") as mock_get:
             # Simulate empty response
             mock_response = Mock()
             mock_response.status_code = 200
             mock_response.text = "<html><body></body></html>"
             mock_get.return_value = mock_response
-            
+
             with pytest.raises(PassageNotFoundException):
                 passage = Passage("Genesis 999:999", source="nrsvce")
 
@@ -195,7 +192,7 @@ class TestScriptureErrorHandling:
 @pytest.mark.django_db
 class TestScriptureHTMLProcessing:
     """Tests for Scripture HTML processing and formatting."""
-    
+
     def test_scripture_removes_footnotes_from_html(self):
         """Scripture should remove footnote markers from HTML (T131)."""
         with patch("bible.sources.requests.get") as mock_get:
@@ -215,13 +212,13 @@ class TestScriptureHTMLProcessing:
                 </html>
             """
             mock_get.return_value = mock_response
-            
+
             passage = Passage("John 3:16", source="nrsvce")
             html = passage.lookup.get_html()
-            
+
             # Footnote should be removed
             assert "footnote" not in html.lower() or "<sup" not in html
-    
+
     def test_scripture_removes_crossreferences_from_html(self):
         """Scripture should remove cross-reference markers from HTML (T131)."""
         with patch("bible.sources.requests.get") as mock_get:
@@ -241,13 +238,13 @@ class TestScriptureHTMLProcessing:
                 </html>
             """
             mock_get.return_value = mock_response
-            
+
             passage = Passage("John 3:16", source="nrsvce")
             html = passage.lookup.get_html()
-            
+
             # Cross-reference should be removed
             assert "crossreference" not in html.lower() or "<sup" not in html
-    
+
     def test_scripture_extracts_section_headings(self):
         """Scripture should extract section headings from passages (T131)."""
         with patch("bible.sources.requests.get") as mock_get:
@@ -264,10 +261,10 @@ class TestScriptureHTMLProcessing:
                 </html>
             """
             mock_get.return_value = mock_response
-            
+
             passage = Passage("John 3:16", source="nrsvce")
             headings = passage.lookup.get_headings()
-            
+
             # Should extract heading
             assert len(headings) > 0
             assert "God's Love for the World" in str(headings)

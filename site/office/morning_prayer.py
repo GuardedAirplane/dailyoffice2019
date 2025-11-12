@@ -32,13 +32,14 @@ from psalter.utils import get_psalms
 class MorningPrayer(Office):
     """
     Daily Morning Prayer office according to BCP 2019.
-    
+
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
-    
+
     Provides complete Morning Prayer office including: opening sentence, confession,
     invitatory, psalms, two scripture readings, canticles, apostles' creed, prayers,
     and closing dismissal.
     """
+
     name = "Morning Prayer"
     office = "morning_prayer"
 
@@ -63,11 +64,11 @@ class MorningPrayer(Office):
     def modules(self):
         """
         Performance-critical method for generating Morning Prayer office modules.
-        
+
         Validates: SC-001 (Office page load time < 3 seconds)
         """
         start_time = time.time()
-        
+
         modules = [
             (MPHeading(self.date, self.office_readings), "office/heading.html"),
             (MPCommemorationListing(self.date, self.office_readings), "office/commemoration_listing.html"),
@@ -97,20 +98,21 @@ class MorningPrayer(Office):
             (Chrysostom(self.date, self.office_readings), "office/chrysostom.html"),
             (Dismissal(self.date, self.office_readings, office=self), "office/dismissal.html"),
         ]
-        
+
         duration = (time.time() - start_time) * 1000
         logger.debug(f"MorningPrayer.modules completed in {duration:.2f}ms (modules={len(modules)})")
-        
+
         return modules
 
 
 class MPHeading(OfficeSection):
     """
     Morning Prayer heading display.
-    
+
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     Validates: FR-009 (Include full text of liturgical components)
     """
+
     @cached_property
     def data(self):
         return {"heading": mark_safe("Daily<br>Morning Prayer"), "calendar_date": self.date}
@@ -119,10 +121,11 @@ class MPHeading(OfficeSection):
 class MPCommemorationListing(OfficeSection):
     """
     Morning Prayer commemoration listing display.
-    
+
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     Validates: FR-011 (Display Commemorations for Each Day)
     """
+
     @cached_property
     def data(self):
         # FR-011: Display all commemorations (required and optional) for the day
@@ -137,21 +140,22 @@ class MPCommemorationListing(OfficeSection):
 class MPOpeningSentence(OfficeSection):
     """
     Morning Prayer opening sentence with seasonal and weekday variation.
-    
+
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     Validates: FR-009 (Include full text of prayers and liturgical responses)
     """
+
     def get_sentence(self):
         """
         Select the appropriate opening sentence based on season, feast, or weekday.
-        
+
         Opening sentences vary by:
         - Specific feasts (Thanksgiving, Pentecost, Trinity Sunday, Easter, Ascension)
         - Liturgical seasons (Advent, Lent, Holy Week, Christmastide, Epiphanytide, Eastertide)
         - Weekday rotation (Sunday through Saturday)
-        
+
         Validates: FR-009 (Include full text of liturgical components)
-        
+
         Returns:
             dict: Contains 'sentence' (scripture text) and 'citation' (biblical reference)
         """
@@ -274,7 +278,7 @@ class MPOpeningSentence(OfficeSection):
     def data(self):
         """
         Generate opening sentence section data.
-        
+
         Returns:
             dict: Heading and selected sentence data
         """
@@ -284,18 +288,19 @@ class MPOpeningSentence(OfficeSection):
 class MPInvitatory(OfficeSection):
     """
     Morning Prayer invitatory (Venite, Jubilate, or Pascha Nostrum).
-    
+
     Validates: FR-009 (Include full text of liturgical components)
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     """
+
     @cached_property
     def antiphon(self):
         """
         Determine the appropriate antiphon based on liturgical season and feast.
-        
+
         Returns the antiphon that will be said before and after the invitatory canticle.
         Antiphons vary by season (Advent, Lent, Eastertide, etc.) and major feasts.
-        
+
         Returns:
             dict: Contains 'first_line' and 'second_line' of the antiphon text
         """
@@ -380,12 +385,12 @@ class MPInvitatory(OfficeSection):
     def rotating(self):
         """
         Determine which invitatory canticle to use based on seasonal and daily rotation.
-        
+
         Rotates between Venite (Psalm 95), Jubilate (Psalm 100), and Pascha Nostrum
         (Easter anthem). Pascha Nostrum is used during Easter Week and some days in
         Eastertide. Otherwise, Venite and Jubilate alternate daily with psalm conflicts
         considered.
-        
+
         Returns:
             tuple: (thirty_day_canticle, sixty_day_canticle) - One for each psalter cycle
         """
@@ -418,7 +423,7 @@ class MPInvitatory(OfficeSection):
     def venite_most_days(self):
         """
         Use Venite (Psalm 95) most days, switching to Jubilate when Psalm 95 appears.
-        
+
         Returns:
             tuple: (thirty_day_canticle, sixty_day_canticle)
         """
@@ -439,9 +444,9 @@ class MPInvitatory(OfficeSection):
     def jubilate_on_sundays_and_feasts(self):
         """
         Use Jubilate (Psalm 100) on Sundays and major feasts, Venite on other days.
-        
+
         Uses Pascha Nostrum during Easter Week and on major feasts during Eastertide.
-        
+
         Returns:
             tuple: (thirty_day_canticle, sixty_day_canticle)
         """
@@ -479,7 +484,7 @@ class MPInvitatory(OfficeSection):
     def celebratory_always(self):
         """
         Always use celebratory canticles: Jubilate most of the year, Pascha Nostrum in Eastertide.
-        
+
         Returns:
             tuple: (thirty_day_canticle, sixty_day_canticle)
         """
@@ -499,7 +504,7 @@ class MPInvitatory(OfficeSection):
     def pascha_nostrum(self):
         """
         Generate Pascha Nostrum (Christ Our Passover) invitatory canticle for Eastertide.
-        
+
         Returns:
             dict: Heading, subheading, rubric, HTML content, and scriptural citation
         """
@@ -516,7 +521,7 @@ class MPInvitatory(OfficeSection):
     def jubilate(self):
         """
         Generate Jubilate Deo (Psalm 100) invitatory canticle.
-        
+
         Returns:
             dict: Heading, subheading, rubric, HTML content, and psalm citation
         """
@@ -533,7 +538,7 @@ class MPInvitatory(OfficeSection):
     def venite(self):
         """
         Generate Venite (Psalm 95:1-7) invitatory canticle.
-        
+
         Returns:
             dict: Heading, subheading, rubric, HTML content, and psalm citation
         """
@@ -551,7 +556,7 @@ class MPInvitatory(OfficeSection):
     def data(self):
         """
         Compile invitatory section data with all canticle rotation options.
-        
+
         Returns:
             dict: All invitatory rotation schemes and antiphon data
         """
@@ -567,10 +572,11 @@ class MPInvitatory(OfficeSection):
 class MPPsalms(OfficeSection):
     """
     Morning Prayer psalm assignments from 30-day and 60-day psalter cycles.
-    
+
     Validates: FR-005 (Different psalm assignments for Morning Prayer and Evening Prayer)
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     """
+
     @cached_property
     def data(self):
         psalms_60 = self.office_readings.mp_psalms.split("or")
@@ -616,10 +622,11 @@ class MPPsalms(OfficeSection):
 class MPFirstReading(Reading):
     """
     Morning Prayer first scripture reading (Old Testament/Apocrypha).
-    
+
     Validates: FR-006 (Assign two scripture readings to Morning Prayer)
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     """
+
     heading = "The First Lesson"
     tag = "first-"
 
@@ -761,10 +768,11 @@ class MPFirstReading(Reading):
 class MPSecondReading(Reading):
     """
     Morning Prayer second scripture reading (New Testament).
-    
+
     Validates: FR-006 (Assign two scripture readings to Morning Prayer)
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     """
+
     heading = "The Second Lesson"
     tag = "second-"
 
@@ -861,11 +869,12 @@ class MPSecondReading(Reading):
 class MPCanticle1(OfficeSection):
     """
     Morning Prayer first canticle (after first reading).
-    
+
     Validates: FR-008 (Display appropriate canticles for Morning Prayer)
     Validates: FR-009 (Include full text of canticles)
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     """
+
     @cached_property
     def data(self):
         return {
@@ -878,11 +887,12 @@ class MPCanticle1(OfficeSection):
 class MPCanticle2(OfficeSection):
     """
     Morning Prayer second canticle (after second reading).
-    
+
     Validates: FR-008 (Display appropriate canticles for Morning Prayer)
     Validates: FR-009 (Include full text of canticles)
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     """
+
     @cached_property
     def data(self):
         return {
@@ -895,10 +905,11 @@ class MPCanticle2(OfficeSection):
 class MPSuffrages(OfficeSection):
     """
     Morning Prayer suffrages (versicles and responses).
-    
+
     Validates: FR-009 (Include full text of liturgical responses)
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     """
+
     @cached_property
     def data(self):
         return {}
@@ -907,10 +918,11 @@ class MPSuffrages(OfficeSection):
 class MPCollectsOfTheDay(OfficeSection):
     """
     Morning Prayer collects of the day.
-    
+
     Validates: FR-009 (Include full text of prayers)
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     """
+
     @cached_property
     def data(self):
         return {
@@ -929,10 +941,11 @@ class MPCollectsOfTheDay(OfficeSection):
 class MPCollects(OfficeSection):
     """
     Morning Prayer weekly and fixed collects.
-    
+
     Validates: FR-009 (Include full text of prayers)
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     """
+
     @cached_property
     def data(self):
         weekly_collects = (
@@ -990,10 +1003,11 @@ class MPCollects(OfficeSection):
 class MPMissionCollect(OfficeSection):
     """
     Morning Prayer mission collect (rotating daily).
-    
+
     Validates: FR-009 (Include full text of prayers)
     Validates: FR-001 (Display Morning Prayer with all required liturgical components)
     """
+
     office_name = "morning_prayer"
 
     def get_weekday_class(self):
