@@ -74,9 +74,43 @@ jobs:
           POSTGRES_PORT: 5432
           SECRET_KEY: test-secret-key-for-ci-cd-pipeline
           DEBUG: 'True'
+          DEBUG_DATES: 'False'
+          SECURE_SSL_REDIRECT: 'False'
+          SECURE_PROXY_SSL_HEADER: http
+          USE_CALENDAR_CACHE: 'False'
+          MODE: test
+          SITE_ADDRESS: http://localhost:8000
           GOOGLE_API_KEY: test-key
           GOOGLE_CUSTOM_SEARCH_ENGINE_KEY: test-key
           OPENAI_API_KEY: test-key
+          FIRST_BEGINNING_YEAR: '2018'
+          LAST_BEGINNING_YEAR: '2021'
+          FIRST_BEGINNING_YEAR_APP: '2019'
+          LAST_BEGINNING_YEAR_APP: '2020'
+          BUGSNAG_KEY: test-bugsnag-key
+          MAILGUN_PUBLIC_KEY: test-mailgun-public
+          MAILGUN_PRIVATE_KEY: test-mailgun-private
+          MAILGUN_SMTP_PASSWORD: test-mailgun-smtp
+          MJML_APPLICATION_ID: test-mjml-app
+          MJML_PUBLIC_KEY: test-mjml-public
+          MJML_SECRET_KEY: test-mjml-secret
+          EMAIL_HOST: smtp.gmail.com
+          EMAIL_USE_TLS: 'False'
+          EMAIL_USE_SSL: 'True'
+          EMAIL_PORT: '465'
+          EMAIL_HOST_USER: test@example.com
+          EMAIL_HOST_PASSWORD: test-email-password
+          ZOOM_LINK: https://zoom.us/test
+          OMDB_API_KEY: test-omdb-key
+          UTELLY_API_KEY: test-utelly-key
+          IMDB_API_KEY: test-imdb-key
+          YOUTUBE_API_KEY: test-youtube-key
+          MAILCHIMP_API_KEY: test-mailchimp-key
+          MAILCHIMP_PREFIX: us4
+          MAILCHIMP_LIST_ID: test-list-id
+          OPENVERSE_CLIENT_ID: test-openverse-client-id
+          OPENVERSE_CLIENT_SECRET: test-openverse-client-secret
+          PERPLEXITY_API_KEY: test-perplexity-key
         run: |
           python manage.py migrate --noinput
 
@@ -90,9 +124,43 @@ jobs:
           POSTGRES_PORT: 5432
           SECRET_KEY: test-secret-key-for-ci-cd-pipeline
           DEBUG: 'True'
+          DEBUG_DATES: 'False'
+          SECURE_SSL_REDIRECT: 'False'
+          SECURE_PROXY_SSL_HEADER: http
+          USE_CALENDAR_CACHE: 'False'
+          MODE: test
+          SITE_ADDRESS: http://localhost:8000
           GOOGLE_API_KEY: test-key
           GOOGLE_CUSTOM_SEARCH_ENGINE_KEY: test-key
           OPENAI_API_KEY: test-key
+          FIRST_BEGINNING_YEAR: '2018'
+          LAST_BEGINNING_YEAR: '2021'
+          FIRST_BEGINNING_YEAR_APP: '2019'
+          LAST_BEGINNING_YEAR_APP: '2020'
+          BUGSNAG_KEY: test-bugsnag-key
+          MAILGUN_PUBLIC_KEY: test-mailgun-public
+          MAILGUN_PRIVATE_KEY: test-mailgun-private
+          MAILGUN_SMTP_PASSWORD: test-mailgun-smtp
+          MJML_APPLICATION_ID: test-mjml-app
+          MJML_PUBLIC_KEY: test-mjml-public
+          MJML_SECRET_KEY: test-mjml-secret
+          EMAIL_HOST: smtp.gmail.com
+          EMAIL_USE_TLS: 'False'
+          EMAIL_USE_SSL: 'True'
+          EMAIL_PORT: '465'
+          EMAIL_HOST_USER: test@example.com
+          EMAIL_HOST_PASSWORD: test-email-password
+          ZOOM_LINK: https://zoom.us/test
+          OMDB_API_KEY: test-omdb-key
+          UTELLY_API_KEY: test-utelly-key
+          IMDB_API_KEY: test-imdb-key
+          YOUTUBE_API_KEY: test-youtube-key
+          MAILCHIMP_API_KEY: test-mailchimp-key
+          MAILCHIMP_PREFIX: us4
+          MAILCHIMP_LIST_ID: test-list-id
+          OPENVERSE_CLIENT_ID: test-openverse-client-id
+          OPENVERSE_CLIENT_SECRET: test-openverse-client-secret
+          PERPLEXITY_API_KEY: test-perplexity-key
         run: |
           pytest --cov=office --cov=churchcal --cov=bible --cov=psalter --cov-report=xml --cov-report=term -v
 
@@ -115,9 +183,43 @@ jobs:
           POSTGRES_PORT: 5432
           SECRET_KEY: test-secret-key-for-ci-cd-pipeline
           DEBUG: 'True'
+          DEBUG_DATES: 'False'
+          SECURE_SSL_REDIRECT: 'False'
+          SECURE_PROXY_SSL_HEADER: http
+          USE_CALENDAR_CACHE: 'False'
+          MODE: test
+          SITE_ADDRESS: http://localhost:8000
           GOOGLE_API_KEY: test-key
           GOOGLE_CUSTOM_SEARCH_ENGINE_KEY: test-key
           OPENAI_API_KEY: test-key
+          FIRST_BEGINNING_YEAR: '2018'
+          LAST_BEGINNING_YEAR: '2021'
+          FIRST_BEGINNING_YEAR_APP: '2019'
+          LAST_BEGINNING_YEAR_APP: '2020'
+          BUGSNAG_KEY: test-bugsnag-key
+          MAILGUN_PUBLIC_KEY: test-mailgun-public
+          MAILGUN_PRIVATE_KEY: test-mailgun-private
+          MAILGUN_SMTP_PASSWORD: test-mailgun-smtp
+          MJML_APPLICATION_ID: test-mjml-app
+          MJML_PUBLIC_KEY: test-mjml-public
+          MJML_SECRET_KEY: test-mjml-secret
+          EMAIL_HOST: smtp.gmail.com
+          EMAIL_USE_TLS: 'False'
+          EMAIL_USE_SSL: 'True'
+          EMAIL_PORT: '465'
+          EMAIL_HOST_USER: test@example.com
+          EMAIL_HOST_PASSWORD: test-email-password
+          ZOOM_LINK: https://zoom.us/test
+          OMDB_API_KEY: test-omdb-key
+          UTELLY_API_KEY: test-utelly-key
+          IMDB_API_KEY: test-imdb-key
+          YOUTUBE_API_KEY: test-youtube-key
+          MAILCHIMP_API_KEY: test-mailchimp-key
+          MAILCHIMP_PREFIX: us4
+          MAILCHIMP_LIST_ID: test-list-id
+          OPENVERSE_CLIENT_ID: test-openverse-client-id
+          OPENVERSE_CLIENT_SECRET: test-openverse-client-secret
+          PERPLEXITY_API_KEY: test-perplexity-key
         run: |
           # Current threshold: 77% (as measured)
           # Target: 90% overall, 100% for P0 features
