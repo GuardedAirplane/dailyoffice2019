@@ -40,7 +40,7 @@ jobs:
         run: |
           echo "Waiting for PostgreSQL to be ready..."
           for i in {1..30}; do
-            if podman exec dailyoffice2019_db_1 pg_isready -U dailyoffice; then
+            if podman-compose exec -T db pg_isready -U dailyoffice; then
               echo "PostgreSQL is ready!"
               break
             fi
@@ -52,21 +52,21 @@ jobs:
         run: |
           echo "Loading database dump..."
           if [ -f site/dailyoffice_2024_01_30.sql ]; then
-            podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice < site/dailyoffice_2024_01_30.sql
+            podman-compose exec -T db psql -U dailyoffice dailyoffice < site/dailyoffice_2024_01_30.sql
           elif [ -f site/dailyoffice_2024_01_30.sql.zip ]; then
             unzip -p site/dailyoffice_2024_01_30.sql.zip dailyoffice_2024_01_30.sql | \
-              podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
+              podman-compose exec -T db psql -U dailyoffice dailyoffice
           else
             echo "Warning: Database dump not found. Tests may fail."
           fi
 
       - name: Run Django system check
         run: |
-          podman exec dailyoffice2019_backend_1 python manage.py check
+          podman-compose exec -T backend python manage.py check
 
       - name: Run pytest with coverage
         run: |
-          podman exec dailyoffice2019_backend_1 python -m pytest \
+          podman-compose exec -T backend python -m pytest \
             --verbose \
             --cov=office \
             --cov=churchcal \
@@ -80,9 +80,10 @@ jobs:
       - name: Copy coverage reports from container
         if: always()
         run: |
-          podman cp dailyoffice2019_backend_1:/workspace/site/coverage.xml ./coverage.xml || true
-          podman cp dailyoffice2019_backend_1:/workspace/site/pytest-results.xml ./pytest-results.xml || true
-          podman cp dailyoffice2019_backend_1:/workspace/site/htmlcov ./htmlcov || true
+          CONTAINER_ID=$(podman-compose ps -q backend)
+          podman cp $CONTAINER_ID:/workspace/site/coverage.xml ./coverage.xml || true
+          podman cp $CONTAINER_ID:/workspace/site/pytest-results.xml ./pytest-results.xml || true
+          podman cp $CONTAINER_ID:/workspace/site/htmlcov ./htmlcov || true
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

@@ -27,9 +27,9 @@ jobs:
         id: black_check
         run: |
           set +e
-          podman exec dailyoffice2019_backend_1 \
-            find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" | \
-            xargs black --check --target-version=py313 --line-length=119
+          podman-compose exec -T backend \
+            find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" -print0 | \
+            xargs -0 black --check --target-version=py313 --line-length=119
           BLACK_EXIT_CODE=$?
           set -e
           
@@ -46,14 +46,15 @@ jobs:
       - name: Run Black formatter (fix)
         if: failure() && github.event_name == 'pull_request'
         run: |
-          podman exec dailyoffice2019_backend_1 \
-            find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" | \
-            xargs black --target-version=py313 --line-length=119
+          podman-compose exec -T backend \
+            find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" -print0 | \
+            xargs -0 black --target-version=py313 --line-length=119
 
       - name: Copy formatted files
         if: failure() && github.event_name == 'pull_request'
         run: |
-          podman cp dailyoffice2019_backend_1:/workspace/site/. ./site/
+          CONTAINER_ID=$(podman-compose ps -q backend)
+          podman cp $CONTAINER_ID:/workspace/site/. ./site/
 
       - name: Create Pull Request with formatting fixes
         if: failure() && github.event_name == 'pull_request' && steps.black_check.outputs.needs_formatting == 'true'
@@ -105,7 +106,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          podman exec dailyoffice2019_frontend_1 npm run lint
+          podman-compose exec -T frontend npm run lint
           ESLINT_EXIT_CODE=$?
           set -e
           
@@ -142,11 +143,11 @@ jobs:
 
       - name: Install pre-commit in container
         run: |
-          podman exec dailyoffice2019_backend_1 pip install pre-commit
+          podman-compose exec -T backend pip install pre-commit
 
       - name: Run pre-commit hooks
         run: |
-          podman exec dailyoffice2019_backend_1 pre-commit run --all-files || true
+          podman-compose exec -T backend pre-commit run --all-files || true
 
       - name: Stop services
         if: always()

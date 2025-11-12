@@ -33,16 +33,17 @@ jobs:
         run: |
           echo "Waiting for npm dependencies..."
           sleep 30
-          podman exec dailyoffice2019_frontend_1 npm list || true
+          podman-compose exec -T frontend npm list || true
 
       - name: Run Vitest unit tests
         run: |
-          podman exec dailyoffice2019_frontend_1 npm run test:unit -- --coverage
+          podman-compose exec -T frontend npm run test:unit -- --run
 
       - name: Copy coverage reports
         if: always()
         run: |
-          podman cp dailyoffice2019_frontend_1:/workspace/app/coverage ./frontend-coverage || true
+          CONTAINER_ID=$(podman-compose ps -q frontend)
+          podman cp $CONTAINER_ID:/workspace/app/coverage ./frontend-coverage || true
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
@@ -100,21 +101,22 @@ jobs:
       - name: Load database dump for E2E tests
         run: |
           if [ -f site/dailyoffice_2024_01_30.sql ]; then
-            podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice < site/dailyoffice_2024_01_30.sql
+            podman-compose exec -T db psql -U dailyoffice dailyoffice < site/dailyoffice_2024_01_30.sql
           elif [ -f site/dailyoffice_2024_01_30.sql.zip ]; then
             unzip -p site/dailyoffice_2024_01_30.sql.zip dailyoffice_2024_01_30.sql | \
-              podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
+              podman-compose exec -T db psql -U dailyoffice dailyoffice
           fi
 
       - name: Run Cypress E2E tests
         run: |
-          podman exec dailyoffice2019_frontend_1 npm run test:e2e || true
+          podman-compose exec -T frontend npm run test:e2e || true
 
       - name: Copy Cypress results
         if: always()
         run: |
-          podman cp dailyoffice2019_frontend_1:/workspace/app/cypress/videos ./cypress-videos || true
-          podman cp dailyoffice2019_frontend_1:/workspace/app/cypress/screenshots ./cypress-screenshots || true
+          CONTAINER_ID=$(podman-compose ps -q frontend)
+          podman cp $CONTAINER_ID:/workspace/app/cypress/videos ./cypress-videos || true
+          podman cp $CONTAINER_ID:/workspace/app/cypress/screenshots ./cypress-screenshots || true
 
       - name: Upload Cypress artifacts
         uses: actions/upload-artifact@v4

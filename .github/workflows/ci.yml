@@ -53,7 +53,7 @@ jobs:
       - name: Wait for database
         run: |
           for i in {1..30}; do
-            if podman exec dailyoffice2019_db_1 pg_isready -U dailyoffice; then
+            if podman-compose exec -T db pg_isready -U dailyoffice; then
               echo "PostgreSQL is ready!"
               break
             fi
@@ -65,16 +65,16 @@ jobs:
         run: |
           if [ -f site/dailyoffice_2024_01_30.sql.zip ]; then
             unzip -p site/dailyoffice_2024_01_30.sql.zip dailyoffice_2024_01_30.sql | \
-              podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
+              podman-compose exec -T db psql -U dailyoffice dailyoffice
           fi
 
       - name: Run Django checks
         run: |
-          podman exec dailyoffice2019_backend_1 python manage.py check
+          podman-compose exec -T backend python manage.py check
 
       - name: Run tests with coverage
         run: |
-          podman exec dailyoffice2019_backend_1 python -m pytest \
+          podman-compose exec -T backend python -m pytest \
             --cov=office --cov=churchcal --cov=bible --cov=psalter \
             --cov-report=xml --cov-report=term-missing \
             --junit-xml=pytest-results.xml
@@ -82,8 +82,9 @@ jobs:
       - name: Extract coverage
         if: always()
         run: |
-          podman cp dailyoffice2019_backend_1:/workspace/site/coverage.xml ./coverage.xml || true
-          podman cp dailyoffice2019_backend_1:/workspace/site/pytest-results.xml ./pytest-results.xml || true
+          CONTAINER_ID=$(podman-compose ps -q backend)
+          podman cp $CONTAINER_ID:/workspace/site/coverage.xml ./coverage.xml || true
+          podman cp $CONTAINER_ID:/workspace/site/pytest-results.xml ./pytest-results.xml || true
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
@@ -119,11 +120,11 @@ jobs:
       - name: Wait for npm install
         run: |
           sleep 30
-          podman exec dailyoffice2019_frontend_1 npm list || true
+          podman-compose exec -T frontend npm list || true
 
       - name: Run unit tests
         run: |
-          podman exec dailyoffice2019_frontend_1 npm run test:unit -- --run
+          podman-compose exec -T frontend npm run test:unit -- --run
 
       - name: Stop services
         if: always()
@@ -149,9 +150,9 @@ jobs:
 
       - name: Check Python formatting
         run: |
-          podman exec dailyoffice2019_backend_1 \
-            find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" | \
-            xargs black --check --target-version=py313 --line-length=119
+          podman-compose exec -T backend \
+            find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" -print0 | \
+            xargs -0 black --check --target-version=py313 --line-length=119
 
       - name: Stop services
         if: always()
