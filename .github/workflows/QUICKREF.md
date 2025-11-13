@@ -5,20 +5,20 @@
 ### Backend Tests
 ```bash
 # Start services
-podman-compose up -d db cache backend
+docker-compose up -d db cache backend
 
 # Wait for DB to be ready
-until podman exec dailyoffice2019_db_1 pg_isready -U dailyoffice; do sleep 2; done
+until docker exec dailyoffice2019_db_1 pg_isready -U dailyoffice; do sleep 2; done
 
 # Load database dump (if not already loaded)
 unzip -p site/dailyoffice_2024_01_30.sql.zip dailyoffice_2024_01_30.sql | \
-  podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
+  docker exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
 
 # Run Django system check
-podman exec dailyoffice2019_backend_1 python manage.py check
+docker exec dailyoffice2019_backend_1 python manage.py check
 
 # Run tests with coverage
-podman exec dailyoffice2019_backend_1 python -m pytest \
+docker exec dailyoffice2019_backend_1 python -m pytest \
   --cov=office --cov=churchcal --cov=bible --cov=psalter \
   --cov-report=html --cov-report=term-missing
 
@@ -26,75 +26,75 @@ podman exec dailyoffice2019_backend_1 python -m pytest \
 # Open site/htmlcov/index.html in browser
 
 # Cleanup
-podman-compose down -v
+docker-compose down -v
 ```
 
 ### Frontend Unit Tests
 ```bash
 # Start frontend
-podman-compose up -d frontend
+docker-compose up -d frontend
 
 # Wait for npm install
 sleep 30
 
 # Run tests
-podman exec dailyoffice2019_frontend_1 npm run test:unit
+docker exec dailyoffice2019_frontend_1 npm run test:unit
 
 # Cleanup
-podman-compose down -v
+docker-compose down -v
 ```
 
 ### Frontend E2E Tests
 ```bash
 # Start all services
-podman-compose up -d
+docker-compose up -d
 
 # Wait for services
 sleep 60
 
 # Load database
 unzip -p site/dailyoffice_2024_01_30.sql.zip dailyoffice_2024_01_30.sql | \
-  podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
+  docker exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
 
 # Run E2E tests
-podman exec dailyoffice2019_frontend_1 npm run test:e2e
+docker exec dailyoffice2019_frontend_1 npm run test:e2e
 
 # Cleanup
-podman-compose down -v
+docker-compose down -v
 ```
 
 ### Python Formatting
 ```bash
 # Start backend
-podman-compose up -d backend
+docker-compose up -d backend
 
 # Check formatting
-podman exec dailyoffice2019_backend_1 \
+docker exec dailyoffice2019_backend_1 \
   find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" | \
   xargs black --check --target-version=py313 --line-length=119
 
 # Apply formatting
-podman exec dailyoffice2019_backend_1 \
+docker exec dailyoffice2019_backend_1 \
   find . -iname "*.py" -not -path "*/migrations/*" -not -path "*/__pycache__/*" | \
   xargs black --target-version=py313 --line-length=119
 
 # Cleanup
-podman-compose down -v
+docker-compose down -v
 ```
 
 ### JavaScript Linting
 ```bash
 # Start frontend
-podman-compose up -d frontend
+docker-compose up -d frontend
 
 # Wait for npm install
 sleep 30
 
 # Run ESLint
-podman exec dailyoffice2019_frontend_1 npm run lint
+docker exec dailyoffice2019_frontend_1 npm run lint
 
 # Cleanup
-podman-compose down -v
+docker-compose down -v
 ```
 
 ## 📊 Workflow Status Badges
@@ -113,13 +113,13 @@ Add these to your README.md:
 ### Issue: "Container not found"
 **Solution:** Check container names match docker-compose.yml:
 ```bash
-podman ps -a | grep dailyoffice
+docker ps -a | grep dailyoffice
 ```
 
 ### Issue: "Database connection failed"
 **Solution:** Ensure PostgreSQL is ready:
 ```bash
-podman exec dailyoffice2019_db_1 pg_isready -U dailyoffice
+docker exec dailyoffice2019_db_1 pg_isready -U dailyoffice
 ```
 
 ### Issue: "npm install fails in frontend"
@@ -127,7 +127,7 @@ podman exec dailyoffice2019_db_1 pg_isready -U dailyoffice
 
 ### Issue: "Tests pass locally but fail in CI"
 **Solution:** 
-1. Rebuild containers: `podman-compose build --no-cache`
+1. Rebuild containers: `docker-compose build --no-cache`
 2. Verify database dump exists: `ls -lh site/dailyoffice_2024_01_30.sql.zip`
 3. Check environment variables match between local and CI
 
@@ -135,7 +135,7 @@ podman exec dailyoffice2019_db_1 pg_isready -U dailyoffice
 **Solution:**
 1. Ensure pytest runs successfully
 2. Check for coverage.xml in site/ directory after test run
-3. Verify coverage packages installed: `podman exec dailyoffice2019_backend_1 pip list | grep cov`
+3. Verify coverage packages installed: `docker exec dailyoffice2019_backend_1 pip list | grep cov`
 
 ## 📦 Artifacts & Reports
 
@@ -186,7 +186,7 @@ pre-commit run --all-files
 
 1. Create new YAML file in `.github/workflows/`
 2. Use existing workflows as template
-3. Test locally first with Podman
+3. Test locally first with Docker
 4. Add documentation to this README
 5. Add status badge to main README
 

@@ -251,7 +251,7 @@ Tests require the production database dump:
 - Full CI suite (parallel): 15-30 minutes
 
 **Optimization tips:**
-- Use workflow caching for Podman images
+- Use workflow caching for Docker images
 - Run only affected workflows (path filtering)
 - Parallelize independent jobs
 - Skip E2E tests on formatting-only changes

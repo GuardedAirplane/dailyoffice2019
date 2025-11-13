@@ -1,6 +1,6 @@
 # GitHub Actions Workflow Template
 
-Use this template to create new custom workflows that leverage the Podman infrastructure.
+Use this template to create new custom workflows that leverage the Docker infrastructure.
 
 ## Basic Workflow Structure
 
@@ -26,15 +26,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Podman
+      - name: Set up Docker
         run: |
           sudo apt-get update
-          sudo apt-get install -y podman podman-compose
+          sudo apt-get install -y docker docker-compose
 
-      - name: Verify Podman installation
+      - name: Verify Docker installation
         run: |
-          podman --version
-          podman-compose --version
+          docker --version
+          docker-compose --version
 
       - name: Start required services
         run: |
@@ -43,12 +43,12 @@ jobs:
           # - cache: Memcached
           # - backend: Django API
           # - frontend: Vue 3 app
-          podman-compose up -d db cache backend
+          docker-compose up -d db cache backend
 
       - name: Wait for database (if using db)
         run: |
           for i in {1..30}; do
-            if podman exec dailyoffice2019_db_1 pg_isready -U dailyoffice; then
+            if docker exec dailyoffice2019_db_1 pg_isready -U dailyoffice; then
               echo "PostgreSQL is ready!"
               break
             fi
@@ -60,24 +60,24 @@ jobs:
         run: |
           if [ -f site/dailyoffice_2024_01_30.sql.zip ]; then
             unzip -p site/dailyoffice_2024_01_30.sql.zip dailyoffice_2024_01_30.sql | \
-              podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
+              docker exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
           fi
 
       - name: Run your custom command
         run: |
           # Example: Run Django management command
-          podman exec dailyoffice2019_backend_1 python manage.py your_command
+          docker exec dailyoffice2019_backend_1 python manage.py your_command
           
           # Example: Run custom Python script
-          podman exec dailyoffice2019_backend_1 python scripts/your_script.py
+          docker exec dailyoffice2019_backend_1 python scripts/your_script.py
           
           # Example: Run frontend build
-          podman exec dailyoffice2019_frontend_1 npm run build
+          docker exec dailyoffice2019_frontend_1 npm run build
 
       - name: Copy results from container (if needed)
         if: always()
         run: |
-          podman cp dailyoffice2019_backend_1:/workspace/site/output.txt ./output.txt || true
+          docker cp dailyoffice2019_backend_1:/workspace/site/output.txt ./output.txt || true
 
       - name: Upload artifacts (if needed)
         uses: actions/upload-artifact@v4
@@ -91,7 +91,7 @@ jobs:
       - name: Stop services
         if: always()
         run: |
-          podman-compose down -v
+          docker-compose down -v
 
       - name: Display summary
         if: always()
@@ -111,13 +111,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install -y podman podman-compose
-      - run: podman-compose up -d db cache backend
+      - run: sudo apt-get install -y docker docker-compose
+      - run: docker-compose up -d db cache backend
       - run: |
           # Wait for DB
-          until podman exec dailyoffice2019_db_1 pg_isready -U dailyoffice; do sleep 2; done
-      - run: podman exec dailyoffice2019_backend_1 python manage.py your_command
-      - run: podman-compose down -v
+          until docker exec dailyoffice2019_db_1 pg_isready -U dailyoffice; do sleep 2; done
+      - run: docker exec dailyoffice2019_backend_1 python manage.py your_command
+      - run: docker-compose down -v
         if: always()
 ```
 
@@ -130,11 +130,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install -y podman podman-compose
-      - run: podman-compose up -d frontend
+      - run: sudo apt-get install -y docker docker-compose
+      - run: docker-compose up -d frontend
       - run: sleep 30  # Wait for npm install
-      - run: podman exec dailyoffice2019_frontend_1 npm run your_script
-      - run: podman-compose down -v
+      - run: docker exec dailyoffice2019_frontend_1 npm run your_script
+      - run: docker-compose down -v
         if: always()
 ```
 
@@ -147,21 +147,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install -y podman podman-compose
-      - run: podman-compose up -d  # Start all services
+      - run: sudo apt-get install -y docker docker-compose
+      - run: docker-compose up -d  # Start all services
       - run: sleep 60  # Wait for all services
       - run: |
           # Load database
           unzip -p site/dailyoffice_2024_01_30.sql.zip dailyoffice_2024_01_30.sql | \
-            podman exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
+            docker exec -i dailyoffice2019_db_1 psql -U dailyoffice dailyoffice
       - run: |
           # Check backend health
           curl -f http://localhost:8000/api/
       - run: |
           # Check frontend health
           curl -f http://localhost:5173/
-      - run: podman exec dailyoffice2019_frontend_1 npm run test:e2e
-      - run: podman-compose down -v
+      - run: docker exec dailyoffice2019_frontend_1 npm run test:e2e
+      - run: docker-compose down -v
         if: always()
 ```
 
@@ -174,11 +174,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install -y podman podman-compose
+      - run: sudo apt-get install -y docker docker-compose
       - uses: actions/cache@v4
         with:
           path: ~/.local/share/containers
-          key: podman-images-${{ hashFiles('docker-compose.yml') }}
+          key: docker-images-${{ hashFiles('docker-compose.yml') }}
   
   job1:
     name: First Job
@@ -186,10 +186,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install -y podman podman-compose
-      - run: podman-compose up -d backend
-      - run: podman exec dailyoffice2019_backend_1 python manage.py job1_command
-      - run: podman-compose down -v
+      - run: sudo apt-get install -y docker docker-compose
+      - run: docker-compose up -d backend
+      - run: docker exec dailyoffice2019_backend_1 python manage.py job1_command
+      - run: docker-compose down -v
         if: always()
   
   job2:
@@ -198,10 +198,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install -y podman podman-compose
-      - run: podman-compose up -d backend
-      - run: podman exec dailyoffice2019_backend_1 python manage.py job2_command
-      - run: podman-compose down -v
+      - run: sudo apt-get install -y docker docker-compose
+      - run: docker-compose up -d backend
+      - run: docker exec dailyoffice2019_backend_1 python manage.py job2_command
+      - run: docker-compose down -v
         if: always()
 ```
 
@@ -212,7 +212,7 @@ jobs:
 ```yaml
 - name: Run with environment variables
   run: |
-    podman exec \
+    docker exec \
       -e MY_VAR="value" \
       -e ANOTHER_VAR="${{ secrets.MY_SECRET }}" \
       dailyoffice2019_backend_1 \
@@ -276,7 +276,7 @@ jobs:
 ```yaml
 - name: Stop services
   if: always()  # Run even if previous steps fail
-  run: podman-compose down -v
+  run: docker-compose down -v
 ```
 
 ### 2. Use Health Checks
@@ -285,7 +285,7 @@ jobs:
 - name: Wait for service health
   run: |
     for i in {1..30}; do
-      if podman exec dailyoffice2019_backend_1 python manage.py check; then
+      if docker exec dailyoffice2019_backend_1 python manage.py check; then
         echo "Service is healthy!"
         break
       fi
@@ -299,7 +299,7 @@ jobs:
 - name: Copy results
   if: always()
   run: |
-    podman cp container:/path/to/file ./local/path || true
+    docker cp container:/path/to/file ./local/path || true
     # The '|| true' prevents failure if file doesn't exist
 ```
 
@@ -315,14 +315,14 @@ jobs:
     # ... rest of job
 ```
 
-### 5. Cache Podman Images
+### 5. Cache Docker Images
 
 ```yaml
-- name: Cache Podman images
+- name: Cache Docker images
   uses: actions/cache@v4
   with:
     path: ~/.local/share/containers
-    key: podman-${{ hashFiles('docker-compose.yml', 'site/Dockerfile.dev') }}
+    key: docker-${{ hashFiles('docker-compose.yml', 'site/Dockerfile.dev') }}
 ```
 
 ## Example: Custom Data Import Workflow
@@ -347,29 +347,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Set up Podman
-        run: sudo apt-get install -y podman podman-compose
+      - name: Set up Docker
+        run: sudo apt-get install -y docker docker-compose
       
       - name: Start services
-        run: podman-compose up -d db cache backend
+        run: docker-compose up -d db cache backend
       
       - name: Wait for database
         run: |
-          until podman exec dailyoffice2019_db_1 pg_isready -U dailyoffice; do sleep 2; done
+          until docker exec dailyoffice2019_db_1 pg_isready -U dailyoffice; do sleep 2; done
       
       - name: Import data
         run: |
-          podman exec dailyoffice2019_backend_1 \
+          docker exec dailyoffice2019_backend_1 \
             python manage.py import_data ${{ github.event.inputs.data_file }}
       
       - name: Verify import
         run: |
-          podman exec dailyoffice2019_backend_1 \
+          docker exec dailyoffice2019_backend_1 \
             python manage.py verify_data
       
       - name: Stop services
         if: always()
-        run: podman-compose down -v
+        run: docker-compose down -v
       
       - name: Report status
         run: |
@@ -398,39 +398,39 @@ Based on `docker-compose.yml`:
 
 ```bash
 # System check
-podman exec dailyoffice2019_backend_1 python manage.py check
+docker exec dailyoffice2019_backend_1 python manage.py check
 
 # Run migrations
-podman exec dailyoffice2019_backend_1 python manage.py migrate
+docker exec dailyoffice2019_backend_1 python manage.py migrate
 
 # Collect static files
-podman exec dailyoffice2019_backend_1 python manage.py collectstatic --noinput
+docker exec dailyoffice2019_backend_1 python manage.py collectstatic --noinput
 
 # Create superuser (interactive)
-podman exec -it dailyoffice2019_backend_1 python manage.py createsuperuser
+docker exec -it dailyoffice2019_backend_1 python manage.py createsuperuser
 
 # Run tests
-podman exec dailyoffice2019_backend_1 python -m pytest
+docker exec dailyoffice2019_backend_1 python -m pytest
 
 # Run shell
-podman exec -it dailyoffice2019_backend_1 python manage.py shell
+docker exec -it dailyoffice2019_backend_1 python manage.py shell
 ```
 
 ## Common npm Commands
 
 ```bash
 # Install dependencies
-podman exec dailyoffice2019_frontend_1 npm install
+docker exec dailyoffice2019_frontend_1 npm install
 
 # Build for production
-podman exec dailyoffice2019_frontend_1 npm run build
+docker exec dailyoffice2019_frontend_1 npm run build
 
 # Run linter
-podman exec dailyoffice2019_frontend_1 npm run lint
+docker exec dailyoffice2019_frontend_1 npm run lint
 
 # Run tests
-podman exec dailyoffice2019_frontend_1 npm run test:unit
-podman exec dailyoffice2019_frontend_1 npm run test:e2e
+docker exec dailyoffice2019_frontend_1 npm run test:unit
+docker exec dailyoffice2019_frontend_1 npm run test:e2e
 ```
 
 ## Debugging Failed Workflows
@@ -439,27 +439,27 @@ podman exec dailyoffice2019_frontend_1 npm run test:e2e
 
 ```bash
 # Locally
-podman logs dailyoffice2019_backend_1
+docker logs dailyoffice2019_backend_1
 
 # In workflow
 - name: View logs
   if: failure()
   run: |
-    podman logs dailyoffice2019_backend_1
+    docker logs dailyoffice2019_backend_1
 ```
 
 ### 2. Inspect Container
 
 ```bash
 # Locally
-podman exec -it dailyoffice2019_backend_1 bash
+docker exec -it dailyoffice2019_backend_1 bash
 
 # In workflow (run commands directly)
 - name: Debug container
   if: failure()
   run: |
-    podman exec dailyoffice2019_backend_1 ls -la /workspace/site
-    podman exec dailyoffice2019_backend_1 cat /workspace/site/logs/error.log
+    docker exec dailyoffice2019_backend_1 ls -la /workspace/site
+    docker exec dailyoffice2019_backend_1 cat /workspace/site/logs/error.log
 ```
 
 ### 3. Enable Verbose Output
@@ -468,8 +468,8 @@ podman exec -it dailyoffice2019_backend_1 bash
 - name: Run with verbose output
   run: |
     set -x  # Echo all commands
-    podman-compose up -d backend
-    podman exec dailyoffice2019_backend_1 python manage.py check --verbosity 2
+    docker-compose up -d backend
+    docker exec dailyoffice2019_backend_1 python manage.py check --verbosity 2
 ```
 
 ---
