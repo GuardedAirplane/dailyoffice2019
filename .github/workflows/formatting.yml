@@ -14,23 +14,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Podman
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y podman python3-pip
-          # Install latest podman-compose via pip for -T flag support
-          pip3 install --user podman-compose
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
       - name: Start backend service
         run: |
-          podman-compose up -d backend
+          docker-compose up -d backend
 
       - name: Run Black formatter check
         id: black_check
         run: |
           set +e
-          podman-compose exec -T backend bash -c \
+          docker-compose exec -T backend bash -c \
             "find . -iname '*.py' -not -path '*/migrations/*' -not -path '*/__pycache__/*' -print0 | xargs -0 black --check --target-version=py313 --line-length=119"
           BLACK_EXIT_CODE=$?
           set -e
@@ -48,14 +40,14 @@ jobs:
       - name: Run Black formatter (fix)
         if: failure() && github.event_name == 'pull_request'
         run: |
-          podman-compose exec -T backend bash -c \
+          docker-compose exec -T backend bash -c \
             "find . -iname '*.py' -not -path '*/migrations/*' -not -path '*/__pycache__/*' -print0 | xargs -0 black --target-version=py313 --line-length=119"
 
       - name: Copy formatted files
         if: failure() && github.event_name == 'pull_request'
         run: |
-          CONTAINER_ID=$(podman-compose ps -q backend)
-          podman cp $CONTAINER_ID:/workspace/site/. ./site/
+          CONTAINER_ID=$(docker-compose ps -q backend)
+          docker cp $CONTAINER_ID:/workspace/site/. ./site/
 
       - name: Create Pull Request with formatting fixes
         if: failure() && github.event_name == 'pull_request' && steps.black_check.outputs.needs_formatting == 'true'
@@ -78,7 +70,7 @@ jobs:
 
       - name: Stop services
         if: always()
-        run: podman-compose down -v
+        run: docker-compose down -v
 
   eslint:
     name: JavaScript/Vue ESLint
@@ -88,17 +80,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Podman
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y podman python3-pip
-          # Install latest podman-compose via pip for -T flag support
-          pip3 install --user podman-compose
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
       - name: Start frontend service
         run: |
-          podman-compose up -d frontend
+          docker-compose up -d frontend
 
       - name: Wait for npm install
         run: |
@@ -110,7 +94,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          podman-compose exec -T frontend npm run lint
+          docker-compose exec -T frontend npm run lint
           ESLINT_EXIT_CODE=$?
           set -e
           
@@ -126,7 +110,7 @@ jobs:
 
       - name: Stop services
         if: always()
-        run: podman-compose down -v
+        run: docker-compose down -v
 
   pre-commit:
     name: Pre-commit Hooks
@@ -136,26 +120,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Podman
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y podman python3-pip
-          # Install latest podman-compose via pip for -T flag support
-          pip3 install --user podman-compose
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
       - name: Start backend service
         run: |
-          podman-compose up -d backend
+          docker-compose up -d backend
 
       - name: Install pre-commit in container
         run: |
-          podman-compose exec -T backend pip install pre-commit
+          docker-compose exec -T backend pip install pre-commit
 
       - name: Run pre-commit hooks
         run: |
-          podman-compose exec -T backend pre-commit run --all-files || true
+          docker-compose exec -T backend pre-commit run --all-files || true
 
       - name: Stop services
         if: always()
-        run: podman-compose down -v
+        run: docker-compose down -v

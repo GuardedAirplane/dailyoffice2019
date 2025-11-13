@@ -14,26 +14,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Podman
+      - name: Verify Docker installation
         run: |
-          sudo apt-get update
-          sudo apt-get install -y podman python3-pip
-          # Install latest podman-compose via pip for -T flag support
-          pip3 install --user podman-compose
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          docker --version
+          docker-compose --version
 
-      - name: Verify Podman installation
-        run: |
-          podman --version
-          podman-compose --version
-
-      - name: Cache Podman images
+      - name: Cache Docker images
         uses: actions/cache@v4
         with:
-          path: ~/.local/share/containers
-          key: podman-images-${{ runner.os }}-${{ hashFiles('docker-compose.yml', 'site/Dockerfile.dev', 'app/Dockerfile.dev') }}
+          path: /tmp/docker-images
+          key: docker-images-${{ runner.os }}-${{ hashFiles('docker-compose.yml', 'site/Dockerfile.dev', 'app/Dockerfile.dev') }}
           restore-keys: |
-            podman-images-${{ runner.os }}-
+            docker-images-${{ runner.os }}-
 
   backend:
     name: Backend Tests & Coverage
@@ -44,22 +36,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Podman
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y podman python3-pip
-          # Install latest podman-compose via pip for -T flag support
-          pip3 install --user podman-compose
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
       - name: Start services
         run: |
-          podman-compose up -d db cache backend
+          docker-compose up -d db cache backend
 
       - name: Wait for database
         run: |
           for i in {1..30}; do
-            if podman-compose exec -T db pg_isready -U dailyoffice; then
+            if docker-compose exec -T db pg_isready -U dailyoffice; then
               echo "PostgreSQL is ready!"
               break
             fi
@@ -71,16 +55,16 @@ jobs:
         run: |
           if [ -f site/dailyoffice_2024_01_30.sql.zip ]; then
             unzip -p site/dailyoffice_2024_01_30.sql.zip dailyoffice_2024_01_30.sql | \
-              podman-compose exec -T db psql -U dailyoffice dailyoffice
+              docker-compose exec -T db psql -U dailyoffice dailyoffice
           fi
 
       - name: Run Django checks
         run: |
-          podman-compose exec -T backend python manage.py check
+          docker-compose exec -T backend python manage.py check
 
       - name: Run tests with coverage
         run: |
-          podman-compose exec -T backend python -m pytest \
+          docker-compose exec -T backend python -m pytest \
             --cov=office --cov=churchcal --cov=bible --cov=psalter \
             --cov-report=xml --cov-report=term-missing \
             --junit-xml=pytest-results.xml
@@ -88,9 +72,9 @@ jobs:
       - name: Extract coverage
         if: always()
         run: |
-          CONTAINER_ID=$(podman-compose ps -q backend)
-          podman cp $CONTAINER_ID:/workspace/site/coverage.xml ./coverage.xml || true
-          podman cp $CONTAINER_ID:/workspace/site/pytest-results.xml ./pytest-results.xml || true
+          CONTAINER_ID=$(docker-compose ps -q backend)
+          docker cp $CONTAINER_ID:/workspace/site/coverage.xml ./coverage.xml || true
+          docker cp $CONTAINER_ID:/workspace/site/pytest-results.xml ./pytest-results.xml || true
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
@@ -103,7 +87,7 @@ jobs:
 
       - name: Stop services
         if: always()
-        run: podman-compose down -v
+        run: docker-compose down -v
 
   frontend:
     name: Frontend Tests
@@ -114,30 +98,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Podman
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y podman python3-pip
-          # Install latest podman-compose via pip for -T flag support
-          pip3 install --user podman-compose
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
       - name: Start frontend
         run: |
-          podman-compose up -d frontend
+          docker-compose up -d frontend
 
       - name: Wait for npm install
         run: |
           sleep 30
-          podman-compose exec -T frontend npm list || true
+          docker-compose exec -T frontend npm list || true
 
       - name: Run unit tests
         run: |
-          podman-compose exec -T frontend npm run test:unit -- --run
+          docker-compose exec -T frontend npm run test:unit -- --run
 
       - name: Stop services
         if: always()
-        run: podman-compose down -v
+        run: docker-compose down -v
 
   formatting:
     name: Code Formatting Check
@@ -148,26 +124,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Podman
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y podman python3-pip
-          # Install latest podman-compose via pip for -T flag support
-          pip3 install --user podman-compose
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
       - name: Start backend
         run: |
-          podman-compose up -d backend
+          docker-compose up -d backend
 
       - name: Check Python formatting
         run: |
-          podman-compose exec -T backend bash -c \
+          docker-compose exec -T backend bash -c \
             "find . -iname '*.py' -not -path '*/migrations/*' -not -path '*/__pycache__/*' -print0 | xargs -0 black --check --target-version=py313 --line-length=119"
 
       - name: Stop services
         if: always()
-        run: podman-compose down -v
+        run: docker-compose down -v
 
   report:
     name: Generate Test Report

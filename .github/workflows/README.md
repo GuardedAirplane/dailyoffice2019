@@ -1,6 +1,6 @@
 # GitHub Actions Workflows
 
-This directory contains GitHub Actions CI/CD workflows for the Daily Office 2019 project. All workflows leverage the existing Podman infrastructure defined in `docker-compose.yml` to ensure consistency between local development and CI environments.
+This directory contains GitHub Actions CI/CD workflows for the Daily Office 2019 project. All workflows leverage the existing Docker infrastructure defined in `docker-compose.yml` to ensure consistency between local development and CI environments.
 
 ## Available Workflows
 
@@ -12,7 +12,7 @@ This directory contains GitHub Actions CI/CD workflows for the Daily Office 2019
 - Changes to `site/**` or `docker-compose.yml`
 
 **What it does:**
-- Starts PostgreSQL, Memcached, and Django backend via Podman Compose
+- Starts PostgreSQL, Memcached, and Django backend via Docker Compose
 - Loads production database dump for realistic test data
 - Runs Django system check
 - Executes pytest with coverage for:
@@ -32,10 +32,10 @@ This directory contains GitHub Actions CI/CD workflows for the Daily Office 2019
 **Local equivalent:**
 ```bash
 # Start services
-podman-compose up -d db cache backend
+docker-compose up -d db cache backend
 
 # Run tests
-podman exec dailyoffice2019_backend_1 python -m pytest \
+docker-compose exec -T backend python -m pytest \
   --cov=office --cov=churchcal --cov=bible --cov=psalter \
   --cov-report=html --cov-report=term-missing
 ```
@@ -56,8 +56,8 @@ podman exec dailyoffice2019_backend_1 python -m pytest \
 
 **Local equivalent:**
 ```bash
-podman-compose up -d frontend
-podman exec dailyoffice2019_frontend_1 npm run test:unit
+docker-compose up -d frontend
+docker-compose exec -T frontend npm run test:unit
 ```
 
 #### b) E2E Tests (Cypress)
@@ -69,8 +69,8 @@ podman exec dailyoffice2019_frontend_1 npm run test:unit
 
 **Local equivalent:**
 ```bash
-podman-compose up -d
-podman exec dailyoffice2019_frontend_1 npm run test:e2e
+docker-compose up -d
+docker-compose exec -T frontend npm run test:e2e
 ```
 
 ### 3. Code Formatting & Linting (`formatting.yml`)
@@ -89,7 +89,7 @@ podman exec dailyoffice2019_frontend_1 npm run test:e2e
 
 **Local equivalent:**
 ```bash
-podman exec dailyoffice2019_backend_1 \
+docker-compose exec -T backend \
   find . -iname "*.py" -not -path "*/migrations/*" | \
   xargs black --target-version=py313 --line-length=119
 ```
@@ -100,7 +100,7 @@ podman exec dailyoffice2019_backend_1 \
 
 **Local equivalent:**
 ```bash
-podman exec dailyoffice2019_frontend_1 npm run lint
+docker-compose exec -T frontend npm run lint
 ```
 
 #### c) Pre-commit Hooks
@@ -124,7 +124,7 @@ pre-commit run --all-files
   - Frontend unit tests
   - Code formatting checks
 - Generates unified test report
-- Caches Podman images for faster runs
+- Caches Docker images for faster runs
 - Provides single pass/fail status for PR merging
 
 **Use case:** Primary CI check for pull requests and merges.
@@ -135,22 +135,22 @@ All workflows follow this pattern:
 
 ```
 1. Checkout code
-2. Set up Podman
-3. Start required services via podman-compose
+2. Verify Docker installation
+3. Start required services via docker-compose
 4. Wait for services to be healthy
 5. Load database dump (if needed)
-6. Run tests/checks inside Podman containers
+6. Run tests/checks inside Docker containers
 7. Copy results out of containers
 8. Upload artifacts/reports
 9. Clean up (stop containers)
 ```
 
-### Why Podman?
+### Why Docker?
 
 - **Consistency**: Same containers locally and in CI
 - **Isolation**: Each job runs in clean environment
 - **Reproducibility**: Exact same dependencies and versions
-- **No Docker daemon**: Runs rootless, more secure
+- **Native support**: Widely supported across CI/CD platforms
 
 ## Configuration
 
@@ -159,7 +159,7 @@ All workflows follow this pattern:
 - `CODECOV_TOKEN`: For uploading coverage to Codecov.io
 - `GITHUB_TOKEN`: Automatically provided by GitHub Actions
 
-### Podman Compose Setup
+### Docker Compose Setup
 
 The workflows use the existing `docker-compose.yml` which defines:
 - `db`: PostgreSQL 17 database
@@ -179,26 +179,25 @@ Tests require the production database dump:
 
 ### Tests fail locally but pass in CI (or vice versa)
 
-1. Ensure your local Podman images are up to date:
+1. Ensure your local Docker images are up to date:
    ```bash
-   podman-compose build --no-cache
+   docker-compose build --no-cache
    ```
 
-2. Check Podman Compose version matches CI:
+2. Check Docker Compose version matches CI:
    ```bash
-   podman-compose --version
+   docker-compose --version
    ```
 
 3. Verify database dump is loaded:
    ```bash
-   podman exec dailyoffice2019_db_1 psql -U dailyoffice -d dailyoffice -c "SELECT COUNT(*) FROM office_standardofficeday;"
+   docker-compose exec -T db psql -U dailyoffice -d dailyoffice -c "SELECT COUNT(*) FROM office_standardofficeday;"
    ```
 
-### Podman commands fail in CI
+### Docker commands fail in CI
 
-- Ensure `podman-compose` is installed (workflow handles this)
 - Check service names match `docker-compose.yml`
-- Verify container names: `podman ps -a`
+- Verify container names: `docker-compose ps`
 
 ### Coverage upload fails
 
@@ -278,7 +277,7 @@ To make tests required for merging:
 ## Links
 
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Podman Compose](https://github.com/containers/podman-compose)
+- [Docker Compose](https://docs.docker.com/compose/)
 - [pytest Documentation](https://docs.pytest.org/)
 - [Vitest Documentation](https://vitest.dev/)
 - [Cypress Documentation](https://docs.cypress.io/)
@@ -288,7 +287,7 @@ To make tests required for merging:
 
 For issues with workflows:
 1. Check workflow logs in GitHub Actions tab
-2. Run equivalent command locally with Podman
+2. Run equivalent command locally with Docker
 3. Verify `docker-compose.yml` is valid
 4. Ensure database dump is present and loadable
 
