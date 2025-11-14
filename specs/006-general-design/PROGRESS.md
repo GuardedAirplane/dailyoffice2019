@@ -31,7 +31,7 @@ Created **research.md** (600+ lines) covering:
 | Area              | Selected Technology          | Rationale                               |
 | ----------------- | ---------------------------- | --------------------------------------- |
 | Unit Testing      | Vitest + Vue Test Utils      | Seamless Vite integration, fast, modern |
-| E2E Testing       | Cypress                      | Already configured, excellent DX        |
+| E2E Testing       | Playwright                   | Modern, multi-browser, superior tooling |
 | Coverage          | Istanbul via Vitest          | Built-in, industry standard             |
 | Accessibility     | axe-core + manual testing    | Automated + manual coverage             |
 | PWA               | vite-plugin-pwa + Workbox    | Battle-tested, excellent Vite support   |
@@ -110,7 +110,7 @@ The `plan.md` has been updated with:
 - ✅ Comprehensive technology research (600+ lines in research.md)
 - ✅ Implementation patterns documented
 - ✅ Dependencies identified
-- ✅ Technology decisions made (Vitest, Cypress, axe-core, vite-plugin-pwa, web-vitals, focus-trap-vue)
+- ✅ Technology decisions made (Vitest, Playwright, axe-core, vite-plugin-pwa, web-vitals, focus-trap-vue)
 
 ### Phase 1: Design & Contracts ✅ COMPLETE (Week 3)
 
@@ -307,7 +307,7 @@ The next agent session should:
    - `app/src/components/ShareSettings.vue` (settings sharing)
    - Mock Capacitor APIs, localStorage, browser APIs
 
-4. **Write E2E tests with Cypress**:
+4. **Write E2E tests with Playwright**:
 
    - Settings persistence (save/load from storage)
    - Settings sharing (URL parameters + QR codes)

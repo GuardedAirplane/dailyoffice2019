@@ -218,9 +218,9 @@ getColorForDate(day) {
 - **Runner**: `npm run test:unit`
 - **Existing Tests**: Minimal
 
-**E2E Testing** (Cypress):
+**E2E Testing** (Playwright):
 
-- **Framework**: Cypress (configured in cypress.config.mjs)
+- **Framework**: Playwright (configured in playwright.config.ts)
 - **Runner**: `npm run test:e2e`
 - **Browser**: Chrome/Electron
 - **Existing Tests**: Some E2E tests exist for other features
@@ -652,7 +652,7 @@ All research questions (RQ-001 through RQ-006) have been answered. No significan
 
 - `site/website/settings.py` - Cache configuration
 - `app/vitest.config.ts` - Frontend test configuration
-- `app/cypress.config.mjs` - E2E test configuration
+- `app/playwright.config.ts` - E2E test configuration
 
 ### Useful Commands
 

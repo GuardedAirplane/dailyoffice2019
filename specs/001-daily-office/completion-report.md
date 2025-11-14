@@ -362,7 +362,7 @@ def get_opening_sentence(self):
 4. **Set Up Test Infrastructure** (4-8 hours)
    - Configure `pytest` with coverage reporting
    - Add `pytest-django` plugin
-   - Configure Cypress for E2E tests
+   - Configure Playwright for E2E tests
    - Set up CI/CD pipeline with test runs
    - Add coverage badges to README
 

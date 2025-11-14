@@ -49,7 +49,7 @@ The Daily Office 2019 application already implements a comprehensive collects br
 **Testing**:
 
 - Backend: pytest, Django test framework (site/office/tests.py exists)
-- Frontend: Vitest, Cypress (configured but needs expansion)
+- Frontend: Vitest, Playwright (configured but needs expansion)
 - Current test coverage: NEEDS ASSESSMENT
 
 **Target Platform**:
@@ -114,7 +114,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - [⚠️] Integration tests planned for component interactions
   - **ACTION REQUIRED**: API endpoint tests, frontend component tests
 - [⚠️] End-to-end tests planned for critical user journeys
-  - **ACTION REQUIRED**: Cypress tests for browse, filter, search, daily office integration
+  - **ACTION REQUIRED**: Playwright tests for browse, filter, search, daily office integration
 - [x] Test-first approach confirmed (tests before implementation)
   - **NOTE**: For retroactive spec, we'll add tests to validate existing + new functionality
 
@@ -386,7 +386,7 @@ site/office/migrations/
 
 7. **Testing Framework Selection**
    - Confirm pytest configuration for backend
-   - Confirm Vitest/Cypress setup for frontend
+   - Confirm Vitest/Playwright setup for frontend
    - Research Vue component testing best practices
    - Identify integration testing approach for API + frontend
 

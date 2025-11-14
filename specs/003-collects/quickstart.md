@@ -382,9 +382,9 @@ npm run test:unit -- --watch
 
 ---
 
-#### End-to-End Tests (Cypress)
+#### End-to-End Tests (Playwright)
 
-**Current State**: Cypress configured but no collects tests
+**Current State**: Playwright configured but no collects tests
 
 **Run Tests** (when created):
 

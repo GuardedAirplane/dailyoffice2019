@@ -130,7 +130,7 @@ This document resolves all "NEEDS CLARIFICATION" items from the implementation p
 1. **Test Pyramid for This Feature**
 
    ```
-   E2E (Cypress)          [5-10 tests]  ← Critical user journeys
+   E2E (Playwright)          [5-10 tests]  ← Critical user journeys
        ↑
    Integration (pytest)   [15-20 tests] ← API contracts, DB queries
        ↑
@@ -172,7 +172,7 @@ This document resolves all "NEEDS CLARIFICATION" items from the implementation p
 - **Test-first for new code**: Admin removal, range UI must have tests before implementation
 - **Test-after for existing code**: Write tests for current implementation first, then modify
 - **Sequence**: Unit → Integration → Component → E2E
-- **Tools**: pytest + pytest-django + pytest-factoryboy (backend), Vitest (frontend unit), Cypress (E2E)
+- **Tools**: pytest + pytest-django + pytest-factoryboy (backend), Vitest (frontend unit), Playwright (E2E)
 - **CI/CD gate**: All tests must pass before merge, coverage report required
 
 **Rationale**: Testing existing code first creates safety net before modifications. Test-first for new code prevents regressions. This pragmatic approach balances constitutional mandate with practical delivery.
@@ -322,7 +322,7 @@ This document resolves all "NEEDS CLARIFICATION" items from the implementation p
 - ✅ Vite (frontend build tool)
 - ✅ pytest + pytest-django (backend testing)
 - ✅ Vitest (frontend unit testing)
-- ✅ Cypress (E2E testing)
+- ✅ Playwright (E2E testing)
 - ✅ Black (Python formatting, 119-char lines)
 - ✅ ESLint (TypeScript/Vue linting)
 

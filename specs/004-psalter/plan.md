@@ -21,7 +21,7 @@ The Psalter feature provides access to all 150 psalms from the Book of Common Pr
 - Backend: Django 5.2+, PostgreSQL 17.5+, Django REST Framework
 - Frontend: Vue 3, Vite, TypeScript, Element Plus UI components, FontAwesome Pro icons
   **Storage**: PostgreSQL database with four tables: `Psalm`, `PsalmVerse`, `PsalmTopic`, `PsalmTopicPsalm`  
-  **Testing**: pytest (backend), Vitest (frontend unit), Cypress (frontend e2e)  
+  **Testing**: pytest (backend), Vitest (frontend unit), Playwright (frontend e2e)  
   **Target Platform**: Web application (desktop and mobile browsers), iOS/Android via Capacitor  
   **Project Type**: Web application with Django backend + Vue.js frontend  
   **Performance Goals**:
@@ -69,7 +69,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - [x] Integration tests planned for component interactions
   - _Test API → frontend data flow, topic filtering, language toggle persistence_
 - [x] End-to-end tests planned for critical user journeys
-  - _Cypress tests: view psalm, navigate, switch language, filter by topic_
+  - _Playwright tests: view psalm, navigate, switch language, filter by topic_
 - [x] Test-first approach confirmed (tests before implementation)
   - _For new work (admin removal, range UI), write failing tests first_
 
@@ -161,7 +161,7 @@ app/                            # Vue.js frontend
     ├── unit/
     │   └── psalter/            # ⚠️ NEEDS: Unit tests for Psalm/Psalms components
     └── e2e/
-        └── psalter.cy.js       # ⚠️ NEEDS: End-to-end Cypress tests
+        └── psalter.spec.ts       # ⚠️ NEEDS: End-to-end Playwright tests
 ```
 
 **Structure Decision**: Web application with Django REST API backend and Vue.js SPA frontend. Frontend communicates with backend exclusively through REST API at `/api/v1/psalms`. No server-side rendering. Static frontend deployed to Cloudflare, API deployed via git hooks.

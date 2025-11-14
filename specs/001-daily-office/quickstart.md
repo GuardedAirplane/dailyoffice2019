@@ -931,7 +931,7 @@ pytest --cov=office --cov-report=html
 cd app
 npm run test
 
-# E2E tests (Cypress)
+# E2E tests (Playwright)
 cd app
 npm run test:e2e
 ```

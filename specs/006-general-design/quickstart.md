@@ -225,7 +225,7 @@ The project will implement comprehensive testing:
    - `Settings.vue` - Settings page
    - `ShareSettings.vue` - Settings sharing
 
-3. **E2E Tests** (Cypress)
+3. **E2E Tests** (Playwright)
    - Settings persistence
    - Settings sharing via URL
    - Responsive design
@@ -619,7 +619,7 @@ ZOOM_LINK=https://zoom.us/development
 **Testing** (Phase 2):
 
 - [Vitest Documentation](https://vitest.dev/)
-- [Cypress Documentation](https://www.cypress.io/)
+- [Playwright Documentation](https://playwright.dev/)
 - [Vue Test Utils Documentation](https://test-utils.vuejs.org/)
 
 ---
@@ -653,11 +653,19 @@ This is the **HIGHEST PRIORITY** phase before any new features:
 3. Write component tests:
    - `app/src/views/Settings.vue`
    - `app/src/components/ShareSettings.vue`
-4. Write E2E tests with Cypress:
+4. Write E2E tests with Playwright:
    - Settings persistence
    - Settings sharing
    - Responsive design
-5. Achieve 90%+ coverage
+5. **Migrate from Cypress to Playwright**:
+   - Install Playwright: `npm install -D @playwright/test @axe-core/playwright`
+   - Install browsers: `npx playwright install --with-deps`
+   - Create `playwright.config.ts`
+   - Port existing test patterns (if any)
+   - Remove Cypress: `npm uninstall cypress cypress-axe`
+   - Delete `cypress.config.mjs`
+   - **See detailed migration guide**: [CYPRESS-TO-PLAYWRIGHT-MIGRATION.md](../../CYPRESS-TO-PLAYWRIGHT-MIGRATION.md)
+6. Achieve 90%+ coverage
 
 **No new features will be built until Phase 2 is complete** (Constitution Principle III).
 

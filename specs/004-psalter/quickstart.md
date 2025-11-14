@@ -29,7 +29,7 @@ The **Psalter** feature provides access to all 150 psalms from the Book of Commo
 
 - Backend: Django 5.2+, Python 3.13, PostgreSQL 17.5+
 - Frontend: Vue 3, Vite, TypeScript, Element Plus
-- Testing: pytest, Vitest, Cypress
+- Testing: pytest, Vitest, Playwright
 
 ---
 
@@ -219,7 +219,7 @@ cd app
 # Unit tests (Vitest)
 npm run test:unit
 
-# E2E tests (Cypress)
+# E2E tests (Playwright)
 npm run test:e2e
 ```
 
@@ -495,7 +495,7 @@ app/
 │       └── storage.js     # DynamicStorage for preferences
 └── tests/
     ├── unit/              # Vitest unit tests
-    └── e2e/               # Cypress E2E tests
+    └── e2e/               # Playwright E2E tests
 ```
 
 ### Documentation

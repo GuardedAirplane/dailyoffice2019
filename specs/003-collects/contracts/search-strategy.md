@@ -662,7 +662,7 @@ methods: {
 
 ---
 
-#### End-to-End Tests (Cypress)
+#### End-to-End Tests (Playwright)
 
 **Location**: `app/tests/e2e/collects.cy.js`
 

@@ -297,7 +297,7 @@ This plan documents the gap analysis and implementation strategy for bringing th
 - Backend: Django TestCase (already in use)
 - API: Django REST Framework APITestCase
 - Frontend: Vitest (configured in project)
-- E2E: Cypress (configured in project)
+- E2E: Playwright (configured in project)
   **Resolution**: Use existing test infrastructure
 
 ### Research Findings

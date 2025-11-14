@@ -431,7 +431,7 @@ from django.test import TestCase
 Configuration exists:
 
 - `app/vitest.config.ts` - Vitest configured for unit tests
-- `app/cypress.config.mjs` - Cypress configured for E2E tests
+- `app/playwright.config.ts` - Playwright configured for E2E tests
 - `app/tests/` directory exists
 
 Test files found:
@@ -522,7 +522,7 @@ To achieve **Principle III (100% function coverage)**, the following test suite 
 
 ##### End-to-End Tests Required (Estimated 20-30 tests)
 
-**User Journey Tests** (Cypress):
+**User Journey Tests** (Playwright):
 
 1. View Morning Prayer for today (US1)
 2. View Evening Prayer for today (US2)
@@ -558,7 +558,7 @@ To achieve **Principle III (100% function coverage)**, the following test suite 
 **Frontend**:
 
 - Vitest (already configured)
-- Cypress (already configured)
+- Playwright (configured for E2E testing)
 - @vue/test-utils (Vue component testing)
 - MSW (Mock Service Worker) for API mocking
 

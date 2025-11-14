@@ -32,7 +32,7 @@ The Daily Office feature is **fully implemented and production-ready**, providin
 **Testing**:
 
 - Backend: pytest (framework present but coverage unknown)
-- Frontend: Vitest + Cypress (configured but test status unknown)
+- Frontend: Vitest + Playwright (configured but test status unknown)
 - **CRITICAL GAP**: Test coverage status unknown - Constitution Principle III violation
 
 **Target Platform**:
@@ -101,7 +101,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - [ ] Integration tests planned for component interactions
   - **Status**: ❌ VIOLATION - No integration test evidence found
 - [ ] End-to-end tests planned for critical user journeys
-  - **Status**: ⚠️ PARTIAL - Cypress configured in `app/` but test status unknown
+  - **Status**: ⚠️ PARTIAL - Playwright configured in `app/` but test status unknown
 - [ ] Test-first approach confirmed (tests before implementation)
   - **Status**: ❌ VIOLATION - Feature already implemented without known test-first approach
 
@@ -352,7 +352,7 @@ app/                            # Vue 3 frontend
 
 - Create comprehensive unit test suite for all office generation logic
 - Create integration tests for Bible Gateway API + caching
-- Create E2E tests for all 8 office types with Cypress
+- Create E2E tests for all 8 office types with Playwright
 - Achieve 100% function coverage per Principle III
 - Estimated effort: 40-80 hours (depends on current coverage)
 

@@ -25,7 +25,7 @@ The Daily Office 2019 lectionary system provides scripture reading assignments a
 - Backend: Django 5.2, psycopg-binary (PostgreSQL), beautifulsoup4 (scripture parsing), requests (Bible Gateway API), Arrow (date handling), scriptures (citation parsing)
 - Frontend: Vue 3, Vite, Element Plus UI, FontAwesome Pro icons
   **Storage**: PostgreSQL 17.5+ with models: `office.OfficeDay`, `office.StandardOfficeDay`, `office.HolyDayOfficeDay`, `office.LectionaryItem`, `office.Scripture`, `churchcal.MassReading`, `churchcal.Commemoration`, `churchcal.Proper`, `churchcal.Common`  
-  **Testing**: pytest (backend), Vitest + Cypress (frontend) - **NEEDS COMPREHENSIVE TEST COVERAGE**  
+  **Testing**: pytest (backend), Vitest + Playwright (frontend) - **NEEDS COMPREHENSIVE TEST COVERAGE**  
   **Target Platform**: Web application (responsive), iOS/Android (Capacitor), Progressive Web App  
   **Project Type**: Web application (Django + Vue.js monorepo)  
   **Performance Goals**:

@@ -83,8 +83,9 @@ export class DynamicStorage {
 **Current State**:
 
 - Vitest configured (`vitest.config.ts`)
-- Cypress configured (`cypress.config.mjs`)
+- Cypress currently configured (`cypress.config.mjs`) - **TO BE REPLACED WITH PLAYWRIGHT**
 - Minimal test files exist (`tests/unit/example.spec.js`)
+- Migration from Cypress to Playwright needed
 
 ### Testing Framework Evaluation
 
@@ -147,14 +148,17 @@ describe("Settings.vue", () => {
 
 **Decision**: Use Vue Test Utils for all component testing.
 
-#### E2E Testing: Cypress ✅ SELECTED
+#### E2E Testing: Playwright ✅ SELECTED
 
 **Rationale**:
 
-- Already configured in project
-- Excellent developer experience (time-travel debugging)
-- Strong community and documentation
-- Good mobile viewport testing
+- Modern, actively developed by Microsoft
+- Excellent developer experience with built-in test runner, trace viewer, and UI mode
+- Superior multi-browser support (Chromium, Firefox, WebKit)
+- Built-in mobile viewport testing and device emulation
+- Parallel test execution out of the box
+- Auto-wait and retry capabilities reduce flakiness
+- Strong TypeScript support
 
 **Critical E2E Test Scenarios Needed**:
 
@@ -167,7 +171,7 @@ describe("Settings.vue", () => {
 7. Font size adjustment
 8. Deep linking (mobile apps)
 
-**Decision**: Use Cypress for E2E tests with mobile viewport testing.
+**Decision**: Use Playwright for E2E tests with comprehensive multi-browser and mobile viewport testing.
 
 ### Test Organization Strategy
 
@@ -189,11 +193,11 @@ app/tests/
 ├── integration/                      # For testing component interactions
 │   └── settings-flow.spec.js
 └── e2e/
-    ├── settings-persistence.cy.js
-    ├── settings-sharing.cy.js
-    ├── responsive-design.cy.js
-    ├── accessibility.cy.js
-    └── cross-platform.cy.js
+    ├── settings-persistence.spec.ts
+    ├── settings-sharing.spec.ts
+    ├── responsive-design.spec.ts
+    ├── accessibility.spec.ts
+    └── cross-platform.spec.ts
 ```
 
 **Decision**: Use this hierarchical organization with clear separation of concerns.
@@ -242,7 +246,16 @@ jobs:
           node-version: "20"
       - run: npm ci
       - run: npm run test:unit -- --coverage
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
       - run: npm run test:e2e
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 ```
@@ -288,15 +301,27 @@ it("has no accessibility violations", async () => {
 });
 ```
 
-**Integration with Cypress**:
+**Integration with Playwright**:
 
 ```javascript
-// cypress/support/commands.js
-import "cypress-axe";
+// tests/e2e/helpers/axe.ts
+import { test as base, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+
+export const test = base.extend({
+  makeAxeBuilder: async ({ page }, use) => {
+    await use(() => new AxeBuilder({ page }));
+  },
+});
 
 // In test
-cy.injectAxe();
-cy.checkA11y();
+import { test, expect } from './helpers/axe';
+
+test('should not have accessibility violations', async ({ page, makeAxeBuilder }) => {
+  await page.goto('/');
+  const accessibilityScanResults = await makeAxeBuilder().analyze();
+  expect(accessibilityScanResults.violations).toEqual([]);
+});
 ```
 
 **Decision**: Use axe-core in both unit and E2E tests.
@@ -1165,7 +1190,7 @@ export default {
 
 | Area                  | Technology                             | Rationale                                         |
 | --------------------- | -------------------------------------- | ------------------------------------------------- |
-| **Testing**           | Vitest + Vue Test Utils + Cypress      | Seamless Vite integration, comprehensive coverage |
+| **Testing**           | Vitest + Vue Test Utils + Playwright   | Seamless Vite integration, comprehensive coverage |
 | **Coverage**          | Istanbul (c8) via Vitest               | Built-in, proven solution                         |
 | **Accessibility**     | axe-core + manual testing              | Industry standard, covers automated + manual      |
 | **Focus Management**  | focus-trap-vue                         | Lightweight, Vue-compatible                       |
@@ -1182,8 +1207,8 @@ export default {
     "vitest": "^1.0.0",
     "@vue/test-utils": "^2.4.0",
     "@vitest/coverage-istanbul": "^1.0.0",
-    "cypress": "^13.0.0",
-    "cypress-axe": "^1.5.0",
+    "@playwright/test": "^1.40.0",
+    "@axe-core/playwright": "^4.8.0",
     "jest-axe": "^8.0.0",
     "vite-plugin-pwa": "^0.17.0",
     "workbox-window": "^7.0.0",
@@ -1217,10 +1242,10 @@ export default {
 - **Why**: Vitest better Vite integration, faster, modern
 - **Decision**: Vitest
 
-**Rejected**: Playwright instead of Cypress
+**Rejected**: Cypress instead of Playwright
 
-- **Why**: Cypress already configured, team familiarity
-- **Decision**: Cypress (but Playwright is valid alternative)
+- **Why**: Playwright offers better multi-browser support, built-in parallelization, superior tooling, and active development
+- **Decision**: Playwright (migration from Cypress needed)
 
 ### Performance Monitoring Alternatives
 
@@ -1242,9 +1267,10 @@ With research complete, proceed to Phase 1 implementation:
 
    ```bash
    cd app
-   npm install -D vitest @vue/test-utils @vitest/coverage-istanbul cypress-axe jest-axe
+   npm install -D vitest @vue/test-utils @vitest/coverage-istanbul @playwright/test @axe-core/playwright jest-axe
    npm install -D vite-plugin-pwa workbox-window
    npm install focus-trap-vue web-vitals
+   npx playwright install --with-deps
    ```
 
 2. **Configure Testing Infrastructure**:
@@ -1252,7 +1278,16 @@ With research complete, proceed to Phase 1 implementation:
    - Update `vitest.config.ts` with coverage thresholds
    - Create `vitest.setup.js` with Capacitor mocks
    - Add coverage scripts to `package.json`
-   - Configure Cypress for accessibility testing
+   - Configure Playwright with `playwright.config.ts`
+   - Set up Playwright accessibility testing with axe-core
+
+3. **Remove Cypress Infrastructure**:
+
+   - Uninstall Cypress packages: `npm uninstall cypress cypress-axe`
+   - Remove `cypress.config.mjs` file
+   - Delete `app/tests/e2e/` directory (old Cypress tests)
+   - Remove Cypress-related scripts from `package.json`
+   - **See detailed migration plan**: [../../CYPRESS-TO-PLAYWRIGHT-MIGRATION.md](../../CYPRESS-TO-PLAYWRIGHT-MIGRATION.md)
 
 3. **Begin Writing Tests**:
 

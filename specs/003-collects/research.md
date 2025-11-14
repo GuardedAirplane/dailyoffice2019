@@ -32,7 +32,7 @@ This research phase assessed the existing collects implementation against the re
 
 - No unit tests for `CollectsNew.vue` component
 - No unit tests for `Collect.vue` or `CollectsSubcategory.vue` components
-- Vitest and Cypress are configured in the project but no collect-specific tests exist
+- Vitest and Playwright are configured in the project but no collect-specific tests exist
 - Files: `app/tests/unit/` and `app/tests/e2e/` directories exist but empty for collects
 
 **API Testing**:
@@ -102,7 +102,7 @@ To achieve constitutional compliance (Principle III: 100% function coverage):
 
 - **Unit Testing**: Vitest (already configured in `app/vitest.config.ts`)
 - **Component Testing**: @vue/test-utils (needs verification of installation)
-- **E2E Testing**: Cypress (already configured in `app/cypress.config.mjs`)
+- **E2E Testing**: Playwright (configured in `app/playwright.config.ts`)
 - **Coverage Tool**: Vitest's built-in coverage via v8 or istanbul
 
 ### Recommendation

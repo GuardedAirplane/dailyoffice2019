@@ -57,7 +57,7 @@ The application currently supports:
 
 **Testing**:
 
-- Frontend: Vitest (unit tests), Cypress (e2e tests)
+- Frontend: Vitest (unit tests), Playwright (e2e tests)
 - Backend: pytest, Django test framework
 - Current Status: Minimal test coverage exists
 
@@ -120,7 +120,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 - [❌] Integration tests planned for component interactions
   - **Gap**: No integration tests detected
 - [❌] End-to-end tests planned for critical user journeys
-  - **Gap**: Cypress configured but no substantial tests found
+  - **Gap**: Playwright configured but no substantial tests found
 - [❌] Test-first approach confirmed (tests before implementation)
   - **Gap**: Feature already implemented without tests
 
@@ -232,11 +232,11 @@ app/                           # Vue 3 Frontend Application
 ├── tests/
 │   ├── unit/
 │   │   └── example.spec.js   # Minimal unit test example
-│   └── e2e/                  # Cypress e2e tests directory
+│   └── e2e/                  # Playwright e2e tests directory
 ├── capacitor.config.ts       # Capacitor configuration
 ├── vite.config.mjs          # Vite build configuration
 ├── vitest.config.ts         # Vitest test configuration
-├── cypress.config.mjs       # Cypress e2e configuration
+├── playwright.config.ts     # Playwright e2e configuration
 ├── tailwind.config.mjs      # Tailwind CSS configuration
 ├── package.json             # Node.js dependencies
 └── README.md                # Frontend documentation
@@ -470,7 +470,7 @@ The plan follows a 6-phase approach over 16-20 weeks (thorough timeline as decid
 
 **Key Decisions Made**:
 
-- **Testing**: Vitest + Vue Test Utils + Cypress + axe-core for accessibility
+- **Testing**: Vitest + Vue Test Utils + Playwright + axe-core for accessibility
 - **PWA**: vite-plugin-pwa + Workbox for service worker management
 - **Performance**: web-vitals library + Performance API for metrics tracking
 - **Browser Detection**: Feature detection primary, minimal UA parsing fallback
@@ -534,6 +534,11 @@ The plan follows a 6-phase approach over 16-20 weeks (thorough timeline as decid
    - Settings persistence
    - Settings sharing
    - Cross-platform consistency
+5. **Migrate from Cypress to Playwright**:
+   - Install Playwright and dependencies
+   - Create Playwright configuration
+   - Port existing test patterns (if any)
+   - Remove Cypress configuration and dependencies
 
 **Deliverables**: Test suite with >80% coverage of existing code
 
@@ -738,15 +743,21 @@ C. **Thorough (16-20 weeks)**: Include comprehensive WCAG 2.1 AA compliance and 
 - `app/tests/unit/helpers/decodeSettingsString.spec.js`
 - `app/tests/unit/store/index.spec.js`
 - `app/tests/unit/components/ShareSettings.spec.js`
-- `app/tests/e2e/settings-persistence.cy.js`
-- `app/tests/e2e/settings-sharing.cy.js`
-- `app/tests/e2e/cross-platform.cy.js`
+- `app/tests/e2e/settings-persistence.spec.ts`
+- `app/tests/e2e/settings-sharing.spec.ts`
+- `app/tests/e2e/cross-platform.spec.ts`
 
 **Modified Files**:
 
 - `app/vitest.config.ts` - Add coverage configuration
-- `app/package.json` - Add test coverage scripts
+- `app/playwright.config.ts` - Configure Playwright for e2e testing
+- `app/package.json` - Add test coverage scripts and Playwright dependencies
 - `.github/workflows/` - Add CI/CD test jobs (if not exists)
+
+**Files to Remove**:
+
+- `app/cypress.config.mjs` - Remove Cypress configuration
+- Remove Cypress dependencies from `package.json`
 
 ---
 
