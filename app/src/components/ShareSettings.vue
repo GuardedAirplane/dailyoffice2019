@@ -14,13 +14,13 @@
       </p>
 
       <p class="text-left pt-2 mx-1 my-2">
-        <span aria-hidden="true" class="step-indicator">[1]</span>&nbsp;Pick the settings
-        you want to use on the <a href="/settings">Settings</a> pages.
+        <span aria-hidden="true" class="step-indicator">[1]</span>&nbsp;Pick the
+        settings you want to use on the <a href="/settings">Settings</a> pages.
       </p>
       <p class="text-left pt-2 mx-1 my-2">
-  <span aria-hidden="true" class="step-indicator">[2]</span>&nbsp;Return here and
-  click the
-  <span aria-hidden="true" class="action-indicator">[Copy]</span>
+        <span aria-hidden="true" class="step-indicator">[2]</span>&nbsp;Return
+        here and click the
+        <span aria-hidden="true" class="action-indicator">[Copy]</span>
         button below (or manually copy the link).
       </p>
       <div @click="copyLink">
@@ -35,9 +35,9 @@
         </el-input>
       </div>
       <p class="text-left pt-2 mx-1 my-2">
-        <span aria-hidden="true" class="step-indicator">[3]</span>&nbsp;Paste the link in
-        an email, text message, or chat and send to whoever you want to pray
-        with.
+        <span aria-hidden="true" class="step-indicator">[3]</span>&nbsp;Paste
+        the link in an email, text message, or chat and send to whoever you want
+        to pray with.
       </p>
       <p class="text-left pt-2 mx-1 my-2">
         <span aria-hidden="true" class="step-indicator">[4]</span>&nbsp;When the

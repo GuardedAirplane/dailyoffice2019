@@ -266,7 +266,7 @@ export default {
       loading: true,
       error: null,
       activeName: ref('first'),
-  linkIcon: '[link]',
+      linkIcon: '[link]',
     };
   },
   async mounted() {
