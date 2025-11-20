@@ -15,4 +15,12 @@ else
   python manage.py migrate --noinput
 fi
 
+# Ensure calendar cache is populated for past and future years
+if [[ -z "${SKIP_CALENDAR_CACHE:-}" ]]; then
+  echo "Ensuring calendar cache is populated..."
+  python manage.py ensure_calendar_cache
+else
+  echo "Skipping calendar cache generation because SKIP_CALENDAR_CACHE=${SKIP_CALENDAR_CACHE}."
+fi
+
 exec "$@"
