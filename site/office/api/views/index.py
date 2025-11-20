@@ -2858,6 +2858,22 @@ class OfficeAPIView(APIView):
     def get(self, request, year, month, day):
         raise NotImplementedError("You must implement this method.")
 
+    def get_precompiled_response(self, request, year, month, day, office_name):
+        if request.GET:
+            return None
+
+        precompiled_dir = os.path.join(settings.BASE_DIR, "precompiled")
+        file_path = os.path.join(precompiled_dir, str(year), f"{month:02d}", f"{day:02d}", f"{office_name}.json")
+
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, "r") as f:
+                    data = json.load(f)
+                return Response(data)
+            except Exception:
+                pass
+        return None
+
 
 class GenericDailyOfficeSerializer(serializers.Serializer):
     modules = serializers.SerializerMethodField()
@@ -3653,6 +3669,9 @@ class AudioViewSet(ViewSet):
 
 class MorningPrayerView(OfficeAPIView):
     def get(self, request, year, month, day):
+        response = self.get_precompiled_response(request, year, month, day, "morning_prayer")
+        if response:
+            return response
 
         office = MorningPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
@@ -3664,6 +3683,10 @@ class MorningPrayerView(OfficeAPIView):
 
 class FamilyMorningPrayerView(OfficeAPIView):
     def get(self, request, year, month, day):
+        response = self.get_precompiled_response(request, year, month, day, "family_morning_prayer")
+        if response:
+            return response
+
         office = FamilyMorningPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
@@ -3674,6 +3697,10 @@ class FamilyMorningPrayerView(OfficeAPIView):
 
 class FamilyMiddayPrayerView(OfficeAPIView):
     def get(self, request, year, month, day):
+        response = self.get_precompiled_response(request, year, month, day, "family_midday_prayer")
+        if response:
+            return response
+
         office = FamilyMiddayPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
@@ -3684,6 +3711,10 @@ class FamilyMiddayPrayerView(OfficeAPIView):
 
 class FamilyEarlyEveningPrayerView(OfficeAPIView):
     def get(self, request, year, month, day):
+        response = self.get_precompiled_response(request, year, month, day, "family_early_evening_prayer")
+        if response:
+            return response
+
         office = FamilyEarlyEveningPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
@@ -3694,6 +3725,10 @@ class FamilyEarlyEveningPrayerView(OfficeAPIView):
 
 class FamilyCloseOfDayPrayerView(OfficeAPIView):
     def get(self, request, year, month, day):
+        response = self.get_precompiled_response(request, year, month, day, "family_close_of_day_prayer")
+        if response:
+            return response
+
         office = FamilyCloseOfDayPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
@@ -3704,6 +3739,10 @@ class FamilyCloseOfDayPrayerView(OfficeAPIView):
 
 class EveningPrayerView(OfficeAPIView):
     def get(self, request, year, month, day):
+        response = self.get_precompiled_response(request, year, month, day, "evening_prayer")
+        if response:
+            return response
+
         office = EveningPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
@@ -3714,6 +3753,10 @@ class EveningPrayerView(OfficeAPIView):
 
 class MiddayPrayerView(OfficeAPIView):
     def get(self, request, year, month, day):
+        response = self.get_precompiled_response(request, year, month, day, "midday_prayer")
+        if response:
+            return response
+
         office = MiddayPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
@@ -3724,6 +3767,10 @@ class MiddayPrayerView(OfficeAPIView):
 
 class ComplineView(OfficeAPIView):
     def get(self, request, year, month, day):
+        response = self.get_precompiled_response(request, year, month, day, "compline")
+        if response:
+            return response
+
         office = Compline(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)

@@ -4,7 +4,6 @@ import vue from 'eslint-plugin-vue';
 import prettierPlugin from 'eslint-plugin-prettier';
 import vueScopedCss from 'eslint-plugin-vue-scoped-css';
 import vueEslintParser from 'vue-eslint-parser';
-import cypressPlugin from 'eslint-plugin-cypress';
 
 // Use a simpler config approach
 export default [
@@ -58,8 +57,6 @@ export default [
         require: 'readonly',
         process: 'readonly',
         __dirname: 'readonly',
-        cy: 'readonly',
-        Cypress: 'readonly',
         Audio: 'readonly',
       },
     },
@@ -67,7 +64,6 @@ export default [
       vue,
       prettier: prettierPlugin,
       'vue-scoped-css': vueScopedCss,
-      cypress: cypressPlugin,
     },
     rules: {
       // Basic rules
@@ -77,14 +73,6 @@ export default [
 
       // Prettier rule
       'prettier/prettier': 'error',
-
-      // Cypress rules
-      'cypress/no-assigning-return-values': 'error',
-      'cypress/no-unnecessary-waiting': 'error',
-      'cypress/assertion-before-screenshot': 'warn',
-      'cypress/no-force': 'warn',
-      'cypress/no-async-tests': 'error',
-      'cypress/no-pause': 'error',
     },
   },
 

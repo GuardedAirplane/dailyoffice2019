@@ -62,6 +62,19 @@ services:
       backend:
         condition: service_started
 
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.56.1-jammy
+    ipc: host
+    environment:
+      PLAYWRIGHT_BASE_URL: http://frontend:5173
+    volumes:
+      - ./app:/workspace/app:Z
+      - app_node_modules:/workspace/app/node_modules:Z
+    working_dir: /workspace/app
+    depends_on:
+      frontend:
+        condition: service_started
+
 volumes:
   postgres_data:
   app_node_modules:
