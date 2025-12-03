@@ -73,6 +73,23 @@ class Settings(dict):
         settings["extra_collects"] = self._get_extra_collects(request)
         super().__init__(**settings)
 
+    def __getitem__(self, key):
+        """
+        Override dict __getitem__ to provide fallbacks for missing settings.
+
+        This handles cases where the database is missing settings due to
+        incomplete migrations (e.g., migration 0009_add_trad_language_setting).
+        """
+        try:
+            return super().__getitem__(key)
+        except KeyError:
+            # Fallback for missing language_style_for_our_father setting
+            # If migration 0009 hasn't run, this setting won't exist
+            if key == "language_style_for_our_father":
+                # Default to contemporary language for prayers
+                return "contemporary"
+            raise
+
     def _default_settings(self):
         settings = (
             Setting.objects.order_by("site", "setting_type", "order")
@@ -1268,6 +1285,25 @@ class Prayers(Module):
 
 
 class MPCollectOfTheDay(Module):
+    """
+    Module for displaying the Collect of the Day in Morning Prayer.
+
+    Retrieves and displays the proper collect for the liturgical day,
+    respecting language style setting (contemporary vs traditional).
+
+    FR Requirements:
+    - FR-009: Include full text of prayers and collects
+      * Displays full collect text from commemoration.morning_prayer_collect
+      * Supports both contemporary and traditional language
+      * Includes "Amen." response
+    - FR-007: Proper collects for feast days
+      * Uses commemoration.morning_prayer_collect set by SetNamesAndCollects
+      * Respects collect hierarchy (proper > commemoration > seasonal > feria)
+      * Displays commemoration name as context for collect
+
+    Related: Phase 15 (T185-T186), Collect system testing
+    """
+
     name = "Collect(s) of the Day"
     attribute = "morning_prayer_collect"
     commemoration_attribute = "all"
@@ -1295,11 +1331,48 @@ class MPCollectOfTheDay(Module):
 
 
 class EPCollectOfTheDay(MPCollectOfTheDay):
+    """
+    Module for displaying the Collect of the Day in Evening Prayer.
+
+    Extends MPCollectOfTheDay to use evening_prayer_collect, which may
+    differ from morning_prayer_collect when commemoration has collect_2.
+
+    FR Requirements:
+    - FR-009: Include full text of prayers and collects
+    - FR-007: Proper collects for feast days
+      * Uses evening_prayer_collect which may be collect_2
+      * Supports feasts with distinct evening collects
+
+    Related: Phase 15 (T185-T186), Collect system testing
+    """
+
     attribute = "evening_prayer_collect"
     commemoration_attribute = "all_evening"
 
 
 class AdditionalCollects(Module):
+    """
+    Module for displaying Additional Collects after the Collect of the Day.
+
+    Provides collects for mission, weekly devotion, or user-selected extras.
+    Supports rotation modes: weekly (by weekday), fixed (same daily), or custom.
+
+    FR Requirements:
+    - FR-009: Include full text of prayers and collects
+      * Displays full text of mission collect (rotates by day_of_year % 3)
+      * Displays weekly collect with weekday rotation (7 collects)
+      * Displays fixed collects (same set daily)
+      * Supports user-selected extra collects via settings
+      * Respects language style (contemporary vs traditional)
+
+    Rotation Logic:
+    - Weekly: Different collect for each day of week (Monday-Sunday)
+    - Fixed: Same collects every day
+    - Mission: Rotates through 3 mission collects by day of year
+
+    Related: Phase 15 (T185-T186), Collect system testing
+    """
+
     name = "Additional Collects"
 
     def get_collects(self):
@@ -2855,8 +2928,44 @@ class Readings(Module):
 class OfficeAPIView(APIView):
     permission_classes = [ReadOnly]
 
+    # Cache timeout in seconds (12 hours - offices don't change for a given date)
+    CACHE_TIMEOUT = 60 * 60 * 12
+
     def get(self, request, year, month, day):
         raise NotImplementedError("You must implement this method.")
+
+    def get_cache_key(self, office_name, year, month, day, query_params=None):
+        """Generate a cache key for the office API response.
+
+        Uses MD5 hash of query params to avoid memcached's 250-char key limit.
+        """
+        import hashlib
+
+        # Include query params in cache key to handle different settings
+        if query_params:
+            sorted_params = sorted(query_params.items())
+            params_str = "&".join(f"{k}={v}" for k, v in sorted_params)
+            # Hash the params to keep key length under memcached's 250 char limit
+            params_hash = hashlib.md5(params_str.encode()).hexdigest()[:16]
+            return f"office_api:{office_name}:{year}-{month:02d}-{day:02d}:{params_hash}"
+        return f"office_api:{office_name}:{year}-{month:02d}-{day:02d}:default"
+
+    def get_cached_response(self, request, year, month, day, office_name):
+        """Try to get a cached API response from memcached."""
+        from django.core.cache import cache
+
+        cache_key = self.get_cache_key(office_name, year, month, day, dict(request.GET) if request.GET else None)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
+        return None
+
+    def set_cached_response(self, request, year, month, day, office_name, data):
+        """Cache the API response in memcached."""
+        from django.core.cache import cache
+
+        cache_key = self.get_cache_key(office_name, year, month, day, dict(request.GET) if request.GET else None)
+        cache.set(cache_key, data, self.CACHE_TIMEOUT)
 
     def get_precompiled_response(self, request, year, month, day, office_name):
         if request.GET:
@@ -2873,6 +2982,45 @@ class OfficeAPIView(APIView):
             except Exception:
                 pass
         return None
+
+    def initial(self, request, *args, **kwargs):
+        """
+        Runs anything that needs to occur prior to calling the method handler.
+
+        Adds date validation before processing the request.
+        Raises ValidationError for invalid dates, which DRF will convert to 400 Bad Request.
+        """
+        super().initial(request, *args, **kwargs)
+
+        from datetime import datetime
+
+        # Extract year, month, day from URL parameters
+        year = kwargs.get("year")
+        month = kwargs.get("month")
+        day = kwargs.get("day")
+
+        # Validate date parameters if present
+        if year is not None and month is not None and day is not None:
+            try:
+                # Convert to integers
+                year_int = int(year)
+                month_int = int(month)
+                day_int = int(day)
+
+                # Validate ranges
+                if not (1 <= month_int <= 12):
+                    raise ValidationError(f"Invalid month: {month}. Month must be between 1 and 12.")
+
+                if not (1 <= day_int <= 31):
+                    raise ValidationError(f"Invalid day: {day}. Day must be between 1 and 31.")
+
+                # Validate that it's an actual date (e.g., not Feb 30)
+                datetime(year_int, month_int, day_int)
+
+            except ValueError as e:
+                raise ValidationError(f"Invalid date: {year}-{month}-{day}. {str(e)}")
+            except (TypeError, AttributeError):
+                raise ValidationError("Invalid date format. Expected format: YYYY-M-D")
 
 
 class GenericDailyOfficeSerializer(serializers.Serializer):
@@ -3029,7 +3177,10 @@ class GenericDailyOfficeSerializer(serializers.Serializer):
         result = subprocess.run(ffmpeg_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         # Cleanup temp file list
-        os.remove(temp_file_list)
+        try:
+            os.remove(temp_file_list)
+        except FileNotFoundError:
+            pass
 
         return file_url, path, track_list, short_track_list
 
@@ -3669,15 +3820,24 @@ class AudioViewSet(ViewSet):
 
 class MorningPrayerView(OfficeAPIView):
     def get(self, request, year, month, day):
+        # Check precompiled JSON files first
         response = self.get_precompiled_response(request, year, month, day, "morning_prayer")
         if response:
             return response
+
+        # Check memcached for API response
+        cached = self.get_cached_response(request, year, month, day, "morning_prayer")
+        if cached:
+            return cached
 
         office = MorningPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
         else:
             serializer = OfficeSerializer(office)
+
+        # Cache the response
+        self.set_cached_response(request, year, month, day, "morning_prayer", serializer.data)
         return Response(serializer.data)
 
 
@@ -3687,11 +3847,17 @@ class FamilyMorningPrayerView(OfficeAPIView):
         if response:
             return response
 
+        cached = self.get_cached_response(request, year, month, day, "family_morning_prayer")
+        if cached:
+            return cached
+
         office = FamilyMorningPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
         else:
             serializer = OfficeSerializer(office)
+
+        self.set_cached_response(request, year, month, day, "family_morning_prayer", serializer.data)
         return Response(serializer.data)
 
 
@@ -3701,11 +3867,17 @@ class FamilyMiddayPrayerView(OfficeAPIView):
         if response:
             return response
 
+        cached = self.get_cached_response(request, year, month, day, "family_midday_prayer")
+        if cached:
+            return cached
+
         office = FamilyMiddayPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
         else:
             serializer = OfficeSerializer(office)
+
+        self.set_cached_response(request, year, month, day, "family_midday_prayer", serializer.data)
         return Response(serializer.data)
 
 
@@ -3715,11 +3887,17 @@ class FamilyEarlyEveningPrayerView(OfficeAPIView):
         if response:
             return response
 
+        cached = self.get_cached_response(request, year, month, day, "family_early_evening_prayer")
+        if cached:
+            return cached
+
         office = FamilyEarlyEveningPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
         else:
             serializer = OfficeSerializer(office)
+
+        self.set_cached_response(request, year, month, day, "family_early_evening_prayer", serializer.data)
         return Response(serializer.data)
 
 
@@ -3729,11 +3907,17 @@ class FamilyCloseOfDayPrayerView(OfficeAPIView):
         if response:
             return response
 
+        cached = self.get_cached_response(request, year, month, day, "family_close_of_day_prayer")
+        if cached:
+            return cached
+
         office = FamilyCloseOfDayPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
         else:
             serializer = OfficeSerializer(office)
+
+        self.set_cached_response(request, year, month, day, "family_close_of_day_prayer", serializer.data)
         return Response(serializer.data)
 
 
@@ -3743,11 +3927,17 @@ class EveningPrayerView(OfficeAPIView):
         if response:
             return response
 
+        cached = self.get_cached_response(request, year, month, day, "evening_prayer")
+        if cached:
+            return cached
+
         office = EveningPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
         else:
             serializer = OfficeSerializer(office)
+
+        self.set_cached_response(request, year, month, day, "evening_prayer", serializer.data)
         return Response(serializer.data)
 
 
@@ -3757,11 +3947,17 @@ class MiddayPrayerView(OfficeAPIView):
         if response:
             return response
 
+        cached = self.get_cached_response(request, year, month, day, "midday_prayer")
+        if cached:
+            return cached
+
         office = MiddayPrayer(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
         else:
             serializer = OfficeSerializer(office)
+
+        self.set_cached_response(request, year, month, day, "midday_prayer", serializer.data)
         return Response(serializer.data)
 
 
@@ -3771,11 +3967,17 @@ class ComplineView(OfficeAPIView):
         if response:
             return response
 
+        cached = self.get_cached_response(request, year, month, day, "compline")
+        if cached:
+            return cached
+
         office = Compline(request, year, month, day)
         if request.GET.get("include_audio_links"):
             serializer = OfficeAudioSerializer(office)
         else:
             serializer = OfficeSerializer(office)
+
+        self.set_cached_response(request, year, month, day, "compline", serializer.data)
         return Response(serializer.data)
 
 

@@ -74,8 +74,6 @@
 </template>
 
 <script>
-import { Share } from '@capacitor/share';
-import { Clipboard } from '@capacitor/clipboard';
 import { ElMessage } from 'element-plus';
 import { DynamicStorage } from '@/helpers/storage';
 import { getMessageOffset } from '@/helpers/getMessageOffest';
@@ -94,13 +92,25 @@ export default {
       showSharePanel: false,
       panelSize: '37%',
       shareLink: '',
+      Share: null,
+      Clipboard: null,
     };
   },
   created: async function () {
     window.addEventListener('resize', this.setPanelSize);
     this.setPanelSize();
-    const canShare = await Share.canShare();
-    this.canShare = canShare.value;
+    try {
+      const { Share } = await import('@capacitor/share');
+      this.Share = Share;
+      const { Clipboard } = await import('@capacitor/clipboard');
+      this.Clipboard = Clipboard;
+
+      const canShare = await this.Share.canShare();
+      this.canShare = canShare.value;
+    } catch {
+      // Capacitor plugins not available in browser
+      this.canShare = false;
+    }
     this.shareLink = await this.getCompactLink();
   },
   unmounted() {
@@ -184,16 +194,32 @@ export default {
       return url;
     },
     async copyLink() {
-      await Clipboard.write({
-        string: await this.getCompactLink(),
-      });
-      ElMessage.success({
-        title: 'Saved',
-        message: 'The Share Link has been copied to the clipboard.</small>',
-        showClose: true,
-        dangerouslyUseHTMLString: true,
-        offset: getMessageOffset(),
-      });
+      if (this.Clipboard) {
+        await this.Clipboard.write({
+          string: await this.getCompactLink(),
+        });
+        ElMessage.success({
+          title: 'Saved',
+          message: 'The Share Link has been copied to the clipboard.</small>',
+          showClose: true,
+          dangerouslyUseHTMLString: true,
+          offset: getMessageOffset(),
+        });
+      } else {
+        // Fallback to navigator.clipboard if available
+        try {
+          await navigator.clipboard.writeText(await this.getCompactLink());
+          ElMessage.success({
+            title: 'Saved',
+            message: 'The Share Link has been copied to the clipboard.</small>',
+            showClose: true,
+            dangerouslyUseHTMLString: true,
+            offset: getMessageOffset(),
+          });
+        } catch {
+          ElMessage.error('Failed to copy link');
+        }
+      }
     },
     async toggleSharePanel() {
       this.showSharePanel = !this.showSharePanel;
@@ -203,12 +229,14 @@ export default {
 
     async share(event) {
       event.preventDefault();
-      await Share.share({
-        title: 'Pray the Daily Office',
-        text: 'Join me in praying the Daily Office using my customized settings',
-        url: await this.getCompactLink(),
-        dialogTitle: 'Pray with others',
-      });
+      if (this.Share) {
+        await this.Share.share({
+          title: 'Pray the Daily Office',
+          text: 'Join me in praying the Daily Office using my customized settings',
+          url: await this.getCompactLink(),
+          dialogTitle: 'Pray with others',
+        });
+      }
     },
   },
 };

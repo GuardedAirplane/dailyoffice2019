@@ -5,7 +5,7 @@ import router from '@/router';
 import { getMessageOffset } from '@/helpers/getMessageOffest';
 import { decodeSettingsString } from '@/helpers/decodeSettingsString';
 
-export default createStore({
+export const storeOptions = {
   state: { settings: false, availableSettings: false },
   mutations: {
     saveAvailableSettings: (state, availableSettings) => {
@@ -115,4 +115,6 @@ export default createStore({
     },
   },
   modules: {},
-});
+};
+
+export default createStore(storeOptions);

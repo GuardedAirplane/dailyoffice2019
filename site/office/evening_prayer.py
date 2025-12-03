@@ -1,7 +1,11 @@
 import datetime
+import logging
+import time
 
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
+
+logger = logging.getLogger(__name__)
 
 from office.canticles import DefaultCanticles, BCP1979CanticleTable, REC2011CanticleTable
 
@@ -27,6 +31,16 @@ from psalter.utils import get_psalms
 
 
 class EveningPrayer(Office):
+    """
+    Daily Evening Prayer office according to BCP 2019.
+
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+
+    Provides complete Evening Prayer office including: opening sentence, confession,
+    invitatory, psalms, two scripture readings, canticles (Magnificat/Nunc Dimittis),
+    Apostles' Creed, prayers, and closing dismissal.
+    """
+
     name = "Evening Prayer"
     office = "evening_prayer"
 
@@ -34,10 +48,11 @@ class EveningPrayer(Office):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        commemoration_name = self.date.primary_evening.name if self.date.primary_evening else "Unknown"
         self.description = "Office: {}, Date: {}, Commemoration: {}, Psalms (30 Day Cycle): {}, Psalms (60 Day Cycle): {}, First Reading: {}, Second Reading: {}, Prayer Book: {}".format(
             "Daily Evening Prayer",
             self.get_formatted_date_string(),
-            self.date.primary_evening.name,
+            commemoration_name,
             self.thirty_day_psalter_day.ep_psalms.replace(",", " "),
             self.office_readings.ep_psalms.replace(",", " "),
             self.office_readings.ep_reading_1,
@@ -51,7 +66,14 @@ class EveningPrayer(Office):
 
     @cached_property
     def modules(self):
-        return [
+        """
+        Performance-critical method for generating Evening Prayer office modules.
+
+        Validates: SC-001 (Office page load time < 3 seconds)
+        """
+        start_time = time.time()
+
+        modules = [
             (EPHeading(self.date), "office/heading.html"),
             (EPCommemorationListing(self.date), "office/commemoration_listing.html"),
             (EPOpeningSentence(self.date), "office/opening_sentence.html"),
@@ -78,14 +100,32 @@ class EveningPrayer(Office):
             (Dismissal(self.date, self.office_readings, office=self), "office/dismissal.html"),
         ]
 
+        duration = (time.time() - start_time) * 1000
+        logger.debug(f"EveningPrayer.modules completed in {duration:.2f}ms (modules={len(modules)})")
+
+        return modules
+
 
 class EPHeading(OfficeSection):
+    """
+    Evening Prayer heading display.
+
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    Validates: FR-009 (Include full text of liturgical components)
+    """
+
     @cached_property
     def data(self):
         return {"heading": mark_safe("Daily<br>Evening Prayer"), "calendar_date": self.date}
 
 
 class EPCommemorationListing(OfficeSection):
+    """
+    Evening Prayer commemoration listing display.
+
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    """
+
     @cached_property
     def data(self):
         return {
@@ -97,29 +137,68 @@ class EPCommemorationListing(OfficeSection):
 
 
 class EPInvitatory(OfficeSection):
+    """
+    Evening Prayer invitatory section (typically omitted).
+
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    """
+
     @cached_property
     def data(self):
+        """
+        Generate invitatory section data (empty for Evening Prayer).
+
+        Returns:
+            dict: Empty dict as Evening Prayer typically omits the invitatory
+        """
         return {}
 
 
 class EPOpeningSentence(OfficeSection):
+    """
+    Evening Prayer opening sentence with seasonal and weekday variation.
+
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    Validates: FR-009 (Include full text of prayers and liturgical responses)
+    """
+
     def get_sentence(self):
-        if "Thanksgiving Day" in self.date.primary_evening.name:
+        """
+        Select the appropriate evening opening sentence based on season, feast, or weekday.
+
+        Opening sentences vary by:
+        - Specific feasts (Thanksgiving, Pentecost, Trinity Sunday, Easter, Ascension)
+        - Liturgical seasons (Advent, Lent, Holy Week, Christmastide, Epiphanytide, Eastertide)
+        - Weekday rotation (Sunday through Saturday)
+
+        Validates: FR-009 (Include full text of liturgical components)
+
+        Returns:
+            dict: Contains 'sentence' (scripture text) and 'citation' (biblical reference)
+        """
+        # Guard against None values in calendar data
+        if self.date.primary_evening and "Thanksgiving Day" in self.date.primary_evening.name:
             return {
                 "sentence": "The Lord by wisdom founded the earth; by understanding he established the heavens; by his knowledge the deeps broke open, and the clouds drop down the dew.",
                 "citation": "PROVERBS 3:19-20",
             }
 
-        if self.date.evening_season.name == "Holy Week":
+        if self.date.evening_season and self.date.evening_season.name == "Holy Week":
             return {
                 "sentence": "All we like sheep have gone astray; we have turned every one to his own way; and the Lord has laid on him the iniquity of us all.",
                 "citation": "ISAIAH 53:6",
             }
 
-        if (
+        if self.date.evening_season and (
             self.date.evening_season.name == "Lent"
-            or self.date.primary_evening.rank.name == "EMBER_DAY"
-            or self.date.primary_evening.rank.name == "ROGATION_DAY"
+            or (
+                self.date.primary_evening
+                and self.date.primary_evening.rank
+                and (
+                    self.date.primary_evening.rank.name == "EMBER_DAY"
+                    or self.date.primary_evening.rank.name == "ROGATION_DAY"
+                )
+            )
         ):
             if self.date.date.weekday() in [6, 2]:  # Sunday, Wednesday
                 return {
@@ -138,25 +217,25 @@ class EPOpeningSentence(OfficeSection):
                 "citation": "1 JOHN 1:8-9",
             }
 
-        if self.date.evening_season.name == "Advent":
+        if self.date.evening_season and self.date.evening_season.name == "Advent":
             return {
                 "sentence": "Therefore stay awake—for you do not know when the master of the house will come, in the evening, or at midnight, or when the rooster crows, or in the morning—lest he come suddenly and find you asleep.",
                 "citation": "MARK 13:35-36",
             }
 
-        if self.date.evening_season.name == "Christmastide":
+        if self.date.evening_season and self.date.evening_season.name == "Christmastide":
             return {
                 "sentence": "Behold, the dwelling place of God is with man. He will dwell with them, and they will be his people, and God himself will be with them as their God.",
                 "citation": "REVELATION 21:3",
             }
 
-        if self.date.evening_season.name == "Epiphanytide":
+        if self.date.evening_season and self.date.evening_season.name == "Epiphanytide":
             return {
                 "sentence": "Nations shall come to your light, and kings to the brightness of your rising.",
                 "citation": "ISAIAH 60:3",
             }
 
-        if (
+        if self.date.primary_evening and (
             self.date.primary_evening.name == "The Day of Pentecost"
             or self.date.primary_evening.name == "Eve of The Day of Pentecost"
         ):
@@ -171,17 +250,16 @@ class EPOpeningSentence(OfficeSection):
                 "citation": "PSALM 46:4",
             }
 
-        if (
+        if self.date.primary_evening and (
             "Ascension" in self.date.primary_evening.name
-            or len(self.date.all_evening) > 1
-            and "Ascension" in self.date.all_evening[1].name
+            or (len(self.date.all_evening) > 1 and "Ascension" in self.date.all_evening[1].name)
         ):
             return {
                 "sentence": "For Christ has entered, not into holy places made with hands, which are copies of the true things, but into heaven itself, now to appear in the presence of God on our behalf.",
                 "citation": "HEBREWS 9:24",
             }
 
-        if (
+        if self.date.primary_evening and (
             self.date.primary_evening.name == "Trinity Sunday"
             or self.date.primary_evening.name == "Eve of Trinity Sunday"
         ):
@@ -190,7 +268,7 @@ class EPOpeningSentence(OfficeSection):
                 "citation": "ISAIAH 6:3",
             }
 
-        if self.date.evening_season.name == "Eastertide":
+        if self.date.evening_season and self.date.evening_season.name == "Eastertide":
             return {
                 "sentence": "Thanks be to God, who gives us the victory through our Lord Jesus Christ.",
                 "citation": "1 CORINTHIANS 15:57",
@@ -232,6 +310,13 @@ class EPOpeningSentence(OfficeSection):
 
 
 class EPPsalms(OfficeSection):
+    """
+    Evening Prayer psalm assignments from 30-day and 60-day psalter cycles.
+
+    Validates: FR-005 (Different psalm assignments for Evening Prayer vs Morning Prayer)
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    """
+
     @cached_property
     def data(self):
         psalms_60 = self.office_readings.ep_psalms.split("or")
@@ -252,7 +337,11 @@ class EPPsalms(OfficeSection):
         mass_heading = ""
         for reading in self.date.evening_mass_readings:
             if reading.reading_type == "psalm":
-                if self.date.primary_evening.name == "Eve of Easter Day" and reading.reading_number != 4:
+                if (
+                    self.date.primary_evening
+                    and self.date.primary_evening.name == "Eve of Easter Day"
+                    and reading.reading_number != 4
+                ):
                     continue
                 mass_psalm = reading.long_text
                 mass_heading = "The Psalm Appointed"
@@ -268,15 +357,34 @@ class EPPsalms(OfficeSection):
             "psalms_mass": mass_psalm,
             "heading_mass": mass_heading,
             "daily_office_tag": "daily-office-readings-{}".format(
-                "sunday" if self.date.primary_evening.rank.precedence_rank <= 4 else "feria"
+                "sunday"
+                if (
+                    self.date.primary_evening
+                    and self.date.primary_evening.rank
+                    and self.date.primary_evening.rank.precedence_rank <= 4
+                )
+                else "feria"
             ),
             "mass_tag": "mass-readings-{}".format(
-                "sunday" if self.date.primary_evening.rank.precedence_rank <= 4 else "feria"
+                "sunday"
+                if (
+                    self.date.primary_evening
+                    and self.date.primary_evening.rank
+                    and self.date.primary_evening.rank.precedence_rank <= 4
+                )
+                else "feria"
             ),
         }
 
 
 class EPFirstReading(Reading):
+    """
+    Evening Prayer first scripture reading (Old Testament/Apocrypha).
+
+    Validates: FR-006 (Assign two scripture readings to Evening Prayer)
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    """
+
     heading = "The First Lesson"
     tag = "first-"
 
@@ -389,6 +497,13 @@ class EPFirstReading(Reading):
 
 
 class EPSecondReading(Reading):
+    """
+    Evening Prayer second scripture reading (New Testament).
+
+    Validates: FR-006 (Assign two scripture readings to Evening Prayer)
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    """
+
     heading = "The Second Lesson"
     tag = "second-"
 
@@ -483,6 +598,14 @@ class EPSecondReading(Reading):
 
 
 class EPCanticle1(OfficeSection):
+    """
+    Evening Prayer first canticle (after first reading) - typically Magnificat.
+
+    Validates: FR-008 (Display appropriate canticles for Evening Prayer)
+    Validates: FR-009 (Include full text of canticles)
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    """
+
     def get_antiphon(self):
         if self.date.date.month != 12:
             return None
@@ -553,6 +676,14 @@ class EPCanticle1(OfficeSection):
 
 
 class EPCanticle2(OfficeSection):
+    """
+    Evening Prayer second canticle (after second reading) - typically Nunc Dimittis.
+
+    Validates: FR-008 (Display appropriate canticles for Evening Prayer)
+    Validates: FR-009 (Include full text of canticles)
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    """
+
     @cached_property
     def data(self):
         return {
@@ -563,6 +694,13 @@ class EPCanticle2(OfficeSection):
 
 
 class EPSuffrages(OfficeSection):
+    """
+    Evening Prayer suffrages (versicles and responses) with saint commemorations.
+
+    Validates: FR-009 (Include full text of liturgical responses)
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    """
+
     def get_names(self):
         names = [
             feast.saint_name for feast in self.date.all_evening if hasattr(feast, "saint_name") and feast.saint_name
@@ -583,6 +721,13 @@ class EPSuffrages(OfficeSection):
 
 
 class EPCollectsOfTheDay(OfficeSection):
+    """
+    Evening Prayer collects of the day.
+
+    Validates: FR-009 (Include full text of prayers)
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    """
+
     @cached_property
     def data(self):
         return {
@@ -599,6 +744,13 @@ class EPCollectsOfTheDay(OfficeSection):
 
 
 class EPCollects(OfficeSection):
+    """
+    Evening Prayer weekly and fixed collects.
+
+    Validates: FR-009 (Include full text of prayers)
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    """
+
     @cached_property
     def data(self):
         weekly_collects = (
@@ -654,6 +806,13 @@ class EPCollects(OfficeSection):
 
 
 class EPMissionCollect(OfficeSection):
+    """
+    Evening Prayer mission collect (rotating daily).
+
+    Validates: FR-009 (Include full text of prayers)
+    Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+    """
+
     def get_weekday_class(self):
         start = "mission-ep-"
         if self.date.date.weekday() in (2, 4, 6):

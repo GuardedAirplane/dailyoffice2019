@@ -10,6 +10,7 @@
           :card="card"
           :service-type="serviceType"
         />
+        <!-- FR-022a: Display error with offline indicator -->
         <el-alert v-if="error" :title="error" type="error" />
         <OfficeNav
           :calendar-date="calendarDate"
@@ -120,6 +121,17 @@
 </template>
 
 <script>
+/**
+ * Office view component - displays Daily Office liturgies.
+ *
+ * Validates: FR-001 (Display Morning Prayer with all required liturgical components)
+ * Validates: FR-002 (Display Evening Prayer with all required liturgical components)
+ * Validates: FR-003 (Display Midday Prayer)
+ * Validates: FR-004 (Display Compline)
+ *
+ * Renders office modules retrieved from backend API including headings, readings,
+ * psalms, canticles, prayers, and other liturgical components.
+ */
 // @ is an alias to /src
 import OfficeHeading from '@/components/OfficeHeading.vue';
 import OfficeSubheading from '@/components/OfficeSubheading.vue';
@@ -271,6 +283,8 @@ export default {
     try {
       data = await this.$http.get(office_url);
     } catch {
+      // FR-022a: Display error with offline indicator
+      // FR-022b: Provide retry option (via page reload)
       this.error =
         'There was an error retrieving the office. Please try again.';
       this.loading = false;

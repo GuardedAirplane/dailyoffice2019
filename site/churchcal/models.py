@@ -164,9 +164,16 @@ class Commemoration(BaseModel):
         if proper:
             query = MassReading.objects.filter(years__contains=year, proper=proper).order_by("reading_number")
         else:
-            query = MassReading.objects.filter(years__contains=year, commemoration=commemoration).order_by(
-                "reading_number"
-            )
+            if commemoration.pk is None and hasattr(commemoration, "original_pk"):
+                query = MassReading.objects.filter(
+                    years__contains=year, commemoration__pk=commemoration.original_pk
+                ).order_by("reading_number")
+            elif commemoration.pk is None:
+                return MassReading.objects.none()
+            else:
+                query = MassReading.objects.filter(years__contains=year, commemoration=commemoration).order_by(
+                    "reading_number"
+                )
 
         if year in ["A", "C"] and time == "morning":
             query = query.order_by("reading_number", "-order")
@@ -214,9 +221,17 @@ class Commemoration(BaseModel):
         elif proper:
             query = MassReading.objects.filter(years__contains=year, proper=proper).order_by("reading_number")
         else:
-            query = MassReading.objects.filter(years__contains=year, commemoration__uuid=commemoration.uuid).order_by(
-                "reading_number"
-            )
+            if commemoration.pk is None and hasattr(commemoration, "original_pk"):
+                query = MassReading.objects.filter(
+                    years__contains=year, commemoration__pk=commemoration.original_pk
+                ).order_by("reading_number")
+            elif commemoration.pk is None:
+                return MassReading.objects.none()
+            else:
+                query = MassReading.objects.filter(
+                    years__contains=year, commemoration__uuid=commemoration.uuid
+                ).order_by("reading_number")
+
             if "Eve of" in commemoration.name:
                 query = query.exclude(
                     service__in=["II", "III", "Early Service", "Principal Service", "Evening Service"]
@@ -379,11 +394,18 @@ class FerialCommemoration(Commemoration):
     def __init__(self, date, season, calendar, *args, **kwargs):
         super(FerialCommemoration, self).__init__(*args, **kwargs)
         self.date = date
-        self.name = season.rank.formatted_name
 
-        self.rank = season.rank
-        self.color = season.color
-        self.alternate_color = season.alternate_color
+        if season is None:
+            # Default to a simple ferial day when season is not available
+            self.name = "Ferial"
+            self.rank = None
+            self.color = None
+            self.alternate_color = None
+        else:
+            self.name = season.rank.formatted_name
+            self.rank = season.rank
+            self.color = season.color
+            self.alternate_color = season.alternate_color
 
     def initial_date(self, advent_year, calendar_year=None):
         return self.date
@@ -406,10 +428,21 @@ class Proper(BaseModel):
 
 
 class Season(BaseModel):
+    """
+    Liturgical season model (Advent, Christmastide, Epiphanytide, Lent,
+    Holy Week, Eastertide, Season After Pentecost).
+
+    Validates: FR-014 (Calculate and Display Liturgical Season)
+
+    Stores season properties including liturgical color, precedence rank,
+    and starting commemoration. Used by CalendarDate to determine current
+    liturgical season for any date.
+    """
+
     order = models.IntegerField(choices=zip(range(1, 29), range(1, 29)), blank=False, null=False)
     name = models.CharField(max_length=1024)
     start_commemoration = models.ForeignKey("Commemoration", on_delete=models.SET_NULL, null=True, blank=True)
-    color = models.CharField(max_length=255)
+    color = models.CharField(max_length=255)  # FR-014: Liturgical color for season
     alternate_color = models.CharField(max_length=255, null=True, blank=True)
     rank = models.ForeignKey(CommemorationRank, on_delete=models.CASCADE, null=False, blank=False)
     calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE, null=False, blank=False)

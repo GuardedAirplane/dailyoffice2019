@@ -150,7 +150,7 @@ def import_psalter(files, trad=False):
         line = line_to_text(line)
         if replace_lord:
             line = line.replace("Lord", "Lᴏʀᴅ")
-        if re.match("[0-9]+\s", line) or line.isnumeric() or i >= len(lines) - 2:
+        if re.match(r"[0-9]+\s", line) or line.isnumeric() or i >= len(lines) - 2:
             if verse_number != 0 and psalm_number != 0 and first_half:
                 # print(psalm_number, verse_number, first_half, i, len(lines))
                 psalm = Psalm.objects.get_or_create(number=psalm_number)[0]
@@ -167,8 +167,8 @@ def import_psalter(files, trad=False):
                 second_half = ""
                 first_half_complete = False
                 had_asterisk = False
-        if re.match("[0-9]+\s", line):
-            verse_number = re.search("[0-9]+\s", line).group()
+        if re.match(r"[0-9]+\s", line):
+            verse_number = re.search(r"[0-9]+\s", line).group()
             line = line.replace(verse_number, "").strip()
             verse_number = number(verse_number)
         if line.isnumeric():

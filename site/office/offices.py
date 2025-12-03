@@ -1,43 +1,116 @@
 import datetime
+import logging
+import time
+from typing import Dict, List, Any, Optional, Tuple
 
 from django.urls import reverse
 from django.utils.functional import cached_property
-from django.utils.safestring import mark_safe
+from django.utils.safestring import mark_safe, SafeString
 
 from office.models import HolyDayOfficeDay, StandardOfficeDay, ThirtyDayPsalterDay
 from office.utils import passage_to_citation
 
+# Performance monitoring logger
+logger = logging.getLogger(__name__)
+
 
 class Office(object):
+    """
+    Base class for all Daily Office types in the BCP 2019 tradition.
+
+    Provides core functionality for office generation including:
+    - Date handling and liturgical calendar integration
+    - Psalm and reading assignments
+    - Navigation between office types and dates
+    - Performance monitoring
+
+    Validates: FR-001, FR-002, FR-003, FR-004 (Office Types)
+    Validates: FR-007 (Use Proper Readings for Feast Days and Sundays)
+    Validates: FR-012 (View Offices for Any Date)
+    Validates: FR-013 (Navigation Between Office Types)
+    Validates: SC-001 (Office Load Time < 3 seconds)
+
+    Attributes:
+        name (str): Human-readable name of the office type
+        modules (list): Ordered list of OfficeSection instances comprising the office
+        date (CalendarDate): Liturgical calendar date for this office
+        office_readings (OfficeDay): Assigned readings for this date
+        thirty_day_psalter_day (ThirtyDayPsalterDay): Psalm assignments for this calendar day
+        title (str): Full page title for SEO and browser display
+    """
+
     name = "Daily Office"
     modules = []
 
-    def get_formatted_date_string(self):
+    def get_formatted_date_string(self) -> str:
+        """
+        Format the office date for human-readable display.
+
+        Returns:
+            str: Date formatted as "Wednesday January 1, 2025"
+        """
         return "{dt:%A} {dt:%B} {dt.day}, {dt.year}".format(dt=self.date.date)
 
-    def __init__(self, date):
+    def __init__(self, date, **kwargs):
+        """
+        Initialize Office for any valid date.
+
+        Validates: FR-007 (Use Proper Readings for Feast Days and Sundays)
+        Validates: FR-012 (View Offices for Any Date)
+        Validates: SC-001 (Office Load Time < 3 seconds) - Performance monitoring
+        """
+        # Performance monitoring: Track office initialization time
+        start_time = time.time()
+
         from churchcal.calculations import get_calendar_date
+        from churchcal.models import FerialCommemoration
 
         self.date = get_calendar_date(date)
 
-        try:
-            self.office_readings = HolyDayOfficeDay.objects.get(commemoration=self.date.primary)
-        except HolyDayOfficeDay.DoesNotExist:
+        # Store any additional settings passed
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+        # FerialCommemoration instances are not saved to the database (managed=False)
+        # so we cannot query HolyDayOfficeDay with them. For ferias, use StandardOfficeDay.
+        # FR-007: Feast days override standard readings via HolyDayOfficeDay
+        if self.date.primary is None or isinstance(self.date.primary, FerialCommemoration):
             self.office_readings = StandardOfficeDay.objects.get(month=self.date.date.month, day=self.date.date.day)
+        else:
+            try:
+                self.office_readings = HolyDayOfficeDay.objects.get(commemoration=self.date.primary)
+            except HolyDayOfficeDay.DoesNotExist:
+                self.office_readings = StandardOfficeDay.objects.get(
+                    month=self.date.date.month, day=self.date.date.day
+                )
 
         self.thirty_day_psalter_day = ThirtyDayPsalterDay.objects.get(day=self.date.date.day)
 
-        primary_feast_name = (
-            self.date.primary_evening.name
-            if self.name == "Evening Prayer" or self.name == "Compline"
-            else self.date.primary.name
-        )
+        primary_feast_name = ""
+        if self.name == "Evening Prayer" or self.name == "Compline":
+            if self.date.primary_evening:
+                primary_feast_name = self.date.primary_evening.name
+        elif self.date.primary:
+            primary_feast_name = self.date.primary.name
+
         self.title = "{} for {}: {} | The Daily Office according to The Book of Common Prayer (2019)".format(
             self.name, self.get_formatted_date_string(), primary_feast_name
         )
 
+        # Performance monitoring: Log initialization time
+        init_duration = (time.time() - start_time) * 1000  # Convert to ms
+        logger.debug(
+            f"Office.__init__ completed in {init_duration:.2f}ms "
+            f"(office={self.name}, date={date}, commemoration={primary_feast_name})"
+        )
+
     @cached_property
-    def links(self):
+    def links(self) -> Dict[str, Any]:
+        """
+        Generate navigation links for office types and dates.
+
+        Validates: FR-013 (Navigation Between Office Types)
+        """
         today = self.date.date
         yesterday = today - datetime.timedelta(days=1)
         tomorrow = today + datetime.timedelta(days=1)
@@ -86,26 +159,93 @@ class Office(object):
 
 
 class OfficeSection(object):
-    def __init__(self, date, office_readings=None, thirty_day_psalter_day=None, office=None):
+    """
+    Base class for all modular sections within a Daily Office.
+
+    Each OfficeSection represents a distinct liturgical component (e.g., readings,
+    psalms, prayers, canticles). Subclasses implement the `data` property to provide
+    section-specific content.
+
+    Args:
+        date (CalendarDate): Liturgical calendar date
+        office_readings (OfficeDay, optional): Reading assignments for this date
+        thirty_day_psalter_day (ThirtyDayPsalterDay, optional): Psalm assignments
+        office (Office, optional): Parent office instance
+
+    Attributes:
+        date (CalendarDate): Liturgical calendar date for this section
+        office_readings (OfficeDay): Reading assignments
+        thirty_day_psalter_day (ThirtyDayPsalterDay): Psalm assignments
+        office (Office): Parent office instance
+    """
+
+    def __init__(
+        self,
+        date: Any,
+        office_readings: Optional[Any] = None,
+        thirty_day_psalter_day: Optional[Any] = None,
+        office: Optional[Any] = None,
+    ) -> None:
         self.date = date
         self.office_readings = office_readings
         self.thirty_day_psalter_day = thirty_day_psalter_day
         self.office = office
 
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, Any]:
+        """
+        Generate section-specific liturgical content.
+
+        Must be implemented by subclasses to provide the data structure
+        required for template rendering.
+
+        Returns:
+            dict: Section content data
+
+        Raises:
+            NotImplementedError: If not overridden by subclass
+        """
         raise NotImplementedError
 
 
 class Reading(OfficeSection):
+    """
+    Base class for scripture reading sections in Daily Office.
+
+    Handles retrieval and formatting of Bible passages including:
+    - Main readings (long form)
+    - Abbreviated readings (short form)
+    - Alternate readings
+    - Mass readings (for major feasts)
+
+    Validates: FR-006 (Lectionary Integration)
+    Validates: FR-007 (Proper Readings for Feast Days)
+    Validates: FR-020 (Bible Gateway API Retrieval)
+    """
+
     @staticmethod
-    def closing(testament):
+    def closing(testament: str) -> Dict[str, str]:
+        """
+        Generate appropriate closing formula for scripture reading.
+
+        Args:
+            testament (str): Testament code ('OT', 'NT', 'DC' for Deuterocanon, 'PS' for Psalms)
+
+        Returns:
+            dict: Reader and people response text
+        """
         return {
             "reader": "The Word of the Lord." if testament != "DC" else "Here ends the Reading.",
             "people": "Thanks be to God." if testament != "DC" else "",
         }
 
-    def data(self):
+    def data(self) -> Dict[str, Any]:
+        """
+        Compile all reading variants into a unified data structure.
+
+        Returns:
+            dict: Contains heading, flags for available reading types, and reading content
+        """
         return {
             "heading": self.heading,
             "has_main_reading": self.has_main_reading,
@@ -125,31 +265,39 @@ class Reading(OfficeSection):
 
 
 class ThirdReading(Reading):
+    """
+    Optional third lesson for major feast days (precedence rank ≤ 4).
+
+    Used only when mass readings are assigned for a major feast.
+
+    Validates: FR-007 (Proper Readings for Feast Days)
+    """
+
     heading = "The Third Lesson"
     tag = "third-"
 
     @cached_property
-    def has_main_reading(self):
+    def has_main_reading(self) -> bool:
         return False
 
     @cached_property
-    def has_abbreviated_reading(self):
+    def has_abbreviated_reading(self) -> bool:
         return False
 
     @cached_property
-    def has_alternate_reading(self):
+    def has_alternate_reading(self) -> bool:
         return False
 
     @cached_property
-    def has_alternate_abbreviated_reading(self):
+    def has_alternate_abbreviated_reading(self) -> bool:
         return False
 
     @cached_property
-    def has_mass_reading(self):
+    def has_mass_reading(self) -> bool:
         return self.date.primary.rank.precedence_rank <= 4
 
     @cached_property
-    def has_abbreviated_mass_reading(self):
+    def has_abbreviated_mass_reading(self) -> bool:
         if not self.has_mass_reading:
             return False
         for reading in self.date.mass_readings:
@@ -157,19 +305,29 @@ class ThirdReading(Reading):
                 return True
         return False
 
-    def get_main_reading(self):
+    def get_main_reading(self) -> None:
+        """Third reading has no main reading variant."""
         return None
 
-    def get_abbreviated_reading(self):
+    def get_abbreviated_reading(self) -> None:
+        """Third reading has no abbreviated variant."""
         return None
 
-    def get_alternate_reading(self):
+    def get_alternate_reading(self) -> None:
+        """Third reading has no alternate variant."""
         return None
 
-    def get_alternate_abbreviated_reading(self):
+    def get_alternate_abbreviated_reading(self) -> None:
+        """Third reading has no alternate abbreviated variant."""
         return None
 
-    def get_mass_reading(self):
+    def get_mass_reading(self) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve mass reading for major feasts (reading number 4).
+
+        Returns:
+            dict or None: Reading data with intro, passage, text, closing
+        """
         if not self.has_mass_reading:
             return None
         for reading in self.date.mass_readings:
@@ -185,7 +343,13 @@ class ThirdReading(Reading):
 
         return None
 
-    def get_abbreviated_mass_reading(self):
+    def get_abbreviated_mass_reading(self) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve abbreviated mass reading for major feasts.
+
+        Returns:
+            dict or None: Abbreviated reading data
+        """
         if not self.has_abbreviated_mass_reading:
             return None
         for reading in self.date.mass_readings:
@@ -203,34 +367,100 @@ class ThirdReading(Reading):
 
 
 class Confession(OfficeSection):
+    """
+    Confession of Sin section for Daily Office.
+
+    Provides confession text with variations for fast days.
+
+    Validates: FR-009 (Include Full Text of Prayers and Liturgical Components)
+    """
+
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, Any]:
+        """
+        Generate confession section data.
+
+        Returns:
+            dict: Heading and fast day indicator
+        """
         return {"heading": "Confession of Sin", "fast_day": self.date.fast_day}
 
 
 class Invitatory(OfficeSection):
+    """
+    Invitatory section with Venite or Jubilate canticle.
+
+    Validates: FR-008 (Display Appropriate Canticles)
+    Validates: FR-009 (Include Full Text of Prayers and Liturgical Components)
+    """
+
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, Any]:
+        """
+        Generate invitatory section data.
+
+        Returns:
+            dict: Empty dict (content handled by template)
+        """
         return {}
 
 
 class Creed(OfficeSection):
+    """
+    The Apostles' Creed section.
+
+    Validates: FR-009 (Include Full Text of Prayers and Liturgical Components)
+    """
+
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, Any]:
+        """
+        Generate creed section data.
+
+        Returns:
+            dict: Empty dict (content handled by template)
+        """
         return {}
 
 
 class Prayers(OfficeSection):
+    """
+    The Prayers section including Lord's Prayer.
+
+    Validates: FR-009 (Include Full Text of Prayers and Liturgical Components)
+    """
+
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, Any]:
+        """
+        Generate prayers section data.
+
+        Returns:
+            dict: Section heading
+        """
         return {"heading": "The Prayers"}
 
 
 class PandemicPrayers(OfficeSection):
+    """
+    Special collects for pandemic and election periods (2020).
+
+    Rotates through collects on a daily/weekly basis to provide variety.
+    Historical implementation for COVID-19 pandemic period.
+
+    Validates: FR-009 (Include Full Text of Prayers and Liturgical Components)
+    """
+
     election_start_date = datetime.datetime.strptime("2020/10/27 0:00:00", "%Y/%m/%d %H:%M:%S").date()
     election_end_date = datetime.datetime.strptime("2020/11/04 23:59:59", "%Y/%m/%d %H:%M:%S").date()
 
-    def get_collect_1(self):
+    def get_collect_1(self) -> Dict[str, str]:
+        """
+        Retrieve first pandemic-related collect (3-day rotation).
+
+        Returns:
+            dict: Collect with title, text, response, citation
+        """
         collects = [
             {
                 "title": "In Time of Great Sickness and Mortality",
@@ -258,7 +488,13 @@ class PandemicPrayers(OfficeSection):
             return collects[collect_number]
         return collects[1 - collect_number]
 
-    def get_collect_2(self):
+    def get_collect_2(self) -> Dict[str, str]:
+        """
+        Retrieve second pandemic-related collect (7-day weekday rotation).
+
+        Returns:
+            dict: Collect with title, text, response, citation
+        """
         collects = [
             {
                 "title": "In Times of Natural Disaster",
@@ -309,7 +545,13 @@ class PandemicPrayers(OfficeSection):
 
         return collects[6 - self.date.date.weekday()]
 
-    def get_collect_3(self):
+    def get_collect_3(self) -> Optional[Dict[str, str]]:
+        """
+        Retrieve election-specific collect (only during Oct 27 - Nov 4, 2020).
+
+        Returns:
+            dict or None: Collect data if within election period, None otherwise
+        """
         if self.date.date >= self.election_start_date and self.date.date <= self.election_end_date:
             return {
                 "title": "For an Election",
@@ -319,7 +561,13 @@ class PandemicPrayers(OfficeSection):
             }
         return None
 
-    def get_collect_4(self):
+    def get_collect_4(self) -> Optional[Dict[str, str]]:
+        """
+        Retrieve national prayer during election period (only during Oct 27 - Nov 4, 2020).
+
+        Returns:
+            dict or None: Collect data if within election period, None otherwise
+        """
         if self.date.date >= self.election_start_date and self.date.date <= self.election_end_date:
             return {
                 "title": "For Our Nation",
@@ -330,7 +578,13 @@ class PandemicPrayers(OfficeSection):
         return None
 
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, Optional[Dict[str, str]]]:
+        """
+        Compile all pandemic-related collects.
+
+        Returns:
+            dict: Up to 4 collects (collect_1 through collect_4)
+        """
         return {
             "collect_1": self.get_collect_1(),
             "collect_2": self.get_collect_2(),
@@ -340,8 +594,22 @@ class PandemicPrayers(OfficeSection):
 
 
 class Intercessions(OfficeSection):
+    """
+    Intercessions and Thanksgivings section.
+
+    Rubrics invite the congregation to offer prayers.
+
+    Validates: FR-009 (Include Full Text of Prayers and Liturgical Components)
+    """
+
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, str]:
+        """
+        Generate intercessions section data.
+
+        Returns:
+            dict: Heading and rubric text
+        """
         return {
             "heading": "Intercessions and Thanksgivings",
             "rubric_1": "The Officiant may invite the People to offer intercessions and thanksgivings.",
@@ -350,26 +618,71 @@ class Intercessions(OfficeSection):
 
 
 class GeneralThanksgiving(OfficeSection):
+    """
+    The General Thanksgiving prayer.
+
+    Validates: FR-009 (Include Full Text of Prayers and Liturgical Components)
+    """
+
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, str]:
+        """
+        Generate general thanksgiving section data.
+
+        Returns:
+            dict: Section heading
+        """
         return {"heading": "The General Thanksgiving"}
 
 
 class Chrysostom(OfficeSection):
+    """
+    Prayer of St. John Chrysostom.
+
+    Validates: FR-009 (Include Full Text of Prayers and Liturgical Components)
+    """
+
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, str]:
+        """
+        Generate Chrysostom prayer section data.
+
+        Returns:
+            dict: Section heading
+        """
         return {"heading": "A PRAYER OF ST. JOHN CHRYSOSTOM"}
 
 
 class Dismissal(OfficeSection):
-    def get_fixed_grace(self):
+    """
+    Dismissal section with seasonal variations and grace.
+
+    Includes Alleluia during Eastertide and rotating grace formulas.
+
+    Validates: FR-009 (Include Full Text of Prayers and Liturgical Components)
+    Validates: FR-014 (Calculate Correct Liturgical Season) - Eastertide detection
+    """
+
+    def get_fixed_grace(self) -> Dict[str, str]:
+        """
+        Retrieve standard grace formula (2 Corinthians 13:14).
+
+        Returns:
+            dict: Officiant text, people response, citation
+        """
         return {
             "officiant": "The grace of our Lord Jesus Christ, and the love of God, and the fellowship of the Holy Spirit, be with us all evermore.",
             "people": "Amen.",
             "citation": "2 CORINTHIANS 13:14",
         }
 
-    def get_grace(self):
+    def get_grace(self) -> Dict[str, str]:
+        """
+        Retrieve grace formula based on day of week rotation.
+
+        Returns:
+            dict: Officiant text, people response, citation
+        """
         if self.date.date.weekday() in (6, 2, 5):
             return {
                 "officiant": "The grace of our Lord Jesus Christ, and the love of God, and the fellowship of the Holy Spirit, be with us all evermore.",
@@ -391,7 +704,15 @@ class Dismissal(OfficeSection):
             }
 
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, Any]:
+        """
+        Generate dismissal section data with seasonal variations.
+
+        Adds "Alleluia, alleluia" during Eastertide.
+
+        Returns:
+            dict: Heading, officiant/people text, grace formulas
+        """
         morning_easter = self.office.office not in ["evening_prayer"] and self.date.season.name == "Eastertide"
         evening_easter = self.office.office in ["evening_prayer"] and self.date.evening_season.name == "Eastertide"
 
@@ -412,14 +733,40 @@ class Dismissal(OfficeSection):
 
 
 class FMCreed(OfficeSection):
+    """
+    Family Morning Prayer simplified creed section.
+
+    Validates: FR-018 (Provide Family Prayer Offices)
+    """
+
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, Any]:
+        """
+        Generate family morning creed section data.
+
+        Returns:
+            dict: Empty dict (content handled by template)
+        """
         return {}
 
 
 class FamilyRubricSection(OfficeSection):
+    """
+    Introductory rubric for Family Prayer offices.
+
+    Explains the simplified structure for families with young children.
+
+    Validates: FR-018 (Provide Family Prayer Offices)
+    """
+
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, SafeString]:
+        """
+        Generate family prayer rubric section data.
+
+        Returns:
+            dict: Rubric text with HTML formatting
+        """
         return {
             "rubric": mark_safe(
                 "<br>These devotions follow the basic structure of the Daily Office of the Church and are particularly appropriate for families with young children.<br><br>The Reading and the Collect may be read by one person, and the other parts said in unison, or in some other convenient manner."
@@ -428,8 +775,20 @@ class FamilyRubricSection(OfficeSection):
 
 
 class FamilyIntercessions(OfficeSection):
+    """
+    Simplified intercessions section for Family Prayer.
+
+    Validates: FR-018 (Provide Family Prayer Offices)
+    """
+
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, str]:
+        """
+        Generate family intercessions section data.
+
+        Returns:
+            dict: Heading and rubric text
+        """
         return {
             "title": "Intercessions",
             "rubric": mark_safe(
@@ -439,13 +798,40 @@ class FamilyIntercessions(OfficeSection):
 
 
 class GreatLitany(OfficeSection):
-    def get_names(self):
+    """
+    The Great Litany section with saint commemorations.
+
+    Includes dynamic saint names and national variations (US/Canada).
+
+    Validates: FR-009 (Include Full Text of Prayers and Liturgical Components)
+    Validates: FR-011 (Display Commemorations)
+    """
+
+    def get_names(self) -> str:
+        """
+        Retrieve list of saint names for commemoration.
+
+        Always includes the Blessed Virgin Mary, plus any additional saints
+        commemorated on this date.
+
+        Returns:
+            str: Comma-separated list of saint names
+        """
         feasts = self.date.all_evening if self.office.name == "evening_prayer" else self.date.all
         names = [feast.saint_name for feast in feasts if hasattr(feast, "saint_name") and feast.saint_name]
         names = ["the Blessed Virgin Mary"] + names
         return ", ".join(names)
 
-    def get_leaders(self):
+    def get_leaders(self) -> SafeString:
+        """
+        Generate national leader names with regional variations.
+
+        Includes spans for US/Canada/generic national leaders to allow
+        client-side filtering based on user location.
+
+        Returns:
+            SafeString: HTML spans with country-specific leader names
+        """
         parts = [
             '<span class="us">your servant Donald Trump, the President, </span>',
             '<span class="canada">your servants His Majesty King Charles, the Sovereign, and Mark Carney, the Prime Minister, </span>'
@@ -453,7 +839,15 @@ class GreatLitany(OfficeSection):
         ]
         return mark_safe("".join(parts))
 
-    def get_weekday_class(self):
+    def get_weekday_class(self) -> str:
+        """
+        Generate CSS class for Great Litany placement based on weekday.
+
+        Great Litany is appointed for Wednesdays, Fridays, and Sundays.
+
+        Returns:
+            str: CSS class name for styling/visibility control
+        """
         if self.office.office == "evening_prayer":
             start = "litany-ep-"
         else:
@@ -463,5 +857,11 @@ class GreatLitany(OfficeSection):
         return start + "not-wfs"
 
     @cached_property
-    def data(self):
+    def data(self) -> Dict[str, Any]:
+        """
+        Generate Great Litany section data.
+
+        Returns:
+            dict: Saint names, national leaders, weekday CSS class
+        """
         return {"names": self.get_names(), "leaders": self.get_leaders(), "weekday_class": self.get_weekday_class()}

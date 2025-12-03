@@ -346,7 +346,7 @@ def import_traditional_language_occasional_collects():
     all_text = filter(line_should_be_included, all_text)
     all_text = list(all_text)
     for line in all_text:
-        if re.match("(</strong>)?(</em>)?[0-9]+\.", line):
+        if re.match(r"(</strong>)?(</em>)?[0-9]+\.", line):
             if name and content:
                 collect = Collect.objects.filter(collect_type=collect_type, order=number(name)).first()
                 if not collect:

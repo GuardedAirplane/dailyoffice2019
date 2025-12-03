@@ -12,6 +12,14 @@ from office.utils import passage_to_citation
 
 
 class OfficeDay(BaseModel):
+    """
+    Base model for Daily Office readings and psalm assignments.
+
+    FR-005: Different psalm assignments for Morning Prayer vs Evening Prayer
+    MP psalms (mp_psalms) differ from EP psalms (ep_psalms) to provide
+    variety and cover the Psalter systematically.
+    """
+
     TESTAMENTS = (("OT", "Old Testament"), ("DC", "Deuterocanon"), ("AP", "Apocrypha"), ("NT", "New Testament"))
 
     holy_day_name = models.CharField(max_length=255, null=True, blank=True)
@@ -36,6 +44,7 @@ class OfficeDay(BaseModel):
 
     @cached_property
     def readings(self):
+        # FR-022c: Retrieve cached Scripture passages from database
         passages = Scripture.objects.filter(
             passage__in=[
                 self.mp_reading_1,
@@ -80,12 +89,25 @@ class HolyDayOfficeDay(OfficeDay):
 
 
 class ThirtyDayPsalterDay(BaseModel):
+    """
+    30-day Psalter cycle psalm assignments.
+
+    FR-005a: 30-day and 60-day Psalter cycles
+    Provides psalm assignments for each day of a 30-day cycle, systematically
+    covering Psalms 1-150 over the course of a month. Different psalms are
+    assigned for Morning Prayer (mp_psalms) and Evening Prayer (ep_psalms).
+
+    FR-005b: User Psalter cycle selection
+    This model supports the 30-day cycle option. Users can select between
+    30-day and 60-day cycles in settings (60-day cycle planned for future).
+    """
+
     day = models.IntegerField()
     mp_psalms = models.CharField(max_length=255)
     ep_psalms = models.CharField(max_length=255)
 
     def psalm_string_to_list(self, psalms):
-        return psalms.split(psalms)
+        return psalms.split(",")
 
     def get_mp_pslams(self):
         return self.psalm_string_to_list(self.mp_psalms)
@@ -166,6 +188,25 @@ class UpdateNotice(BaseModel):
 
 
 class Setting(BaseModel):
+    """
+    Setting model for liturgical customization options.
+
+    Implements FR-026 (Liturgical customization) and FR-027 (Sensible defaults)
+
+    Settings are organized by type (MAIN/ADDITIONAL/EXPERT) and site (DAILY_OFFICE/FAMILY_PRAYER).
+    Each setting has multiple options (SettingOption model), with the first option by order
+    serving as the default (FR-027).
+
+    Frontend displays these settings at /settings, allowing users to customize:
+    - Bible translation (FR-017)
+    - Canticle rotation
+    - Confession length
+    - Psalter cycle
+    - And other liturgical preferences
+
+    Related Tasks: T152, T153, T163, T164
+    """
+
     MAIN_SETTINGS = 1
     ADDITIONAL_SETTINGS = 2
     EXPERT_SETTINGS = 3
@@ -230,6 +271,18 @@ class CollectTag(BaseModel):
 
 
 class AbstractCollect(object):
+    """
+    Helper class for dynamically-generated collects.
+
+    Used by sanctorale commemorations with common collects to generate
+    collect text with saint name and pronouns filled in from template.
+
+    FR Requirements:
+    - FR-009: Include full text of prayers and collects (provides collect text)
+
+    Related: Phase 15 (T185-T186), Collect system testing
+    """
+
     text = ""
     traditional_text = ""
 
@@ -251,6 +304,31 @@ class AbstractCollect(object):
 
 
 class Collect(BaseModel):
+    """
+    Model for prayers and collects used in Daily Office and other liturgies.
+
+    Stores collects with contemporary and traditional language versions,
+    organized by type (year, occasional, liturgical) and tagged for filtering.
+
+    FR Requirements:
+    - FR-009: Include full text of prayers and collects
+      * Stores full contemporary and traditional text
+      * Provides text_no_tags property for clean display
+      * Includes attribution for historical sources
+    - FR-007: Proper collects for feast days
+      * Linked to commemorations via commemoration.collect_1/collect_2
+      * Linked to propers via proper.collect_1
+      * Supports seasonal and feast-specific collects
+
+    Collect Hierarchy (implemented in churchcal/calculations.py):
+    1. Principal Feast: Uses commemoration.collect_1
+    2. Proper Collect: Uses proper.collect_1 for Sundays in Ordinary Time
+    3. Seasonal Collect: Uses commemoration.collect_1 for seasonal feasts
+    4. Feria: Inherits from previous Sunday/feast
+
+    Related: Phase 15 (T185-T186), Collect system testing
+    """
+
     COLLECT_TYPES = (
         ("year", "Collects of the Christian Year"),
         ("occasional", "Occasional Prayers"),
@@ -294,6 +372,11 @@ class Collect(BaseModel):
 
 
 class Scripture(BaseModel):
+    """
+    FR-022c: Scripture passages are cached in the database to allow viewing
+    content when BibleGateway API is offline or experiences errors.
+    """
+
     passage = models.CharField(max_length=255)
     esv = models.TextField(blank=True, null=True)
     kjv = models.TextField(blank=True, null=True)

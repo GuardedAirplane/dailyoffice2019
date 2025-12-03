@@ -66,6 +66,47 @@ const routes = [
     },
   },
   // Place the most specific routes first
+
+  // Explicit office routes for "today" views (must come before generic :serviceType/:office patterns)
+  // These prevent /compline from matching /:serviceType and showing the wrong office
+  {
+    path: '/morning_prayer/:forward?',
+    name: 'MorningPrayerToday',
+    component: Today,
+    meta: {
+      title: 'Morning Prayer | The Daily Office',
+      office: 'morning_prayer',
+    },
+  },
+  {
+    path: '/evening_prayer/:forward?',
+    name: 'EveningPrayerToday',
+    component: Today,
+    meta: {
+      title: 'Evening Prayer | The Daily Office',
+      office: 'evening_prayer',
+    },
+  },
+  {
+    path: '/midday_prayer/:forward?',
+    name: 'MiddayPrayerToday',
+    component: Today,
+    meta: {
+      title: 'Midday Prayer | The Daily Office',
+      office: 'midday_prayer',
+    },
+  },
+  {
+    path: '/compline/:forward?',
+    name: 'ComplineToday',
+    component: Today,
+    meta: {
+      title: 'Compline | The Daily Office',
+      office: 'compline',
+    },
+  },
+
+  // Generic family prayer and office routes
   {
     path: '/:serviceType/:office/:year/:month/:day',
     name: 'FamilyPrayerWithDate',

@@ -11,6 +11,12 @@ from psalter.utils import get_psalms
 
 
 class FamilyMidday(Office):
+    """
+    Family Prayer at Midday office.
+
+    Validates: FR-018 (Provide Family Prayer offices)
+    """
+
     name = "Family Prayer at Midday"
     office = "family_midday_prayer"
 
