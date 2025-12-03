@@ -1,4 +1,24 @@
 <template>
+  <!--
+  Settings Page
+  
+  Implements FR-028 (Settings accessible) and FR-026 (Liturgical customization)
+  
+  Provides user interface for configuring liturgical preferences including:
+  - Bible translation (FR-017)
+  - Canticle rotation
+  - Confession length
+  - Psalter cycle
+  - And other liturgical settings
+  
+  Settings are:
+  - Organized by type (Main/Additional/Expert) per FR-026
+  - Have sensible defaults per FR-027
+  - Stored client-side using DynamicStorage (FR-023, FR-024)
+  - Fully keyboard accessible per FR-028
+  
+  Related Tasks: T155, T156, T159, T160, T165
+  -->
   <div class="home">
     <h1>Settings</h1>
     <Loading v-if="loading" />

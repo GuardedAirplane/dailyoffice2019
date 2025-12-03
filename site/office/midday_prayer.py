@@ -8,6 +8,15 @@ from psalter.utils import get_psalms
 
 
 class MiddayPrayer(Office):
+    """
+    Midday Prayer office generation.
+
+    Validates: FR-002 (Daily Office feature - Midday Prayer variant)
+
+    Midday Prayer is an abbreviated office traditionally prayed at noon,
+    consisting of invitatory, fixed psalms, scripture reading, prayers, and conclusion.
+    """
+
     name = "Midday Prayer"
     office = "midday_prayer"
 
@@ -40,12 +49,24 @@ class MiddayPrayer(Office):
 
 
 class MiddayHeading(OfficeSection):
+    """
+    Midday Prayer heading section.
+
+    Validates: FR-002 (Office heading display)
+    """
+
     @cached_property
     def data(self):
         return {"heading": mark_safe("Midday Prayer"), "calendar_date": self.date}
 
 
 class MiddayCommemorationListing(OfficeSection):
+    """
+    Midday Prayer commemoration listing.
+
+    Validates: FR-002 (Commemoration display)
+    """
+
     @cached_property
     def data(self):
         return {
@@ -57,18 +78,44 @@ class MiddayCommemorationListing(OfficeSection):
 
 
 class MiddayInvitatory(OfficeSection):
+    """
+    Midday Prayer invitatory section.
+
+    Validates: FR-009 (Prayers and responses with seasonal variations)
+
+    Alleluia is omitted during Lent and Holy Week.
+    """
+
     @cached_property
     def data(self):
         return {"alleluia": self.date.evening_season.name != "Lent" and self.date.evening_season.name != "Holy Week"}
 
 
 class MiddayPsalms(OfficeSection):
+    """
+    Midday Prayer psalms section.
+
+    Validates: FR-005 (Psalm assignments)
+
+    Midday Prayer uses fixed psalms (119:105-112, 121, 124, 126)
+    rather than the rotating psalm cycle used in Morning/Evening Prayer.
+    """
+
     @cached_property
     def data(self):
         return {"heading": "The Psalms", "psalms": get_psalms("119:105-112,121,124,126")}
 
 
 class MiddayScripture(OfficeSection):
+    """
+    Midday Prayer scripture reading.
+
+    Validates: FR-006 (Scripture readings)
+
+    Midday Prayer uses a weekday-based rotation of three scripture passages
+    rather than the full lectionary used in Morning/Evening Prayer.
+    """
+
     def get_scripture(self):
         if self.date.date.weekday() in [0, 3, 6]:
             return {
@@ -94,6 +141,15 @@ class MiddayScripture(OfficeSection):
 
 
 class MiddayPrayers(OfficeSection):
+    """
+    Midday Prayer collects section.
+
+    Validates: FR-009 (Full text of prayers)
+
+    Includes fixed collects with special variations for certain feasts
+    (Conversion of Paul, Peter and Paul, Confession of Peter, Annunciation, etc.).
+    """
+
     collects = [
         (
             "Blessed Savior, at this hour you hung upon the Cross, stretching out your loving arms: Grant that all the peoples of the earth may look to you and be saved; for your tender mercies’ sake."
@@ -138,6 +194,14 @@ class MiddayPrayers(OfficeSection):
 
 
 class MiddayConclusion(OfficeSection):
+    """
+    Midday Prayer conclusion section.
+
+    Validates: FR-009 (Prayers and responses with seasonal variations)
+
+    Alleluia is included only during Eastertide.
+    """
+
     @cached_property
     def data(self):
         return {"alleluia": self.date.season.name == "Eastertide"}

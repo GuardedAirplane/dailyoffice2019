@@ -400,6 +400,325 @@ Accept: application/json
 }
 ```
 
+**Example: Evening Prayer**:
+
+```http
+GET /api/office/evening_prayer/2025/08/15/ HTTP/1.1
+Host: dailyoffice2019.com
+Accept: application/json
+```
+
+**Response** (200 OK) - Abbreviated structure (similar to Morning Prayer with Evening-specific content):
+
+```json
+{
+  "office": "evening_prayer",
+  "date": "2025-08-15",
+  "formatted_date": "Friday August 15, 2025",
+  "calendar_date": {
+    "date": "2025-08-15",
+    "primary": {
+      "name": "Saint Mary the Virgin, Mother of Our Lord",
+      "rank": "Major Holy Day",
+      "color": "White"
+    },
+    "season": "Pentecost"
+  },
+  "modules": [
+    {
+      "name": "Heading",
+      "lines": [{"content": "Daily<br>Evening Prayer", "line_type": "heading"}]
+    },
+    {
+      "name": "Opening Sentence",
+      "lines": [{"content": "I will bless the Lord who gives me counsel...", "line_type": "leader"}]
+    },
+    {
+      "name": "Invitatory",
+      "lines": [
+        {"content": "O God, make speed to save us.", "line_type": "leader"},
+        {"content": "O Lord, make haste to help us.", "line_type": "congregation"}
+      ]
+    },
+    {
+      "name": "Phos Hilaron",
+      "lines": [
+        {"content": "Phos Hilaron: O Gladsome Light", "line_type": "citation"},
+        {"content": "O gladsome light of the holy glory of the immortal Father, *", "line_type": "congregation"},
+        {"content": "heavenly, holy, blessed Jesus Christ.", "line_type": "congregation", "indented": "indent"}
+      ]
+    },
+    {
+      "name": "Psalms",
+      "lines": [{"content": "Psalm 113, 115", "line_type": "citation"}, ...]
+    },
+    {
+      "name": "First Reading",
+      "lines": [{"content": "Galatians 4:4-7", "line_type": "citation"}, ...]
+    },
+    {
+      "name": "Canticle",
+      "lines": [
+        {"content": "Magnificat: The Song of Mary (Luke 1:46-55)", "line_type": "citation"},
+        {"content": "My soul magnifies the Lord, *", "line_type": "congregation"}
+      ]
+    },
+    {
+      "name": "Second Reading",
+      "lines": [{"content": "Luke 1:26-38", "line_type": "citation"}, ...]
+    },
+    {
+      "name": "Canticle",
+      "lines": [
+        {"content": "Nunc Dimittis: The Song of Simeon (Luke 2:29-32)", "line_type": "citation"},
+        {"content": "Lord, now let your servant depart in peace, *", "line_type": "congregation"}
+      ]
+    },
+    {
+      "name": "Apostles' Creed",
+      "lines": [...]
+    },
+    {
+      "name": "Prayers",
+      "lines": [...]
+    }
+  ]
+}
+```
+
+**Key Differences from Morning Prayer**:
+
+- **Invitatory**: "O God, make speed to save us" (vs. "Lord, open our lips")
+- **Invitatory Psalm**: Phos Hilaron (O Gladsome Light) instead of Venite/Jubilate
+- **Canticles**: Magnificat and Nunc Dimittis (vs. Te Deum and Benedictus)
+- **Psalm Selection**: Evening psalms from 30-day or 60-day cycle
+- **Lessons**: Different lectionary assignments from Morning Prayer
+
+---
+
+**Example: Midday Prayer**:
+
+```http
+GET /api/office/midday_prayer/2025/06/10/ HTTP/1.1
+Host: dailyoffice2019.com
+Accept: application/json
+```
+
+**Response** (200 OK) - Abbreviated structure:
+
+```json
+{
+  "office": "midday_prayer",
+  "date": "2025-06-10",
+  "formatted_date": "Tuesday June 10, 2025",
+  "calendar_date": {
+    "date": "2025-06-10",
+    "primary": {
+      "name": "Tuesday in the Second Week after Pentecost",
+      "rank": "Ordinary Time",
+      "color": "Green"
+    },
+    "season": "Pentecost"
+  },
+  "modules": [
+    {
+      "name": "Heading",
+      "lines": [{"content": "Daily<br>Midday Prayer", "line_type": "heading"}]
+    },
+    {
+      "name": "Opening",
+      "lines": [
+        {"content": "O God, make speed to save us.", "line_type": "leader"},
+        {"content": "O Lord, make haste to help us.", "line_type": "congregation"},
+        {"content": "Glory be to the Father, and to the Son, and to the Holy Spirit; *", "line_type": "congregation"},
+        {"content": "as it was in the beginning, is now, and ever shall be, world without end. Amen.", "line_type": "congregation", "indented": "indent"},
+        {"content": "Alleluia.", "line_type": "congregation"}
+      ]
+    },
+    {
+      "name": "Psalm",
+      "lines": [
+        {"content": "Psalm 119:105-112", "line_type": "citation"},
+        {"content": "Your word is a lantern to my feet *", "line_type": "congregation"},
+        {"content": "and a light upon my path.", "line_type": "congregation", "indented": "indent"}
+      ]
+    },
+    {
+      "name": "Reading",
+      "lines": [
+        {"content": "Ephesians 4:1-6", "line_type": "citation"},
+        {"content": "<p>I therefore, a prisoner for the Lord...</p>", "line_type": "html"}
+      ]
+    },
+    {
+      "name": "Prayers",
+      "lines": [
+        {"content": "Lord, have mercy upon us.", "line_type": "congregation"},
+        {"content": "Christ, have mercy upon us.", "line_type": "congregation"},
+        {"content": "Lord, have mercy upon us.", "line_type": "congregation"},
+        {"content": "Our Father, who art in heaven...", "line_type": "congregation"}
+      ]
+    },
+    {
+      "name": "Collect",
+      "lines": [
+        {"content": "Blessed Savior, at this hour you hung upon the Cross...", "line_type": "leader"}
+      ]
+    },
+    {
+      "name": "Dismissal",
+      "lines": [
+        {"content": "Let us bless the Lord.", "line_type": "leader"},
+        {"content": "Thanks be to God.", "line_type": "congregation"}
+      ]
+    }
+  ]
+}
+```
+
+**Midday Prayer Characteristics**:
+
+- **Shorter Office**: Fewer modules than Morning/Evening Prayer
+- **No Canticles**: Only psalms and one short scripture reading
+- **Simple Structure**: Opening → Psalm → Reading → Prayers → Collect → Dismissal
+- **Kyrie**: Uses "Lord, have mercy" instead of longer intercessions
+- **Time-Specific Collects**: Different collects for morning (9am), noon, and afternoon (3pm)
+- **No Confession**: Penitential elements omitted
+
+---
+
+**Example: Compline**:
+
+```http
+GET /api/office/compline/2025/03/20/ HTTP/1.1
+Host: dailyoffice2019.com
+Accept: application/json
+```
+
+**Response** (200 OK) - Abbreviated structure:
+
+```json
+{
+  "office": "compline",
+  "date": "2025-03-20",
+  "formatted_date": "Thursday March 20, 2025",
+  "calendar_date": {
+    "date": "2025-03-20",
+    "primary": {
+      "name": "Thursday in the Third Week of Lent",
+      "rank": "Lenten Weekday",
+      "color": "Purple"
+    },
+    "season": "Lent"
+  },
+  "modules": [
+    {
+      "name": "Heading",
+      "lines": [{"content": "Compline", "line_type": "heading"}]
+    },
+    {
+      "name": "Opening Sentence",
+      "lines": [
+        {"content": "The Lord Almighty grant us a peaceful night and a perfect end.", "line_type": "leader"},
+        {"content": "Amen.", "line_type": "congregation"}
+      ]
+    },
+    {
+      "name": "Confession",
+      "lines": [
+        {"content": "Let us humbly confess our sins to Almighty God.", "line_type": "leader"},
+        {"content": "Almighty God and Father, we confess to you, to one another, and to the whole company of heaven, that we have sinned, through our own fault, in thought, word, and deed, and through what we have left undone. For the sake of your Son our Lord Jesus Christ, have mercy upon us, forgive us our sins, and by the power of your Holy Spirit raise us up to serve you in newness of life, to the glory of your Name. Amen.", "line_type": "congregation", "indented": "indent"}
+      ]
+    },
+    {
+      "name": "Absolution",
+      "lines": [
+        {"content": "May Almighty God grant us forgiveness of all our sins, and the grace and comfort of the Holy Spirit.", "line_type": "leader"},
+        {"content": "Amen.", "line_type": "congregation"}
+      ]
+    },
+    {
+      "name": "Invitatory",
+      "lines": [
+        {"content": "O God, make speed to save us.", "line_type": "leader"},
+        {"content": "O Lord, make haste to help us.", "line_type": "congregation"},
+        {"content": "Glory be to the Father...", "line_type": "congregation"}
+      ]
+    },
+    {
+      "name": "Psalm",
+      "lines": [
+        {"content": "Psalm 4", "line_type": "citation"},
+        {"content": "Answer me when I call, O God of my righteousness; *", "line_type": "congregation"}
+      ]
+    },
+    {
+      "name": "Reading",
+      "lines": [
+        {"content": "1 Peter 5:8-9a", "line_type": "citation"},
+        {"content": "<p>Be sober-minded; be watchful...</p>", "line_type": "html"}
+      ]
+    },
+    {
+      "name": "Hymn",
+      "lines": [
+        {"content": "Te lucis ante terminum: Before the Ending of the Day", "line_type": "citation"},
+        {"content": "Before the ending of the day, *", "line_type": "congregation"},
+        {"content": "Creator of the world, we pray", "line_type": "congregation", "indented": "indent"}
+      ]
+    },
+    {
+      "name": "Prayers",
+      "lines": [
+        {"content": "Into your hands, O Lord, I commend my spirit.", "line_type": "congregation"},
+        {"content": "For you have redeemed me, O Lord, O God of truth.", "line_type": "congregation"},
+        {"content": "Keep me, O Lord, as the apple of your eye.", "line_type": "congregation"},
+        {"content": "Hide me under the shadow of your wings.", "line_type": "congregation"}
+      ]
+    },
+    {
+      "name": "Lord's Prayer",
+      "lines": [
+        {"content": "Our Father, who art in heaven...", "line_type": "congregation"}
+      ]
+    },
+    {
+      "name": "Collect",
+      "lines": [
+        {"content": "Lighten our darkness, we beseech thee, O Lord...", "line_type": "leader"}
+      ]
+    },
+    {
+      "name": "Nunc Dimittis",
+      "lines": [
+        {"content": "Nunc Dimittis: The Song of Simeon", "line_type": "citation"},
+        {"content": "Lord, now let your servant depart in peace, *", "line_type": "congregation"},
+        {"content": "according to your word.", "line_type": "congregation", "indented": "indent"}
+      ]
+    },
+    {
+      "name": "Dismissal",
+      "lines": [
+        {"content": "Glory be to the Father, and to the Son, and to the Holy Spirit; *", "line_type": "congregation"},
+        {"content": "The Lord Almighty grant us a peaceful night and a perfect end.", "line_type": "leader"},
+        {"content": "Amen.", "line_type": "congregation"}
+      ]
+    }
+  ]
+}
+```
+
+**Compline Characteristics**:
+
+- **Night Prayer**: Designed for end of day, before sleep
+- **Penitential**: Includes confession and absolution
+- **Fixed Psalms**: Psalm 4, 31, 91, or 134 (rotates by day of week)
+- **Te lucis ante terminum**: Traditional Latin hymn "Before the Ending of the Day"
+- **Nunc Dimittis**: Song of Simeon (same as Evening Prayer second canticle)
+- **Collect for Protection**: "Lighten our darkness" or seasonal alternative
+- **No Lectionary**: Short, fixed scripture passages
+- **Peaceful Dismissal**: Blessing for peaceful night and perfect end
+
 ---
 
 ### GET `/family/{office_type}/{year}/{month}/{day}/`

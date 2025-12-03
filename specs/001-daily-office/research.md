@@ -234,6 +234,109 @@ This architecture enables:
 - **Testing**: Each OfficeSection can be unit tested independently
 - **Maintainability**: Changes to one section don't affect others
 
+## Test Coverage and Infrastructure
+
+### Overview
+
+Comprehensive test infrastructure has been established per Constitution Principle III (100% function coverage goal). The project uses a multi-layer testing strategy:
+
+- **Unit Tests** (pytest): Test individual classes and methods
+- **Integration Tests** (pytest): Test module interactions and database queries
+- **E2E Tests** (Cypress): Test complete user workflows in browser
+- **Performance Tests** (pytest + Cypress): Validate SC-001 compliance
+
+### Current Test Coverage
+
+**Overall Coverage**: 32% → Target: 100%
+
+**By Component**:
+- `office/` modules: ~35% (230+ tests created in Phases 3-19)
+- `churchcal/` calculations: ~78% (robust calendar logic tests)
+- `bible/` passage retrieval: ~20% (needs expansion)
+- `psalter/` utilities: ~7% (needs expansion)
+
+**Test File Summary**:
+- 230+ backend tests across 15+ test files
+- 50+ E2E Cypress tests across 3 spec files
+- 16 performance tests validating SC-001
+- Test fixtures using production database dump (111MB, ~13s load)
+
+### Test Infrastructure
+
+**Backend Testing** (pytest + pytest-django):
+```bash
+# Run all tests
+podman exec dailyoffice2019_backend_1 python -m pytest
+
+# Run with coverage
+podman exec dailyoffice2019_backend_1 python -m pytest --cov=office --cov=churchcal --cov=bible
+
+# Run specific test file
+podman exec dailyoffice2019_backend_1 python -m pytest office/tests/test_morning_prayer.py -v
+```
+
+**E2E Testing** (Cypress):
+```bash
+# Run E2E tests
+cd app
+npm run test:e2e
+
+# Run specific spec
+npm run test:e2e -- --spec tests/e2e/specs/morning_prayer.spec.js
+```
+
+### Test Data Strategy
+
+**Production Database Approach**:
+- Uses `dailyoffice_2024_01_30.sql` dump loaded via conftest.py
+- All StandardOfficeDay and HolyDayOfficeDay records available
+- No need to create test fixtures for common scenarios
+- Realistic data for integration testing
+
+**Test Isolation**:
+- Each test runs in transaction (auto-rollback)
+- No test pollution between test runs
+- Parallel execution safe with pytest-xdist
+
+### Key Test Achievements
+
+**Phase 3 (User Story 1 - Morning Prayer)**:
+- ✅ 60+ tests covering all MP modules
+- ✅ Integration tests for feast days (Christmas, Easter, Pentecost)
+- ✅ E2E tests for complete user workflow
+- ✅ Navigation, settings, edge cases validated
+
+**Phase 19 (Performance Testing)**:
+- ✅ 16 backend performance tests
+- ✅ 25+ E2E performance tests
+- ✅ Performance monitoring instrumentation added
+- ✅ SC-001 traceability established
+- ⚠️ Performance baseline: 700-800ms (target: 500ms) - optimization deferred
+
+### Test Documentation
+
+**Comprehensive test documentation available**:
+- `docs/testing/phase_13_settings_system.md` - Settings integration testing
+- `docs/testing/phase_14_canticle_system.md` - Canticle rotation testing
+- `docs/testing/phase_15_collects_testing.md` - Collects system testing
+- `docs/testing/phase_19_performance_testing.md` - Performance testing summary
+
+### Next Steps
+
+**Coverage Expansion** (Phases 4-18 pending):
+- Evening Prayer, Midday Prayer, Compline tests
+- Family Prayer offices tests
+- Settings system comprehensive tests
+- Canticle rotation edge cases
+- Scripture caching and error handling
+- API endpoint integration tests
+
+**Performance Optimization** (Future):
+- Address N+1 query problem (428 queries → target: 40-50)
+- Optimize office generation time (700-800ms → target: 500ms)
+- Implement module lazy loading
+- Add office-level caching
+
 ## Requirement Mapping
 
 ### Complete Traceability Matrix

@@ -52,7 +52,7 @@
   <el-row :gutter="5" class="mt-2 text-center">
     <el-col v-for="link in dayLinks" :key="link.text" :span="8">
       <div class="grid-content bg-purple">
-        <router-link :to="link.to" :v-on:click="scrollToTop">
+        <router-link :to="link.to" @click="scrollToTop">
           <el-card
             :class="link.selected ? 'selected' : ''"
             shadow="hover"
@@ -145,6 +145,8 @@ export default {
       text: "Day's Readings",
       name: 'readings',
     };
+    // Family Prayer office links for secondary navigation
+    // Validates: FR-019 (Family Prayer as secondary navigation)
     this.familyLinks = [
       {
         to: `/family/morning_prayer/${this.calendarDate.getFullYear()}/${

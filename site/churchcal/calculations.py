@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+from typing import List, Optional, Dict, Any
 
 from dateutil.parser import parse
 from django.core.cache import cache
@@ -12,7 +13,16 @@ from .utils import advent, week_days, easter
 
 
 class CalendarDate(object):
-    def __init__(self, date, calendar, year):
+    """
+    Represents a liturgical calendar date with commemorations and season.
+
+    Validates: FR-014 (Calculate and Display Liturgical Season)
+
+    Calculates the liturgical season for any date and determines primary and
+    secondary commemorations based on the church calendar rules.
+    """
+
+    def __init__(self, date: date, calendar: Calendar, year: "ChurchYear") -> None:
         self.date = date
         self.calendar = calendar
 
@@ -21,11 +31,17 @@ class CalendarDate(object):
         self.primary = None
         self.finalized = False
 
-        self.season = None
+        self.season = None  # FR-014: Liturgical season calculated and assigned
 
         self.year = year
 
-    def _find_proper(self):
+    def _find_proper(self) -> Optional[Proper]:
+        """
+        Find the liturgical Proper for a given Sunday in the Season After Pentecost.
+
+        Returns:
+            Proper or None: The proper for this Sunday, or None if not applicable
+        """
         sunday_date = self.date
         if sunday_date.weekday() != 6:
             sun_offset = (sunday_date.weekday() - 6) % 7
@@ -34,17 +50,37 @@ class CalendarDate(object):
         return Proper.objects.filter(calendar=self.calendar, start_date__lte=date, end_date__gte=date).first()
 
     @property
-    def all(self):
+    def all(self) -> List[Commemoration]:
+        """
+        Get all commemorations for this date (required + optional).
+
+        Validates: FR-011 (Display Commemorations for Each Day)
+
+        Returns:
+            list: All commemorations (primary, black letter, etc.)
+        """
         return self.required + self.optional
 
     @property
-    def all_evening(self):
+    def all_evening(self) -> List[Commemoration]:
+        """
+        Get all commemorations for evening observance (may differ from morning).
+
+        Returns:
+            list: All evening commemorations
+        """
         required = self.evening_required if hasattr(self, "evening_required") else self.required
         optional = self.evening_optional if hasattr(self, "evening_optional") else self.optional
         return required + optional
 
     @property
-    def morning_and_evening(self):
+    def morning_and_evening(self) -> List[Commemoration]:
+        """
+        Get combined list of morning and evening commemorations (no duplicates).
+
+        Returns:
+            list: Union of morning and evening commemorations
+        """
         start = self.all
         for commemoration in self.all_evening:
             if commemoration not in start:
@@ -52,15 +88,29 @@ class CalendarDate(object):
         return start
 
     @property
-    def primary_evening(self):
-        return self.all_evening[0]
+    def primary_evening(self) -> Optional[Commemoration]:
+        """
+        Get the primary commemoration for evening observance.
+
+        Returns:
+            Commemoration: Primary evening commemoration
+        """
+        return self.all_evening[0] if self.all_evening else None
 
     @cached_property
     def proper(self):
-        if self.season.name != "Season After Pentecost" and self.primary.name not in [
-            "The Day of Pentecost",
-            "Trinity Sunday",
-        ]:
+        if (
+            not self.season
+            or not self.primary
+            or (
+                self.season.name != "Season After Pentecost"
+                and self.primary.name
+                not in [
+                    "The Day of Pentecost",
+                    "Trinity Sunday",
+                ]
+            )
+        ):
             return None
 
         return self._find_proper()
@@ -71,9 +121,11 @@ class CalendarDate(object):
 
     @cached_property
     def mass_readings(self):
-        if self.proper and self.primary.rank.name in ["SUNDAY"]:
+        if self.proper and self.primary and self.primary.rank and self.primary.rank.name in ["SUNDAY"]:
             return self.proper.get_mass_readings_for_year(self.year.mass_year)
-        return self.primary.get_mass_readings_for_year(self.year.mass_year)
+        if self.primary:
+            return self.primary.get_mass_readings_for_year(self.year.mass_year)
+        return []
 
     @cached_property
     def get_all_mass_readings(self):
@@ -89,7 +141,9 @@ class CalendarDate(object):
     def evening_mass_readings(self):
         if self.proper:
             return self.proper.get_mass_readings_for_year(self.year.mass_year)
-        return self.primary_evening.get_mass_readings_for_year(self.year.mass_year, time="evening")
+        if self.primary_evening:
+            return self.primary_evening.get_mass_readings_for_year(self.year.mass_year, time="evening")
+        return []
 
     FAST_UNKNOWN = -1
     FAST_NONE = 0
@@ -152,11 +206,11 @@ class CalendarDate(object):
 
         return self.FAST_NONE
 
-    def _sort_commemorations(self):
+    def _sort_commemorations(self) -> None:
         self.required = sorted(self.required, key=lambda commemoration: (commemoration.rank.precedence_rank))
         self.optional = sorted(self.optional, key=lambda commemoration: (commemoration.rank.precedence_rank))
 
-    def add_commemoration(self, commemoration):
+    def add_commemoration(self, commemoration: Commemoration) -> None:
         if not commemoration.rank.required:
             self.optional.append(commemoration)
         else:
@@ -164,14 +218,14 @@ class CalendarDate(object):
 
         self._sort_commemorations()
 
-    def apply_rules(self):
+    def apply_rules(self) -> List[Any]:
         self._sort_commemorations()
 
         transfers = self.process_transfers()
         self.finalize_day()
         return transfers
 
-    def handle_privileged_lesser_feast(self):
+    def handle_privileged_lesser_feast(self) -> Optional[Commemoration]:
         if len(self.required) < 1:
             return None
 
@@ -185,7 +239,7 @@ class CalendarDate(object):
         self.required = []
         return required
 
-    def process_transfers(self):
+    def process_transfers(self) -> List[Commemoration]:
         transfers = self.handle_privileged_lesser_feast()
         if transfers:
             return transfers
@@ -214,7 +268,7 @@ class CalendarDate(object):
             transfer.transferred = True
         return [feast for feast in transfers if feast.rank.name != "SUNDAY"]
 
-    def append_feria_if_needed(self):
+    def append_feria_if_needed(self) -> None:
         # Don't append Feria to a Sunday!
         if self.date.weekday() == 6:
             return
@@ -225,18 +279,26 @@ class CalendarDate(object):
         if SetNamesAndCollects.has_collect_for_feria(self):
             return
 
-        self.optional.append(FerialCommemoration(self.date, self.season, self.calendar))
+        # Only append ferial commemoration if season is available
+        if self.season is not None:
+            self.optional.append(FerialCommemoration(self.date, self.season, self.calendar))
 
-    def finalize_day(self):
+    def finalize_day(self) -> None:
         self.append_feria_if_needed()
-        self.optional = sorted(self.optional, key=lambda commemoration: (commemoration.rank.precedence_rank))
+        # Sort optional commemorations, handling None ranks
+        self.optional = sorted(
+            self.optional,
+            key=lambda commemoration: (commemoration.rank.precedence_rank if commemoration.rank is not None else 999),
+        )
         if len(self.required) > 0:
             self.primary = self.required[0]
-        else:
+        elif len(self.optional) > 0:
             self.primary = self.optional[0]
+        else:
+            self.primary = None
         self.finalized = True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{} {} - {}".format(
             self.date.strftime("%A"),
             str(self.date),
@@ -371,6 +433,9 @@ class ChurchYear(object):
 
     def __init__(self, year_of_advent, calendar="ACNA_BCP2019"):
         self.calendar = Calendar.objects.filter(abbreviation=calendar).first()
+        if not self.calendar:
+            available = list(Calendar.objects.values_list("abbreviation", flat=True))
+            raise ValueError(f"Calendar '{calendar}' not found. Available: {available}")
 
         self.start_year = year_of_advent
         self.end_year = year_of_advent + 1
@@ -406,6 +471,8 @@ class ChurchYear(object):
         # #print("{} - {} - {}".format(self.mass_year, sself.daily_mass_year, self.office_year))
 
     def _get_seasons(self):
+        if not self.calendar:
+            return {}
         seasons = (
             Season.objects.filter(calendar=Calendar.objects.filter(abbreviation=self.calendar.abbreviation).get())
             .order_by("order")
@@ -414,8 +481,7 @@ class ChurchYear(object):
         season_mapping = {}
         for season in seasons:
             season_mapping[season.start_commemoration.name] = season
-        self.seasons = season_mapping
-        # print(self.seasons)
+        return season_mapping
 
     def _set_season(self, calendar_date):
         calendar_date.season = self.season_tracker
@@ -591,6 +657,25 @@ class SetNamesAndCollects(object):
         previous.evening_season = calendar_date.season
 
     def own_collect(self, commemoration, calendar_date):
+        """
+        Assign commemoration's own collect to morning and evening prayer.
+
+        Sets morning_prayer_collect and evening_prayer_collect from
+        commemoration.collect_1 and commemoration.collect_2 (if available).
+
+        FR Requirements:
+        - FR-007: Proper collects for feast days
+          * Principal feasts use their own collect_1
+          * Seasonal feasts use their own collect_1
+          * Evening Prayer may use collect_2 when available
+
+        Collect Hierarchy (Priority 1):
+        - Principal Feasts: Always use own collect
+        - Seasonal Feasts: Use own collect, not proper
+        - Ferias: Return False (handled by feria_collect or proper_collect)
+
+        Related: Phase 15 (T185-T186), Collect system testing
+        """
         if "FERIA" in commemoration.rank.name:
             return False
 
@@ -605,6 +690,25 @@ class SetNamesAndCollects(object):
             #     commemoration.evening_prayer_collect = commemoration.alternate_collect
 
     def proper_collect(self, commemoration, calendar_date):
+        """
+        Assign proper collect for Sundays in Ordinary Time.
+
+        Uses calendar_date.proper.collect_1 for Sundays after Pentecost
+        and appends "(Proper X)" to commemoration name.
+
+        FR Requirements:
+        - FR-007: Proper collects for feast days
+          * Sundays in Ordinary Time use numbered propers (1-28)
+          * Proper collect used for both morning and evening prayer
+          * Commemoration name updated to show proper number
+
+        Collect Hierarchy (Priority 2):
+        - Applied after own_collect check
+        - Only for required ranks (SUNDAY, specific feasts)
+        - Requires calendar_date.proper with collect_1
+
+        Related: Phase 15 (T185-T186), Collect system testing
+        """
         if not commemoration.rank.required:
             return
         if calendar_date.proper and calendar_date.proper.collect_1:
@@ -617,6 +721,25 @@ class SetNamesAndCollects(object):
                 commemoration.name = "{}{}".format(commemoration.name, proper_string)
 
     def feria_collect(self, commemoration, calendar_date):
+        """
+        Assign collect to feria (weekday) from previous Sunday or feast.
+
+        Searches backward through calendar dates to find the most recent
+        commemoration with a collect, then assigns that collect to the feria.
+
+        FR Requirements:
+        - FR-007: Proper collects for feast days
+          * Ferias inherit collect from previous Sunday/feast
+          * Feria name includes "after [Sunday/Feast name]"
+          * Proper number preserved if previous day had proper
+
+        Collect Hierarchy (Priority 3):
+        - Applied when commemoration rank is FERIA
+        - Looks backward for has_collect_for_feria
+        - Inherits morning_prayer_collect and evening_prayer_collect
+
+        Related: Phase 15 (T185-T186), Collect system testing
+        """
         if "FERIA" in commemoration.rank.name:
             i = self.i.get_current_index()
             while True:
@@ -812,12 +935,21 @@ class SetNamesAndCollects(object):
         return None
 
 
-def to_date(date_string):
+def to_date(date_string: Any) -> Optional[date]:
+    """
+    Convert various date formats to Python date object.
+
+    Args:
+        date_string: Can be datetime, date, or string (e.g., "2025-01-01", "January 1, 2025")
+
+    Returns:
+        date or None: Python date object, or None if conversion fails
+    """
     if isinstance(date_string, datetime):
         return date_string.date()
 
     if isinstance(date_string, date):
-        return date
+        return date_string
 
     if isinstance(date_string, str):
         try:
@@ -828,7 +960,18 @@ def to_date(date_string):
     return None
 
 
-def get_church_year(date_string):
+def get_church_year(date_string: Any) -> "ChurchYear":
+    """
+    Retrieve the ChurchYear object for a given date.
+
+    Caches ChurchYear instances for performance (12-hour TTL).
+
+    Args:
+        date_string: Any valid date format (string, date, datetime)
+
+    Returns:
+        ChurchYear: The liturgical year containing this date
+    """
     date = to_date(date_string)
     advent_start = advent(date.year)
     year = date.year if date >= advent_start else date.year - 1
@@ -839,6 +982,22 @@ def get_church_year(date_string):
     return church_year
 
 
-def get_calendar_date(date_string):
+def get_calendar_date(date_string: Any) -> CalendarDate:
+    """
+    Calculate liturgical date with dynamic season and feast calculations.
+
+    This is the primary entry point for liturgical date calculations. It determines:
+    - The liturgical season (Advent, Lent, Easter, etc.)
+    - Primary and secondary commemorations
+    - Mass readings and lectionary assignments
+
+    Validates: FR-012a (Dynamic Liturgical Calculation)
+
+    Args:
+        date_string: Any valid date format (string, date, datetime)
+
+    Returns:
+        CalendarDate: Complete liturgical date object with season and commemorations
+    """
     church_year = get_church_year(date_string)
     return church_year.get_date(date_string)
