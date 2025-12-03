@@ -9,6 +9,7 @@ sermons/static/
 static_export
 sermons/static_export
 cap/node_modules
+node_modules/.vue-global-types/
 .idea
 site/.env
 site/website/.env
@@ -21,6 +22,25 @@ site/website/.env
 .pnp.*
 dailyofficelocalapi/
 site/precompiled/
-app/test-results/
+
+# Test database dumps
+site/dailyoffice_data_only.sql
+site/dailyoffice_*.sql
+site/__MACOSX/
+
+# Coverage reports
 site/.coverage
+site/coverage.xml
+site/htmlcov/
 site/.pytest_cache/
+node_modules/.vue-global-types/vue_3.5_0.d.ts
+site/site/coverage.json
+
+# Playwright
+app/playwright-report/
+app/playwright/.cache/
+app/test-results/
+app/playwright.config.js.timestamp-*
+site/.coverage.*
+
+site/site/

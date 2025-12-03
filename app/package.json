@@ -10,6 +10,13 @@
     "test:unit": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:codegen": "playwright codegen http://localhost:5173",
+    "test:e2e:install": "playwright install --with-deps",
+    "test:e2e:cypress": "cypress run",
+    "test:e2e:cypress:open": "cypress open",
     "lint": "eslint .",
     "capacitor:build": "vue-cli-service capacitor:build",
     "capacitor:serve": "vue-cli-service capacitor:serve",
@@ -63,6 +70,7 @@
     "word-wrap": "^1.2.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
     "@babel/eslint-parser": "^7.28.4",
     "@capacitor/android": "^7.4.3",
     "@capacitor/cli": "^7.4.3",

@@ -36,9 +36,10 @@ services:
       POSTGRES_PASSWORD: dailyoffice
       MEMCACHED_HOST: cache
       MEMCACHED_PORT: 11211
-      SKIP_MIGRATIONS: "1"
+      SKIP_MIGRATIONS: "1"  # SQL dump already has tables, skip migrations
     volumes:
       - ./site:/workspace/site:Z
+      - ./site/.cache:/workspace/site/.cache:Z
     ports:
       - "8000:8000"
     depends_on:

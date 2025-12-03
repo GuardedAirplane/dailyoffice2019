@@ -20,6 +20,7 @@ RUN apt-get update \
         libjpeg-dev \
         zlib1g-dev \
         postgresql-client \
+        ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python -m venv /opt/venv
@@ -29,12 +30,11 @@ COPY requirements.txt ./
 RUN pip install --upgrade pip \
     && pip install --timeout 1200 --retries 10 -r requirements.txt
 
-COPY . .
-
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 8000
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Use Uvicorn with 12 workers to support parallel E2E testing (12 Playwright workers)
+CMD ["uvicorn", "website.asgi:application", "--host", "0.0.0.0", "--port", "8000", "--workers", "12"]
